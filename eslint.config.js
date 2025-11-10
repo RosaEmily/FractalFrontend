@@ -25,6 +25,7 @@ export default defineConfig([
 
       // Otros archivos
       "eslint.config.js",
+      "vitest.config.ts",
     ],
   },
   {

@@ -4,6 +4,7 @@
     "src/**/*.ts",
     "src/**/*.vue",
     "src/**/*.tsx",
+    "tests/**/*.ts",
     "env.d.ts",
     "shims-vue.d.ts"
   ],
