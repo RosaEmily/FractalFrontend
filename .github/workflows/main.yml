@@ -5,6 +5,9 @@ on:
     branches:
       - master  # Cambia a tu rama principal si es master u otra
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
