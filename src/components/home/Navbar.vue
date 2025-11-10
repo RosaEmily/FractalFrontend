@@ -20,7 +20,7 @@
         <a href="#" class="text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Contacto</a>
       </PopoverGroup>
       <div class="hidden md:flex md:flex-1 md:justify-end">
-        <button class="px-5 py-2 text-md/6 font-semibold rounded bg-primary-500 text-white cursor-pointer">Iniciar sesión</button>
+        <button class="px-5 py-2 text-md/6 font-semibold rounded bg-primary-500 text-white cursor-pointer hover:bg-white hover:text-primary-500 hover:border hover:border-primary-500">Iniciar sesión</button>
       </div>
     </nav>
     <Dialog class="md:hidden" @close="mobileMenuOpen = false" :open="mobileMenuOpen">
