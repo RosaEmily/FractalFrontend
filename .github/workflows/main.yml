@@ -1,17 +1,58 @@
-name: Deploy to GitHub Pages
+name: CI/CD Frontend
 
 on:
   push:
     branches:
-      - master  # Cambia a tu rama principal si es master u otra
+      - master
 
 permissions:
-  contents: write
+  contents: write  # permite que el deploy haga push a gh-pages
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
 
+  # Job 1: Linter
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.19.0'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job 2: Unit tests
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.19.0'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm run test  # Ajusta según tu configuración de tests
+
+  # Job 3: Build
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: [lint, test]  # Espera que lint y test pasen
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -25,11 +66,32 @@ jobs:
         run: npm install
 
       - name: Build project
-        run: npm run build  # Ajusta según tu proyecto (npm run build, ng build, etc.)
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: ./dist
+
+  # Job 4: Deploy to GitHub Pages
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build  # Se ejecuta solo si build pasa
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: ./dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist  # Ajusta según tu proyecto (Vue: dist, React: build, Angular: dist/<nombre>)
+          publish_dir: ./dist
           publish_branch: gh-pages
