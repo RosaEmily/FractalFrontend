@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.app.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.tsx",
+    "env.d.ts",
+    "shims-vue.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
