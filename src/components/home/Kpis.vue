@@ -2,9 +2,9 @@
 <template>
   <section ref="sectionRef" class="bg-primary-500">
     <div class="mx-auto max-w-7xl px-6 text-center py-28">
-      <h2 class="text-4xl sm:text-6xl font-semibold tracking-tight text-white">
+      <h1 class="text-4xl sm:text-6xl font-semibold tracking-tight text-white">
         Los <span class="font-bold uppercase">números</span> no mienten
-      </h2>
+      </h1>
       <p class="mt-4 text-lg text-secondary-100">
         Nuestro impacto se refleja en la experiencia, la innovación y la empleabilidad de nuestros egresados.
       </p>
