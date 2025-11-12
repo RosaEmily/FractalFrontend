@@ -3,11 +3,11 @@
   <section class="bg-white">
     <div class="relative isolate mx-auto max-w-7xl px-16 sm:px-6 md:px-8 lg:px-10">
       <div class="mx-auto max-w-2xl lg:max-w-none py-12 sm:py-16 lg:py-24 text-center">
-        <div class="text-center pb-4 sm:pb-8 lg:pb-12">
+        <div class="text-center">
           <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance text-primary-500 pb-16">
             Docentes <span class="uppercase font-bold">EXPERTOS</span> en el rubro
           </h1>
-          <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5">
+          <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             <div v-for="item in teachers.slice(0, visibleCount)" :key="item.name" class="contents">
               <div class="shadow-lg relative overflow-hidden group">
                 <img :src="item.image" :alt="item.name" class="w-full h-96 object-cover object-top"/>
@@ -93,6 +93,8 @@
 
   const visibleCount = computed(() => {
     if (screenWidth.value >= 1024) return 5 // lg
-    return 3 // md
+    if (screenWidth.value >= 640) return 3 // md
+    if (screenWidth.value >= 480) return 4 // sm
+    return 3 // xs
   })
 </script>

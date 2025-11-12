@@ -7,6 +7,7 @@
     <CoursesSection />
     <TeachersSection :teachers="teachers" />
     <PartnersSection :sponsors="sponsors" />
+    <ReviewsSection :reviews="reviews" />
   </main>
 </template>
 
@@ -18,6 +19,7 @@
   import CoursesSection from '@/components/home/Courses.vue'
   import TeachersSection from '@/components/home/Teachers.vue'
   import PartnersSection from '@/components/home/Partners.vue'
+  import ReviewsSection from '@/components/home/Reviews.vue'
   
   import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 
@@ -156,6 +158,33 @@
       otherUrl: 'https://www.carlos-gomez-management.com',
       cvUrl: 'https://example.com/cv/carlos-gomez.pdf',
       phrase: 'Programación Dynamo BIM',
+    },
+  ]
+
+  const reviews = [
+    {
+      name: 'Ana María López',
+      career: 'Arquitecta',
+      work: 'Cementos Pacasmayo',
+      image: new URL('@/assets/review/reviewer1.jpg', import.meta.url).href,
+      opinion: 'El diplomado en Modelado y Gestión BIM superó mis expectativas. Los instructores son expertos en la materia y el contenido es muy relevante para la industria actual. ¡Lo recomiendo totalmente!',
+      stars: 5,
+    },
+    {
+      name: 'Carlos Martínez',
+      career: 'Ingeniero Civil',
+      work: 'Gobierno Regional La Libertad',
+      image: new URL('@/assets/review/reviewer2.jpg', import.meta.url).href,
+      opinion: 'Gracias a la certificación en AutoCAD, he mejorado significativamente mis habilidades de diseño. Los cursos son prácticos y fáciles de seguir. ¡Una excelente inversión en mi carrera!',
+      stars: 4.5,
+    },
+    {
+      name: 'Luca Fernández',
+      career: 'Planificador Urbano',
+      work: 'Ministerio de Vivienda',
+      image: new URL('@/assets/review/reviewer3.jpg', import.meta.url).href,
+      opinion: 'El diplomado en Coordinación y Gestión BIM me ha proporcionado las herramientas necesarias para liderar proyectos complejos. La metodología de enseñanza es clara y efectiva.',
+      stars: 5,
     },
   ]
 </script>
