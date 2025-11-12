@@ -25,10 +25,7 @@
                         <!-- Estrella completa -->
                         <StarIcon v-if="n <= Math.floor(item.stars)" class="size-5 text-yellow-500" aria-hidden="true" />
                         <!-- Media estrella -->
-                        <div
-                          v-else-if="n - item.stars === 0.5"
-                          class="relative size-5"
-                        >
+                        <div v-else-if="n - item.stars === 0.5" class="relative size-5">
                           <StarOutlineIcon class="absolute inset-0 text-yellow-500" />
                           <div class="absolute inset-0 overflow-hidden" style="clip-path: inset(0 50% 0 0);">
                             <StarIcon class="text-yellow-500" />
