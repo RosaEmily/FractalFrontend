@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "build:dev": "vue-tsc -b && vite build --base=/FractalFrontend-dev/",
+    "build:dev": "vue-tsc -b && vite build --base=/FractalFrontend/",
     "build:prod": "vue-tsc -b && vite build --base=/FractalFrontend/",
     "preview": "vite preview",
     "tailwind:init": "tailwindcss init -p",
