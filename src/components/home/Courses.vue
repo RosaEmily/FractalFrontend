@@ -1,16 +1,55 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <section class="bg-primary-500">
-    <div class="relative isolate px-6 py-12 lg:px-8">
-      <div class="mx-auto max-w-3xl py-10 sm:py-12 md:py-16 lg:py-18">
-        <div class="text-center">
-          <h1 class="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-balance text-white">+30 cursos disponibles</h1>
-          <p class="mt-8 font-normal text-pretty text-secondary-100 text-lg/6 md:text-xl/8">Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis possimus earum sunt reprehenderit aspernatur quos quae eum vel dolores numquam! Nobis dolore.</p>
-          <div class="mt-10 flex items-center justify-center gap-x-6">
-            <button class="rounded-md bg-white px-3.5 py-2.5 text-md font-semibold text-primary-500 shadow-xs hover:bg-primary-500 hover:border hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer">Ver todos los cursos</button>
+  <section class="bg-white">
+    <div class="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+      <div class="mx-auto max-w-2xl lg:max-w-none py-12 sm:py-16 lg:py-24 text-center">
+        <div class="text-center pb-4 sm:pb-8 lg:pb-12">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance text-secondary-800 pb-6">
+            Últimos lanzamientos
+          </h1>
+          <button class="inline-flex items-center text-lg md:text-xl text-primary-600 hover:text-primary-800 dark:text-primary-500 dark:hover:text-primary-700 cursor-pointer">
+            Descubre más <ChevronRightIcon class="pt-1 size-5 md:size-6" aria-hidden="true" />
+          </button>
+        </div>
+        <div class="mt-6 space-y-12 sm:grid sm:grid-cols-2 sm:space-y-6 sm:gap-x-6 md:gap-x-8 lg:grid lg:grid-cols-4 lg:space-y-0 lg:gap-x-8">
+          <div v-for="callout in callouts.slice(0, visibleCount)" :key="callout.name" class="group relative px-10 sm:px-0 transition-transform duration-300 hover:-translate-y-2 cursor-pointer">
+            <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-lg bg-white">
+              <img :src="callout.imageSrc" :alt="callout.imageAlt" class="w-full object-cover group-hover:opacity-75 max-sm:h-40 aspect-2/1 lg:aspect-square" />
+            </div>
+            <h3 class="mt-6 text-sm md:text-base text-gray-500">{{ callout.description }}</h3>
+            <p class="text-base md:text-lg font-semibold text-gray-900 pt-1 uppercase">{{ callout.name }}</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 </template>
+
+<script setup lang="ts">
+  import { ref, computed, onMounted } from 'vue'  
+  import { ChevronRightIcon } from '@heroicons/vue/24/solid'
+
+  type Callout = {
+    name: string
+    description: string
+    tags?: string[]
+    imageSrc: string
+    imageAlt: string
+    href?: string
+  }
+
+  defineProps<{ callouts: Callout[]}>()
+
+  const screenWidth = ref(window.innerWidth)
+
+  onMounted(() => {
+    window.addEventListener('resize', () => {
+      screenWidth.value = window.innerWidth
+    })
+  })
+
+  const visibleCount = computed(() => {
+    if (screenWidth.value >= 1024) return 4 // lg
+    return 2 // md
+  })
+</script>
