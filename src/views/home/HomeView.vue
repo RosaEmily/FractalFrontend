@@ -1,14 +1,15 @@
 <template>
-  <Navbar />
+  <Navbar class="sticky top-0 z-50"/>
   <main>
     <BannerSection :images="images" />
     <KpisSection :kpis="kpis" />
-    <RoutesSection :callouts="callouts" :visible-count="visibleCount" />
-    <CoursesSection />
+    <CoursesSection :callouts="callouts" :visible-count="visibleCount" />
+    <RoutesSection />
     <TeachersSection :teachers="teachers" />
     <PartnersSection :sponsors="sponsors" />
     <ReviewsSection :reviews="reviews" />
   </main>
+  <Footer />
 </template>
 
 <script setup>
@@ -20,6 +21,7 @@
   import TeachersSection from '@/components/home/Teachers.vue'
   import PartnersSection from '@/components/home/Partners.vue'
   import ReviewsSection from '@/components/home/Reviews.vue'
+  import Footer from '@/components/home/Footer.vue'
   
   import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 

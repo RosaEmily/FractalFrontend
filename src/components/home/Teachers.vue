@@ -57,7 +57,7 @@
             </div>
             <div class="col-span-full flex items-center justify-center">
               <button class="uppercase font-semibold text-base tracking-widest w-full p-4 bg-primary-100 hover:bg-primary-200 text-primary-500 hover:text-primary-600 cursor-pointer">
-                Ver todos los docentes
+                Ver todos los instructores
               </button>
             </div>
           </div>

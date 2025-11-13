@@ -1,10 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <section class="bg-primary-500 py-8">
+  <section class="bg-primary-500 py-8 md:py-10">
     <div class=" relative w-full overflow-hidden">
       <div class="flex animate-scroll">
         <template v-for="loop in 2" :key="loop">
-          <img v-for="(img, n) in sponsors" :key="`${loop}-${n}`" :src="img" class="h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 w-auto mx-4 rounded-lg" />
+          <img v-for="(img, n) in sponsors" :key="`${loop}-${n}`" :src="img" class="h-20 md:h-24 lg:h-26 xl:h-28 w-auto mx-4 rounded-lg" />
         </template>
       </div>
     </div>

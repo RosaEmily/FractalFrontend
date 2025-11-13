@@ -1,8 +1,8 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section ref="sectionRef" class="bg-primary-500">
-    <div class="mx-auto max-w-7xl px-6 text-center py-28">
-      <h1 class="text-4xl sm:text-6xl font-semibold tracking-tight text-white">
+    <div class="mx-auto max-w-7xl px-6 md:px-16 lg:px-24 xl:px-32 text-center py-28">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-white">
         Los <span class="font-bold uppercase">números</span> no mienten
       </h1>
       <p class="mt-4 text-lg text-secondary-100">

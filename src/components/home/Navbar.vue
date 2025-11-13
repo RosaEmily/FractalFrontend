@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <header class="bg-white border-b-2 border-gray-200">
-    <nav class="mx-auto flex items-center justify-between px-6 py-4" aria-label="Global">
+    <nav class="mx-auto flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4" aria-label="Global">
       <div class="flex md:flex-1">
         <a href="#" class="-m-1.5 p-1.5">
           <img class="h-16 w-auto" src="@/assets/fractal.png" alt="" />
@@ -14,7 +14,6 @@
         </button>
       </div>
       <PopoverGroup class="hidden gap-x-5 md:flex lg:gap-x-12">
-        <a href="#" class="text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Inicio</a>
         <a href="#" class="text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Programas</a>
         <a href="#" class="text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Instructores</a>
         <a href="#" class="text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Contacto</a>
@@ -38,8 +37,7 @@
         <div class="mt-6 flow-root">
           <div class="-my-4 divide-y divide-white/10">
             <div class="space-y-2 py-6">
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Inicio</a>
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Cursos</a>
+              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Programas</a>
               <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Instructores</a>
               <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-md/6 font-semibold text-secondary-800 hover:text-primary-500">Contacto</a>
             </div>
