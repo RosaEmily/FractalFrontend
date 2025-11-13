@@ -8,7 +8,7 @@
             <!-- imagen para pantallas grandes -->
             <source media="(min-width: 768px)" :srcset="img.desktop" />
             <!-- imagen para móviles -->
-            <img :src="img.mobile"  class="w-full h-fit xl:h-120 object-cover block" :alt="`slide ${i + 1}`"/>
+            <img :src="img.mobile"  class="w-full h-auto xl:h-120 object-cover block" :alt="`slide ${i + 1}`"/>
           </picture>
         </div>
       </div>
