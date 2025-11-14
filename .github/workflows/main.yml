@@ -74,7 +74,6 @@ jobs:
           if [ "${GITHUB_REF##*/}" = "dev" ]; then
             npm run build:dev
           else
-            export VITE_API_FRACTAL=${{ secrets.VITE_API_FRACTAL }}
             npm run build:prod
           fi
 
