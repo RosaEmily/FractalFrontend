@@ -1,8 +1,8 @@
 <template>
   <Navbar class="sticky top-0 z-50"/>
   <main>
-    <BannerSection :images="images" />
-    <KpisSection :kpis="kpis" />
+    <BannerSection :images="banner" :loading="loading"/>
+    <KpisSection :kpis="kpis" :loading="loading"/>
     <CoursesSection :callouts="callouts" :visible-count="visibleCount" />
     <RoutesSection />
     <TeachersSection :teachers="teachers" />
@@ -13,6 +13,7 @@
 </template>
 
 <script setup>
+  import { computed, onMounted } from 'vue'
   import Navbar from '@/components/home/Navbar.vue'
   import BannerSection from '@/components/home/Banner.vue'
   import KpisSection from '@/components/home/Kpis.vue'
@@ -25,20 +26,13 @@
   
   import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 
-  const images = [
-    {
-      desktop: new URL('@/assets/banner/banner1.png', import.meta.url).href,
-      mobile: new URL('@/assets/banner/banner1_mobile.png', import.meta.url).href,
-    },
-    {
-      desktop: new URL('@/assets/banner/banner2.png', import.meta.url).href,
-      mobile: new URL('@/assets/banner/banner2_mobile.png', import.meta.url).href,
-    },
-    {
-      desktop: new URL('@/assets/banner/banner3.png', import.meta.url).href,
-      mobile: new URL('@/assets/banner/banner3_mobile.png', import.meta.url).href,
-    },
-  ];
+  import { useLandingStore } from '@/stores/landing.store'
+
+  const landingStore = useLandingStore()
+
+  const loading = computed(() => landingStore.loading)
+
+  const banner = computed(() => landingStore.data?.banner ?? [])
 
   const sponsors = [
     new URL('@/assets/sponsor/sponsor1.png', import.meta.url).href,
@@ -83,32 +77,16 @@
     }
   ]
 
-  const kpis = [
-    {
-      icon: AcademicCapIcon,
-      number: 95,
-      format: '+{n}%',
-      description: 'Tasa de satisfacción de alumnos participantes',
-    },
-    {
-      icon: BriefcaseIcon,
-      number: 80,
-      format: '+{n}%',
-      description: 'Tasa de mejora laboral tras unirse a un programa',
-    },
-    {
-      icon: GlobeAltIcon,
-      number: 6,
-      format: '+{n}',
-      description: 'Países con red de profesionales conectados',
-    },
-    {
-      icon: SparklesIcon,
-      number: 250,
-      format: '+{n}',
-      description: 'Certificaciones internacionales otorgadas',
-    }
-  ]
+  const kpis = computed(() => {
+    if (!landingStore.data?.kpis) return []
+
+    const icons = [AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon]
+
+    return landingStore.data.kpis.map((item, index) => ({
+      ...item,
+      icon: icons[index] ?? null
+    }))
+  })
   
   const teachers = [
     {
@@ -189,4 +167,12 @@
       stars: 5,
     },
   ]
+
+  onMounted(async () => {
+    await landingStore.fetchLanding()
+    console.log('Landing store después de fetch:', landingStore.data)
+    console.log('loading:', loading.value)
+    console.log('banner:', banner.value)
+    console.log('kpis:', kpis.value)
+  })
 </script>
