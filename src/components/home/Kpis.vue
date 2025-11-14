@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, watch, computed } from 'vue'
+  import { ref, watch, computed, onMounted } from 'vue'
   import type { FunctionalComponent } from 'vue'
   import { useIntersectionObserver } from '@/composables/useIntersectionObserver'
   import { useCountUp } from '@/composables/useCountUp'
@@ -47,7 +47,7 @@
     format: string
   }
 
-  const props = defineProps<{ kpis: Kpi[], loading: boolean}>()
+  const props = defineProps<{ kpis: Kpi[], loading: boolean }>()
 
   const sectionRef = ref<HTMLElement | null>(null)
   const { isIntersecting } = useIntersectionObserver(() => sectionRef.value, { threshold: 0.3 })
@@ -62,6 +62,22 @@
 
   watch(isIntersecting, visible => {
     if (visible) {
+      animatedKpis.value.forEach(c => {
+        if (!c.hasAnimated.value) c.start()
+      })
+    }
+  })
+
+  onMounted(() => {
+    const el = sectionRef.value
+    if (!el) return
+
+    const rect = el.getBoundingClientRect()
+    const isAlreadyVisible =
+      rect.top < window.innerHeight &&
+      rect.bottom > 0
+
+    if (isAlreadyVisible) {
       animatedKpis.value.forEach(c => {
         if (!c.hasAnimated.value) c.start()
       })
