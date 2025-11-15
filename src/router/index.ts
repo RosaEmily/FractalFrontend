@@ -8,6 +8,9 @@ const routes = [
 const router = createRouter({
   history: createWebHistory('/FractalFrontend/'), // base del repo
   routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 export default router

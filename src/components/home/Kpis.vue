@@ -10,22 +10,20 @@
       </p>
 
       <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- Skeletons mientras cargan los datos -->
         <template v-if="loading">
-        <div v-for="i in 4" :key="i" class="flex flex-col items-center">
-          <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 animate-pulse"></div>
-          <p class="mt-4 h-10 w-20 bg-white animate-pulse rounded"></p>
-          <p class="mt-2 h-4 w-32 bg-primary-100 animate-pulse rounded"></p>
-        </div>
+          <div v-for="i in 4" :key="i" class="flex flex-col items-center">
+            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 animate-pulse"></div>
+            <p class="mt-4 h-10 w-20 bg-white animate-pulse rounded"></p>
+            <p class="mt-4 h-4 w-32 bg-primary-100 animate-pulse rounded"></p>
+            <p class="mt-4 h-4 w-32 bg-primary-100 animate-pulse rounded"></p>
+          </div>
         </template>
-        <!-- Componente real -->
+
         <div v-else v-for="item in animatedKpis" :key="item.id" class="flex flex-col items-center">
           <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 text-primary-600">
             <component :is="item.icon" class="h-12 w-12" aria-hidden="true" />
           </div>
-          <p class="mt-4 text-4xl font-extrabold text-white">
-            {{ item.currentValue }}
-          </p>
+          <p class="mt-4 text-4xl font-extrabold text-white">{{ item.currentValue }}</p>
           <p class="mt-2 text-lg text-primary-100">{{ item.description }}</p>
         </div>
       </div>
@@ -47,7 +45,7 @@
     format: string
   }
 
-  const props = defineProps<{ kpis: Kpi[], loading: boolean }>()
+  const props = defineProps<{ kpis: Kpi[]; loading: boolean }>()
 
   const sectionRef = ref<HTMLElement | null>(null)
   const { isIntersecting } = useIntersectionObserver(() => sectionRef.value, { threshold: 0.3 })
@@ -60,22 +58,20 @@
     })
   })
 
-  watch(isIntersecting, visible => {
-    if (visible) {
+  watch([() => props.kpis, isIntersecting], ([newKpis, visible]) => {
+    if ((newKpis.length > 0 || visible) && animatedKpis.value.length > 0) {
       animatedKpis.value.forEach(c => {
         if (!c.hasAnimated.value) c.start()
       })
     }
-  })
+  }, { deep: true })
 
   onMounted(() => {
     const el = sectionRef.value
     if (!el) return
 
     const rect = el.getBoundingClientRect()
-    const isAlreadyVisible =
-      rect.top < window.innerHeight &&
-      rect.bottom > 0
+    const isAlreadyVisible = rect.top < window.innerHeight && rect.bottom > 0
 
     if (isAlreadyVisible) {
       animatedKpis.value.forEach(c => {
