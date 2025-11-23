@@ -1,9 +1,9 @@
 <template>
   <Navbar class="sticky top-0 z-50"/>
   <main>
-    <BannerSection :images="banner" :loading="loading"/>
-    <KpisSection :kpis="kpis" :loading="loading"/>
-    <CoursesSection :callouts="callouts" :visible-count="visibleCount" />
+    <BannerSection :images="banner" :skeleton="loading || error"/>
+    <KpisSection :kpis="kpis" :skeleton="loading || error"/>
+    <CoursesSection :callouts="callouts"/>
     <RoutesSection />
     <TeachersSection :teachers="teachers" />
     <PartnersSection :sponsors="sponsors" />
@@ -31,6 +31,8 @@
   const landingStore = useLandingStore()
 
   const loading = computed(() => landingStore.loading)
+
+  const error = computed(() => landingStore.error == null ? false : true)
 
   const banner = computed(() => landingStore.data?.banner ?? [])
 
@@ -172,6 +174,7 @@
     await landingStore.fetchLanding()
     console.log('Landing store después de fetch:', landingStore.data)
     console.log('loading:', loading.value)
+    console.log('error:', error.value)
     console.log('banner:', banner.value)
     console.log('kpis:', kpis.value)
   })

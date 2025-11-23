@@ -8,9 +8,9 @@
       <p class="mt-4 text-lg text-secondary-100">
         Nuestro impacto se refleja en la experiencia, la innovación y la empleabilidad de nuestros egresados.
       </p>
-
       <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        <template v-if="loading">
+        <!-- Skeletons mientras cargan los datos -->
+        <template v-if="skeleton">
           <div v-for="i in 4" :key="i" class="flex flex-col items-center">
             <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 animate-pulse"></div>
             <p class="mt-4 h-10 w-20 bg-white animate-pulse rounded"></p>
@@ -18,7 +18,7 @@
             <p class="mt-4 h-4 w-32 bg-primary-100 animate-pulse rounded"></p>
           </div>
         </template>
-
+        <!-- Componente real -->
         <div v-else v-for="item in animatedKpis" :key="item.id" class="flex flex-col items-center">
           <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 text-primary-600">
             <component :is="item.icon" class="h-12 w-12" aria-hidden="true" />
@@ -45,7 +45,10 @@
     format: string
   }
 
-  const props = defineProps<{ kpis: Kpi[]; loading: boolean }>()
+  const props = defineProps<{ 
+    kpis: Kpi[]; 
+    skeleton: boolean 
+  }>()
 
   const sectionRef = ref<HTMLElement | null>(null)
   const { isIntersecting } = useIntersectionObserver(() => sectionRef.value, { threshold: 0.3 })

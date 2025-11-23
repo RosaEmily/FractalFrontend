@@ -1,5 +1,5 @@
-import type { LandingData } from '@/types/landing'
+import type { LandingData } from '@/types/response/landing'
 
 export interface ILandingRepository {
-  fetchLanding(): Promise<LandingData[]>
+  fetchLanding(): Promise<LandingData>
 }
