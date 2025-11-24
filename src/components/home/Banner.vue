@@ -6,15 +6,15 @@
       <div v-if="skeleton" class="min-w-full px-6">
         <picture>
           <source media="(min-width: 768px)" :srcset="placeholder" />
-          <img :src="placeholder_mobile" class="w-full h-auto xl:h-130 object-cover block" alt="Placeholder"/>
+          <img :src="placeholder_mobile" class="w-full h-auto xl:h-130 object-cover block" alt="Banner placeholder"/>
         </picture>
       </div>
       <!-- Componente real -->
       <div v-else class="flex transition-transform duration-700" :style="{ transform: `translateX(-${current * 100}%)` }">
-        <div v-for="(img, i) in images" :key="i" class="min-w-full px-6">
+        <div v-for="(item, i) in images" :key="i" class="min-w-full px-6">
           <picture>
-            <source media="(min-width: 768px)" :srcset="img.desktop" />
-            <img :src="img.mobile" class="w-full h-auto xl:h-130 object-cover block" :alt="`slide ${i + 1}`"/>
+            <source media="(min-width: 768px)" :srcset="item.desktop" />
+            <img :src="item.mobile" :alt="item.imageAlt" class="w-full h-auto xl:h-130 object-cover block"/>
           </picture>
         </div>
       </div>
@@ -32,9 +32,10 @@
 <script setup lang="ts">
   import { ref, onMounted, onUnmounted } from 'vue'
   import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
+  import type { Banner } from '@/types/banner';
 
   const props = defineProps<{
-    images: Array<{ desktop: string; mobile: string }>
+    images: Banner[]
     skeleton: boolean
   }>()
 

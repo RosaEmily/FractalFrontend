@@ -1,15 +1,15 @@
 <template>
   <Navbar class="sticky top-0 z-50"/>
   <main>
-    <BannerSection :images="banner" :skeleton="loading || error"/>
-    <KpisSection :kpis="kpis" :skeleton="loading || error"/>
+    <BannerSection :images="banner" :skeleton="loading || !!error"/>
+    <KpisSection :kpis="kpis" :skeleton="loading || !!error"/>
     <CoursesSection :callouts="callouts"/>
     <RoutesSection />
     <TeachersSection :teachers="teachers" />
-    <PartnersSection :sponsors="sponsors" />
+    <PartnersSection :partners="partners" :skeleton="loading || !!error"/>
     <ReviewsSection :reviews="reviews" />
   </main>
-  <Footer />
+  <Footer :contact="contact" :social_networks="social_networks" :complaints_book="complaints_book"/>
 </template>
 
 <script setup>
@@ -23,26 +23,17 @@
   import PartnersSection from '@/components/home/Partners.vue'
   import ReviewsSection from '@/components/home/Reviews.vue'
   import Footer from '@/components/home/Footer.vue'
-  
-  import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon } from '@heroicons/vue/24/outline'
-
   import { useLandingStore } from '@/stores/landing.store'
 
   const landingStore = useLandingStore()
 
   const loading = computed(() => landingStore.loading)
 
-  const error = computed(() => landingStore.error == null ? false : true)
+  const error = computed(() => landingStore.error)
 
   const banner = computed(() => landingStore.data?.banner ?? [])
 
-  const sponsors = [
-    new URL('@/assets/sponsor/sponsor1.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor2.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor3.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor4.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor5.png', import.meta.url).href,
-  ];
+  const partners = computed(() => landingStore.data?.partners ?? [])
 
   const callouts = [
     {
@@ -79,16 +70,7 @@
     }
   ]
 
-  const kpis = computed(() => {
-    if (!landingStore.data?.kpis) return []
-
-    const icons = [AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon]
-
-    return landingStore.data.kpis.map((item, index) => ({
-      ...item,
-      icon: icons[index] ?? null
-    }))
-  })
+  const kpis = computed(() => landingStore.data?.kpis ?? [])
   
   const teachers = [
     {
@@ -170,12 +152,24 @@
     },
   ]
 
+  const contact = computed(() => landingStore.data?.contact ?? [])
+
+  const social_networks = computed(() => landingStore.data?.social_networks ?? [])
+
+  const complaints_book = computed(() => landingStore.data?.complaints_book ?? '')
+
   onMounted(async () => {
     await landingStore.fetchLanding()
     console.log('Landing store después de fetch:', landingStore.data)
-    console.log('loading:', loading.value)
-    console.log('error:', error.value)
-    console.log('banner:', banner.value)
-    console.log('kpis:', kpis.value)
+    console.log('st_loading:', loading.value)
+    console.log('st_error:', !!error.value)
+    console.log('st_skeleton:', loading.value || !!error.value)
+    console.log('obj_error:', error.value)
+    console.log('obj_banner:', banner.value)
+    console.log('obj_kpis:', kpis.value)
+    console.log('obj_partners:', partners.value)
+    console.log('obj_contact:', contact.value)
+    console.log('obj_social_networks:', social_networks.value)
+    console.log('obj_complaints_book:', complaints_book.value)
   })
 </script>

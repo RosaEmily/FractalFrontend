@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { LandingService } from '@/services/landing.service'
 import { type LandingData } from '@/types/response/landing'
 import { isApiError, type ApiError } from '@/types/response/api'
+import { useLandingAdapter } from '@/composables/useLandingAdapter'
 
 const landingService = new LandingService()
 
@@ -16,7 +17,7 @@ export const useLandingStore = defineStore('landing', () => {
     error.value = null
     try {
       const items = await landingService.fetchLanding()
-      data.value = items ?? null
+      data.value = useLandingAdapter(items)
     } catch (err: unknown) {
       error.value = isApiError(err) ? err : {
         code: 500,
