@@ -3,17 +3,13 @@ import App from "./App.vue";
 import { createPinia } from "pinia";
 import router from "./router";
 import PrimeVue from "primevue/config";
-import Aura from "@primeuix/themes/aura";
 
 import "./style.css";
+import { CONFIG } from "@/shared/constants/primevue";
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
-app.use(PrimeVue, {
-  theme: {
-    preset: Aura,
-  },
-});
+app.use(PrimeVue, CONFIG);
 app.mount("#app");
