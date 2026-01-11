@@ -41,8 +41,8 @@ export class ApiRequest {
 
         if (isAxiosError(error)) {
           const response = error.response;
-          const data = response?.data ?? {};
           const httpCode = response?.status ?? 500;
+          const data = response?.data?.error ?? {};
 
           // ⛔ Otros errores → flujo normal
           return Promise.reject(
@@ -50,7 +50,7 @@ export class ApiRequest {
               data.message ?? "Unknown error",
               data.code ?? httpCode,
               httpCode,
-              data.errors ?? null
+              data.details ?? null
             )
           );
         }

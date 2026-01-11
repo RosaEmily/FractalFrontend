@@ -7,5 +7,9 @@ const props = withDefaults(defineProps<ButtonCoreProps>(), {
 });
 </script>
 <template>
-  <Button v-bind="props" class="w-full" />
+  <Button v-bind="props" class="w-full">
+    <template #default>
+      <slot />
+    </template>
+  </Button>
 </template>

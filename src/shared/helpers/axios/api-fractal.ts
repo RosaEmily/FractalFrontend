@@ -2,10 +2,10 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { ApiRequest } from "./base";
-const { VITE_API_FRACTAL, VITE_COOKIE_NAME_SESSION } = import.meta.env;
+const { VITE_API_FRACTAL_V2, VITE_COOKIE_NAME_SESSION } = import.meta.env;
 
 const apiAxios = axios.create({
-  baseURL: VITE_API_FRACTAL,
+  baseURL: `${VITE_API_FRACTAL_V2}/v1`,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
