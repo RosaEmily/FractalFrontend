@@ -30,8 +30,8 @@ const { fields, handleSubmit, errors } = useFormFields<{
   password: string;
 }>({
   initialValues: {
-    email: "",
-    password: "",
+    email: "admin@fractal.com",
+    password: "password",
   },
   schema: loginSchema,
 });

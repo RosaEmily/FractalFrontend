@@ -7,10 +7,12 @@ import {
 import HomeView from "../views/home/HomeView.vue";
 
 import { routesAuth } from "@/modules/auth/router";
+import { routesAdmin } from "@/modules/admin/router";
 
 const routes: RouteRecordRaw[] = [
   { path: "/", name: "home", component: HomeView },
   ...routesAuth,
+  ...routesAdmin,
 ];
 
 const router = createRouter({
