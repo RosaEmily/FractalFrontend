@@ -29,7 +29,7 @@ withDefaults(
   <div class="flex min-h-0 h-dvh">
     <slot name="left" v-if="showLeft" />
 
-    <main class="bg-grayscale-200 flex-1 flex flex-col" :class="classMain">
+    <main class="bg-gray-200 flex-1 flex flex-col" :class="classMain">
       <slot name="header" v-if="showHeader" />
 
       <div class="flex flex-1 gap-3 overflow-y-auto" :class="classContainer">

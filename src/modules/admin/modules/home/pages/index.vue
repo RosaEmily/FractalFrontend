@@ -1,1 +1,3 @@
-<template>admin</template>
+<template>
+  <div>asdasdad</div>
+</template>
