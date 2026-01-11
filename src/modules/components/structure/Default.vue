@@ -28,10 +28,7 @@ withDefaults(
 <template>
   <div class="flex min-h-0 h-full">
     <slot name="left" v-if="showLeft" />
-    <main
-      class="bg-grayscale-200 flex-1 min-w-0 flex flex-col"
-      :class="classMain"
-    >
+    <main class="bg-gray-200 flex-1 min-w-0 flex flex-col" :class="classMain">
       <slot name="header" v-if="showHeader" />
       <div
         class="flex flex-1 px-10 py-5 gap-5 overflow-y-auto mr-1 my-1"
