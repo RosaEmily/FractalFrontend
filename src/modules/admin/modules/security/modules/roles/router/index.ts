@@ -7,21 +7,21 @@ import type { RouteRecordRaw } from "vue-router";
 export const routesRoles: RouteRecordRaw[] = [
   {
     path: "roles",
-    name: "rol",
+    name: "role",
     children: [
       {
         path: "",
-        name: "rol-list",
+        name: "role.list",
         component: ListPage,
       },
       {
         path: "create",
-        name: "rol-create",
+        name: "role.create",
         component: CreatePage,
       },
       {
         path: "update",
-        name: "rol-update",
+        name: "role.update",
         component: UpdatePage,
       },
     ],

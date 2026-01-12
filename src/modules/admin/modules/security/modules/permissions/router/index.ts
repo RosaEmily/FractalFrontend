@@ -11,17 +11,17 @@ export const routesPermissions: RouteRecordRaw[] = [
     children: [
       {
         path: "",
-        name: "permission-list",
+        name: "permission.list",
         component: ListPage,
       },
       {
         path: "create",
-        name: "permission-create",
+        name: "permission.create",
         component: CreatePage,
       },
       {
         path: "update",
-        name: "permission-update",
+        name: "permission.update",
         component: UpdatePage,
       },
     ],

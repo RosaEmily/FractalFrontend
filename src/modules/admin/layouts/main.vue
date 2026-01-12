@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AvatarCore, ImageCore } from "@/shared/components";
 import LayoutStructure from "@/modules/components/structure/index.vue";
-import NavVertical from "../components/NavVertical.vue";
+import NavVertical from "../components/NavVertical/index.vue";
 import Logo from "@/assets/fractal.png";
 
 import { useUserStore } from "../stores/useUserStore";
