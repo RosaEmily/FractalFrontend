@@ -9,12 +9,12 @@ import type { RouteRecordRaw } from "vue-router";
 export const routesAdmin: RouteRecordRaw[] = [
   {
     path: "",
-    name: "layout-main",
+    name: "layout.main",
     component: LayoutMain,
     children: [
       {
         path: "/admin",
-        name: "layout-main-admin",
+        name: "layout.main.admin",
         component: LayoutAdminMain,
         children: [...routesHome, ...routesSecurity],
       },
