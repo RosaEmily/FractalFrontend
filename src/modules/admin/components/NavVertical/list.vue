@@ -18,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <ul class="gap-y-2">
+  <ul class="space-y-2">
     <ItemNavVertical
       v-for="item in menu"
       :key="item.id"

@@ -3,7 +3,7 @@ import type { RouteLocationRaw } from "vue-router";
 export interface MenuItem {
   id: string | number;
   label: string;
-  show: boolean;
+  show?: boolean;
   icon?: string | null;
   route?: RouteLocationRaw | null;
   roles?: string[];

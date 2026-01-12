@@ -6,6 +6,9 @@ export const routesAuth: RouteRecordRaw[] = [
   {
     path: "/",
     component: LayoutMain,
+    meta: {
+      guestOnly: true,
+    },
     children: [
       {
         path: "login",

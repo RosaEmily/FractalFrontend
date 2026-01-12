@@ -2,7 +2,15 @@
 import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
 import { HeroCore } from "@/shared/components";
 import ListNavVertical from "./list.vue";
+
 import type { MenuItem } from "@/modules/admin/interface/nav-vertical";
+
+import { useRoute } from "vue-router";
+import type { RouteLocationRaw } from "vue-router";
+
+import { computed } from "vue";
+
+const route = useRoute();
 
 const props = withDefaults(
   defineProps<{
@@ -18,10 +26,48 @@ const emit = defineEmits<{
   (e: "menu-click", item: MenuItem): void;
 }>();
 
+const getRouteName = (route?: RouteLocationRaw | null): string | null => {
+  if (!route || typeof route === "string") return null;
+  if ("name" in route) return route.name as string;
+  return null;
+};
+
+const isActive = computed(() => {
+  const { item } = props;
+  if (!item.route) return false;
+  return route.name === getRouteName(item.route);
+});
+
+const hasActiveChild = (items?: MenuItem[]): boolean => {
+  if (!items?.length) return false;
+  return items.some((item) => {
+    if (getRouteName(item.route) === route.name) {
+      return true;
+    }
+    return hasActiveChild(item.children);
+  });
+};
+
+const show = computed(() => {
+  const { item } = props;
+  if (!item.children?.length) return false;
+  if (item.show !== undefined) {
+    return item.show;
+  }
+  return hasActiveChild(item.children);
+});
+
+const hasChildren = computed(() => {
+  return !!props.item.children?.length;
+});
+
 const menuClick = () => {
   const { item, isCollapsed } = props;
   if (item.children?.length) {
     if (!isCollapsed) {
+      if (item.show === undefined) {
+        item.show = show.value;
+      }
       item.show = !item.show;
     }
   } else {
@@ -34,13 +80,13 @@ const menuClick = () => {
   <li
     :class="[
       'rounded-lg cursor-pointer flex items-center justify-between p-2',
-      item.children?.length
-        ? item.show
-          ? 'bg-white'
-          : 'hover:bg-white'
-        : item.show
-          ? 'bg-green-400'
-          : 'hover:bg-green-400',
+      {
+        'bg-white': hasChildren && show,
+        'hover:bg-white': hasChildren && !show,
+        'bg-gray-300': !hasChildren && isActive,
+        'hover:bg-gray-300': !hasChildren && !isActive,
+      },
+      ,
     ]"
     @click="menuClick"
   >
@@ -53,13 +99,13 @@ const menuClick = () => {
 
     <HeroCore
       v-show="!isCollapsed && item.children?.length"
-      :path="item.show ? mdiChevronUp : mdiChevronDown"
+      :path="show ? mdiChevronUp : mdiChevronDown"
       size="20"
     />
   </li>
   <ListNavVertical
-    v-show="item.children?.length && item.show && !isCollapsed"
-    class="ml-6 pl-3 border-l-[1px] border-gray-400"
+    v-show="hasChildren && show && !isCollapsed"
+    class="ml-4 pl-3 border-l-[1px] border-gray-400"
     :menu="item.children ?? []"
     :is-collapsed="isCollapsed"
     @menu-click="emit('menu-click', $event)"
