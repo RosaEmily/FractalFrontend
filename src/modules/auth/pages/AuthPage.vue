@@ -12,10 +12,13 @@ import { useToastStore } from "@/shared/stores/useToastStore";
 import { safeRequest } from "@/shared/utils/request";
 import { ref } from "vue";
 import Cookies from "js-cookie";
+import { useRoute, useRouter } from "vue-router";
 
 const { VITE_COOKIE_NAME_SESSION } = import.meta.env;
 
 const toastStore = useToastStore();
+const route = useRoute();
+const router = useRouter();
 
 const loading = ref<boolean>(false);
 const messageError = ref<string | null>(null);
@@ -62,6 +65,12 @@ const onSubmit = handleSubmit(async (values) => {
       toastStore.showToastSuccess({
         detail: "Se ha iniciado sesión correctamente.",
       });
+      const redirect = route.query.redirect as string | undefined;
+      if (redirect) {
+        router.replace(redirect);
+      } else {
+        router.replace({ name: "layout.main.admin" });
+      }
     }
   } catch (error) {
     console.log("error", error);

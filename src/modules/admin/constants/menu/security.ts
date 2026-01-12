@@ -1,5 +1,5 @@
 import type { MenuItem } from "@/modules/admin/interface/nav-vertical";
-import { mdiCog, mdiMapMarkerOutline, mdiTicket } from "@mdi/js";
+import { mdiCog, mdiShieldKeyOutline, mdiAccountKeyOutline } from "@mdi/js";
 
 export const MENU_SECURITY: MenuItem[] = [
   {
@@ -11,7 +11,7 @@ export const MENU_SECURITY: MenuItem[] = [
       {
         id: "security.permissions",
         label: "Permisos",
-        icon: mdiMapMarkerOutline,
+        icon: mdiShieldKeyOutline,
         roles: ["ADMIN"],
         route: {
           name: "permission.list",
@@ -20,7 +20,7 @@ export const MENU_SECURITY: MenuItem[] = [
       {
         id: "security.roles",
         label: "Roles",
-        icon: mdiTicket,
+        icon: mdiAccountKeyOutline,
         roles: ["ADMIN"],
         route: {
           name: "role.list",

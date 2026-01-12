@@ -11,6 +11,9 @@ export const routesAdmin: RouteRecordRaw[] = [
     path: "",
     name: "layout.main",
     component: LayoutMain,
+    meta: {
+      auth: true,
+    },
     children: [
       {
         path: "/admin",
