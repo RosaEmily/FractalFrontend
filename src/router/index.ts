@@ -43,7 +43,7 @@ router.beforeEach((to, _, next) => {
   const userRoles = getUserRoles();
 
   if (to.meta.guestOnly && isAuthenticated) {
-    return next({ name: "layout.main.admin" });
+    return next({ name: "admin-home" });
   }
 
   // 🔒 Auth
