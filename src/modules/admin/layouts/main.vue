@@ -1,23 +1,61 @@
 <script setup lang="ts">
-import { AvatarCore, ImageCore } from "@/shared/components";
+import {
+  AvatarCore,
+  ImageCore,
+  ModalConfirmationUi,
+} from "@/shared/components";
 import LayoutStructure from "@/modules/components/structure/index.vue";
 import NavVertical from "../components/NavVertical/index.vue";
 import Logo from "@/assets/fractal.png";
 import authService from "../services/auth.service";
 import { useUserStore } from "../stores/useUserStore";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import Cookies from "js-cookie";
 import { safeJsonParse, safeJsonStringify } from "@/shared/utils/safe-json";
 import type { MeResponse } from "../models/auth.model";
 import { cookieOptions } from "@/shared/config/cookie.config";
-
+import { useRouter } from "vue-router";
+import { MENU_LAYOUT } from "../constants/layout";
 import {
   COOKIE_NAME_SESSION,
   COOKIE_NAME_EXPIRES,
   COOKIE_NAME_USER,
 } from "@/shared/config/env.config";
+import { useClickOutsideMulti } from "@/shared/composables/useClickOutside";
+import type { MenuLayout } from "@/shared/interface/layout";
 
+const router = useRouter();
 const userStore = useUserStore();
+
+const openMenu = ref<boolean>(false);
+const menuRef = ref<HTMLElement | null>(null);
+const logoutEnable = ref<boolean>(false);
+const logoutLoading = ref<boolean>(false);
+
+useClickOutsideMulti(menuRef, () => {
+  openMenu.value = false;
+});
+
+const onRedirect = async (item: MenuLayout) => {
+  if (item.redirect) {
+    router.push({ name: item.to });
+  } else {
+    if (item.name == "logout") {
+      logoutEnable.value = true;
+    }
+  }
+};
+
+const logout = async () => {
+  logoutLoading.value = true;
+  await authService.logout();
+  Cookies.remove(COOKIE_NAME_SESSION);
+  Cookies.remove(COOKIE_NAME_EXPIRES);
+  Cookies.remove(COOKIE_NAME_USER);
+  router.push({ name: "login" });
+  logoutLoading.value = false;
+  logoutEnable.value = false;
+};
 
 onMounted(async () => {
   const token = Cookies.get(COOKIE_NAME_SESSION);
@@ -55,10 +93,27 @@ onMounted(async () => {
         <ImageCore image-class="h-10" :src="Logo" />
       </div>
       <div>
-        <AvatarCore
-          :text="userStore.photo ?? userStore.fullName"
-          shape="circle"
-        />
+        <div ref="menuRef" class="cursor-pointer" @click="openMenu = !openMenu">
+          <AvatarCore
+            :text="userStore.photo ?? userStore.fullName"
+            shape="circle"
+          />
+        </div>
+        <transition name="fade-scale">
+          <div
+            v-if="openMenu"
+            class="absolute shadow-card-sm right-0 top-14 bg-white w-48 p-2 space-y-2 z-[9999] rounded-bl-lg shadow-lg"
+          >
+            <div
+              v-for="(item, index) in MENU_LAYOUT"
+              :key="index"
+              @click="onRedirect(item)"
+              class="p-2 group rounded-lg hover:bg-gray-300 cursor-pointer"
+            >
+              {{ item.label }}
+            </div>
+          </div>
+        </transition>
       </div>
     </header>
     <LayoutStructure :show-container-footer="false" :show-right="false">
@@ -74,4 +129,14 @@ onMounted(async () => {
       </section>
     </LayoutStructure>
   </div>
+  <ModalConfirmationUi
+    v-model="logoutEnable"
+    title="Cerrar sesión"
+    description="¿Estás seguro de que deseas cerrar tu sesión? Tendrás que volver a iniciar sesión para continuar."
+    description-class="text-center"
+    :button-cancel="{ label: 'No' }"
+    :button-confirm="{ label: 'Si', loading: logoutLoading }"
+    @cancel="logoutEnable = false"
+    @confirm="logout"
+  />
 </template>

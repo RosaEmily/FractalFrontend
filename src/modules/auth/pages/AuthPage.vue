@@ -74,7 +74,7 @@ const onSubmit = handleSubmit(async (values) => {
       if (redirect) {
         router.replace(redirect);
       } else {
-        router.replace({ name: "layout.main.admin" });
+        router.replace({ name: "admin-home" });
       }
     }
   } catch (error) {

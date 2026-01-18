@@ -19,6 +19,10 @@ class AuthRepository {
     }
     return { ...response, data };
   }
+
+  async logout(): Promise<ApiResponse<null>> {
+    return await apiFractal.delete(`${this.route}/logout`);
+  }
 }
 
 export default new AuthRepository();

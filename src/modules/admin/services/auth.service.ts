@@ -6,5 +6,10 @@ class AuthService {
     const resp = await authRepository.me();
     return resp.data;
   }
+
+  async logout(): Promise<null> {
+    const resp = await authRepository.logout();
+    return resp.data;
+  }
 }
 export default new AuthService();
