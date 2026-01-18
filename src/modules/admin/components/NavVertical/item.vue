@@ -19,7 +19,7 @@ const props = withDefaults(
   }>(),
   {
     isCollapsed: false,
-  }
+  },
 );
 
 const emit = defineEmits<{

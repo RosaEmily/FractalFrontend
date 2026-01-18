@@ -124,7 +124,7 @@ onMounted(async () => {
           :role="userStore.role"
         />
       </template>
-      <section class="pb-5">
+      <section class="size-full pb-5">
         <router-view />
       </section>
     </LayoutStructure>
