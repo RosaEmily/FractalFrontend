@@ -13,8 +13,11 @@ import { safeRequest } from "@/shared/utils/request";
 import { ref } from "vue";
 import Cookies from "js-cookie";
 import { useRoute, useRouter } from "vue-router";
-
-const { VITE_COOKIE_NAME_SESSION } = import.meta.env;
+import { cookieOptions } from "@/shared/config/cookie.config";
+import {
+  COOKIE_NAME_SESSION,
+  COOKIE_NAME_EXPIRES,
+} from "@/shared/config/env.config";
 
 const toastStore = useToastStore();
 const route = useRoute();
@@ -47,7 +50,7 @@ const onSubmit = handleSubmit(async (values) => {
       () => {
         return authService.login(values);
       },
-      { showAlert: false }
+      { showAlert: false },
     );
 
     if (!status && error) {
@@ -56,11 +59,13 @@ const onSubmit = handleSubmit(async (values) => {
     }
     if (data) {
       const { token, expires_at } = data;
-      Cookies.set(VITE_COOKIE_NAME_SESSION, token, {
+      Cookies.set(COOKIE_NAME_SESSION, token, {
         expires: new Date(expires_at),
-        path: "/",
-        secure: location.protocol === "https:",
-        sameSite: "lax",
+        ...cookieOptions,
+      });
+      Cookies.set(COOKIE_NAME_EXPIRES, expires_at, {
+        expires: new Date(expires_at),
+        ...cookieOptions,
       });
       toastStore.showToastSuccess({
         detail: "Se ha iniciado sesión correctamente.",

@@ -4,6 +4,8 @@ import UpdatePage from "../pages/update.vue";
 
 import type { RouteRecordRaw } from "vue-router";
 
+const TitleBase = "Seguridad | Permisos |";
+
 export const routesPermissions: RouteRecordRaw[] = [
   {
     path: "permissions",
@@ -13,16 +15,37 @@ export const routesPermissions: RouteRecordRaw[] = [
         path: "",
         name: "permission.list",
         component: ListPage,
+        meta: {
+          page: {
+            base: {
+              title: `${TitleBase} Lista`,
+            },
+          },
+        },
       },
       {
         path: "create",
         name: "permission.create",
         component: CreatePage,
+        meta: {
+          page: {
+            base: {
+              title: `${TitleBase} Lista`,
+            },
+          },
+        },
       },
       {
         path: "update",
         name: "permission.update",
         component: UpdatePage,
+        meta: {
+          page: {
+            base: {
+              title: `${TitleBase} Lista`,
+            },
+          },
+        },
       },
     ],
   },

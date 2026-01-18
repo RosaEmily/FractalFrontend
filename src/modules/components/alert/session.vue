@@ -5,11 +5,11 @@ import { useSessionStore } from "@/shared/stores/useSessionStore";
 import SadFace from "@/shared/icons/SadFace.vue";
 import ArrowV2 from "@/shared/icons/ArrowV2.vue";
 import ArrowLong from "@/shared/icons/ArrowLong.vue";
-
+import { HOME_BASE_URL } from "@/shared/config/env.config";
 const sessionStore = useSessionStore();
 
 const goToLogin = () => {
-  const homeBaseUrl = import.meta.env.VITE_HOME_BASE_URL || "/";
+  const homeBaseUrl = HOME_BASE_URL || "/";
   const currentUrl = window.location.href;
 
   const query = new URLSearchParams({

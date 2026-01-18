@@ -8,6 +8,11 @@ export const routesHome: RouteRecordRaw[] = [
     component: HomePage,
     meta: {
       roles: ["ADMIN"],
+      page: {
+        base: {
+          title: "Home",
+        },
+      },
     },
   },
 ];
