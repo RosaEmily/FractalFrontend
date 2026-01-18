@@ -14,6 +14,13 @@ export const routesAuth: RouteRecordRaw[] = [
         path: "login",
         name: "login",
         component: AuthPage,
+        meta: {
+          page: {
+            base: {
+              title: "Login",
+            },
+          },
+        },
       },
     ],
   },

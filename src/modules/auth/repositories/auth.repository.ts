@@ -14,9 +14,9 @@ class AuthRepository {
   async login(req: AuthRequestDTO): Promise<ApiResponse<AuthResponse | null>> {
     const response = await apiFractal.post<AuthResponseDTO>(
       `${this.route}/login`,
-      req
+      req,
     );
-    let data: AuthResponse | null = response.data;
+    let data: AuthResponse | null = null;
     if (response.data) {
       data = authAdapter.one(response.data);
     }

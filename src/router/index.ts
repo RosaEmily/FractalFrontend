@@ -3,12 +3,13 @@ import type { RouteRecordRaw } from "vue-router";
 
 import HomeView from "../views/home/HomeView.vue";
 
-const { VITE_COOKIE_NAME_SESSION } = import.meta.env;
+import { COOKIE_NAME_SESSION } from "@/shared/config/env.config";
 import Cookies from "js-cookie";
 
 import { routesAuth } from "@/modules/auth/router";
 import { routesAdmin } from "@/modules/admin/router";
 import { routesError } from "@/modules/error/router";
+import { applyPageMeta } from "@/shared/utils/meta";
 
 const routes: RouteRecordRaw[] = [
   { path: "/", name: "home", component: HomeView },
@@ -33,7 +34,12 @@ const getUserRoles = (): string[] => {
 };
 
 router.beforeEach((to, _, next) => {
-  const isAuthenticated = Boolean(Cookies.get(VITE_COOKIE_NAME_SESSION));
+  // Page
+  if (to.meta.page) {
+    applyPageMeta(to.meta.page);
+  }
+
+  const isAuthenticated = Boolean(Cookies.get(COOKIE_NAME_SESSION));
   const userRoles = getUserRoles();
 
   if (to.meta.guestOnly && isAuthenticated) {
