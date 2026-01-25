@@ -62,7 +62,7 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
   }
 
   async list(
-    params?: Record<string, any>,
+    params?: unknown,
   ): Promise<ApiResponse<DataPaginationMeta<ListModel<T>>>> {
     const response = await apiFractal.get<DataPaginationMeta<ListDTO<T>>>(
       this.route,

@@ -22,9 +22,7 @@ export abstract class BaseService<
   }
 
   // LIST
-  async list(
-    params?: Record<string, any>,
-  ): Promise<DataPaginationMeta<ListModel<T>>> {
+  async list(params?: unknown): Promise<DataPaginationMeta<ListModel<T>>> {
     const resp = await this.repository.list(params);
 
     if (!resp.data) {

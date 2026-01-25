@@ -11,5 +11,8 @@ const props = withDefaults(defineProps<ButtonCoreProps>(), {
     <template #default>
       <slot />
     </template>
+    <template #icon>
+      <slot name="icon" />
+    </template>
   </Button>
 </template>
