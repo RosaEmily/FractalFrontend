@@ -2,6 +2,7 @@ import type { DataPaginationMeta } from "@/shared/interface/api-response";
 import type { DataTableProps } from "primevue/datatable";
 import type { GridUiColumnProps } from "./column/type";
 export type { GridUiColumnProps } from "./column/type";
+import type { InjectionKey } from "vue";
 
 export type Action<T> = {
   buttonType?: "link" | "button";
@@ -112,3 +113,10 @@ export interface GridUiTableProps<T> {
   columns: GridUiColumnProps<T>[];
   title?: string;
 }
+
+export interface GridUiTableProvider {
+  setLoading: (value: boolean) => void;
+  refreshData: () => Promise<void>;
+}
+
+export const GridKey: InjectionKey<GridUiTableProvider> = Symbol("Grid");

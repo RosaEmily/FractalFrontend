@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, provide } from "vue";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Paginator, { type PageState } from "primevue/paginator";
 import GridUiColumn from "./column/index.vue";
 
-import type { GridUiTableProps } from "./type";
+import { type GridUiTableProps, GridKey } from "./type";
 import { ToolbarCore } from "../../core";
 
 // -------------------- PROPS --------------------
@@ -65,6 +65,17 @@ const updatePage = async (event: PageState) => {
 
 onMounted(async () => {
   await refreshData();
+});
+
+const setLoading = (value: boolean) => {
+  isLoading.value = value;
+};
+
+// -------------------- PROVIDE --------------------
+
+provide(GridKey, {
+  setLoading,
+  refreshData,
 });
 
 // -------------------- EXPOSE --------------------

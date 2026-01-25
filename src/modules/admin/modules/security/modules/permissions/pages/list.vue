@@ -14,11 +14,6 @@ const columns: GridUiColumnProps<Permission>[] = [
     header: "Descripción",
   },
   {
-    field: "status",
-    header: "Estado",
-    type: "state",
-  },
-  {
     field: "created_at",
     header: "Fecha de creación",
     type: "date",
@@ -29,6 +24,11 @@ const columns: GridUiColumnProps<Permission>[] = [
     type: "date",
   },
   {
+    field: "status",
+    header: "Estado",
+    type: "state",
+  },
+  {
     field: "actions",
     header: "Acciones",
     actions: [
@@ -37,13 +37,13 @@ const columns: GridUiColumnProps<Permission>[] = [
         redirect: "/security/users/edit/{id}",
       },
       {
-        type: "delete",
-        handler: (ids: (number | string)[]) => permissionService.delete(ids),
-      },
-      {
         type: "state",
         handler: (ids: (number | string)[], state: 0 | 1) =>
           permissionService.status(ids, state),
+      },
+      {
+        type: "delete",
+        handler: (ids: (number | string)[]) => permissionService.delete(ids),
       },
     ],
   },
