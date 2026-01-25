@@ -1,3 +1,3 @@
 export interface HeroCoreProps {
-  path: string;
+  path?: string | null;
 }

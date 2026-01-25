@@ -7,6 +7,9 @@ export { default as TooltipCore } from "./tooltip/index.vue";
 export { default as HeroCore } from "./hero/index.vue";
 export { default as AvatarCore } from "./avatar/index.vue";
 export { default as ImageCore } from "./image/index.vue";
+export { default as TagCore } from "./tag/index.vue";
+export { default as ToolbarCore } from "./toolbar/index.vue";
+export { default as CardCore } from "./card/index.vue";
 
 export { default as InputTextCore } from "./input/text/index.vue";
 export { default as InputPasswordCore } from "./input/password/index.vue";

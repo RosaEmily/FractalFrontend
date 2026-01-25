@@ -6,6 +6,9 @@ export * from "./tooltip/type";
 export * from "./hero/type";
 export * from "./avatar/type";
 export * from "./image/type";
+export * from "./tag/type";
+export * from "./toolbar/type";
+export * from "./card/type";
 
 export * from "./input/password/type";
 export * from "./input/text/type";
