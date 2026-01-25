@@ -131,7 +131,7 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
     ids: (number | string)[],
     status: 0 | 1,
   ): Promise<ApiResponse<null>> {
-    return apiFractal.post(`${this.route}/actions/update-status`, {
+    return apiFractal.patch(`${this.route}/actions/update-status`, {
       ids,
       status,
     });
