@@ -19,12 +19,17 @@ const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
   dataKey: "id",
   totalRecords: 0,
   rows: 10,
+  removableSort: true,
 });
 
 // -------------------- ESTADO --------------------
 const rowsSelected = ref<NoInfer<any>[] | NoInfer<any>>([]);
 const data = ref(props.data ?? []);
 const isLoading = ref(false);
+const order = ref({
+  sortField: undefined,
+  sortOrder: 1,
+});
 
 const pagination = reactive({
   limit: props.rows,
@@ -41,8 +46,13 @@ const refreshData = async () => {
     const params: unknown[] = [
       { limit: pagination.limit, offset: pagination.offset },
     ];
+    if (order.value.sortField) {
+      params.push({
+        order: `${order.value.sortField}:${order.value.sortOrder == 1 ? "asc" : "desc"}`,
+      });
+    }
     if (props.argsFunction?.length) params.push(...props.argsFunction);
-    const response = await props.reload(...params);
+    const response = await props.reload(Object.assign({}, ...params));
     data.value = response.items;
     pagination.total = response.meta.total;
     rowsSelected.value = [];
@@ -88,6 +98,8 @@ defineExpose<GridUiTableExpose>({
 <template>
   <DataTable
     v-model:selection="rowsSelected"
+    v-model:sortField="order.sortField"
+    v-model:sortOrder="order.sortOrder"
     :value="data"
     :dataKey="dataKey"
     :loading="isLoading"
@@ -101,6 +113,9 @@ defineExpose<GridUiTableExpose>({
     :paginatorTemplate="paginatorTemplate"
     :currentPageReportTemplate="currentPageReportTemplate"
     :rowsPerPageOptions="rowsPerPageOptions"
+    :removableSort="removableSort"
+    :lazy="lazy"
+    @sort="refreshData"
     class="fractal-basic-table"
   >
     <template #header v-if="$slots['header']">

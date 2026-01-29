@@ -18,6 +18,7 @@ defineProps<{ col: GridUiColumnProps<T> }>();
     :key="col.field"
     :field="col.field"
     :header="col.header"
+    :sortable="col.sortable"
     :header-class="`uppercase !text-center ${col.headerClass || ''}`"
   >
     <template #body="{ data }">

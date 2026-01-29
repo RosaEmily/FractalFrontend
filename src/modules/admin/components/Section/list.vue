@@ -170,6 +170,7 @@ const actionsMassive = [
       :reload="(params: unknown) => services.list(params)"
       :columns="newColumns"
       selection-mode="multiple"
+      lazy
     >
       <template #header>
         <ToolbarCore class="!p-0 !border-0">

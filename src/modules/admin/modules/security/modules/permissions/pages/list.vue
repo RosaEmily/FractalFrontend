@@ -8,25 +8,30 @@ const columns: GridUiColumnProps<Permission>[] = [
   {
     field: "name",
     header: "Nombre",
+    sortable: true,
   },
   {
     field: "description",
     header: "Descripción",
+    sortable: true,
   },
   {
     field: "created_at",
     header: "Fecha de creación",
     type: "date",
+    sortable: true,
   },
   {
     field: "updated_at",
     header: "Fecha de actualización",
     type: "date",
+    sortable: true,
   },
   {
     field: "status",
     header: "Estado",
     type: "state",
+    sortable: true,
   },
 ];
 </script>
