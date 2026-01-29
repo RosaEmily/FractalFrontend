@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ToastCore } from "@/shared/components";
+import { ToastCore, ConfirmationCore } from "@/shared/components";
 import AlertComponent from "../components/alert/index.vue";
 </script>
 <template>
@@ -7,5 +7,6 @@ import AlertComponent from "../components/alert/index.vue";
     <router-view />
   </main>
   <ToastCore />
+  <ConfirmationCore />
   <AlertComponent />
 </template>

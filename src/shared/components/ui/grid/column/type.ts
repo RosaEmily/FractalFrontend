@@ -100,7 +100,7 @@ export interface Action {
     | ((data?: any) => void)
     | ((data?: any) => Promise<ApiResponse<unknown>>)
     | ((ids: (number | string)[]) => Promise<null>)
-    | ((ids: (number | string)[], state: 0 | 1) => Promise<null>);
+    | ((ids: (number | string)[], state?: 0 | 1) => Promise<null>);
   columnKey?: string;
   columnKeyId?: string;
   buttonProps?: ButtonCoreProps;
