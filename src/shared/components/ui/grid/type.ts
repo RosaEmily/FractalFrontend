@@ -14,23 +14,6 @@ export type Action<T> = {
   type?: "link" | "button" | "action";
 };
 
-export type TableProps<T> = {
-  checkable?: boolean;
-  selectionMode?: DataTableProps["selectionMode"];
-  data?: T[];
-  columns: GridUiColumnProps<T>[];
-  idField?: keyof T | ((item: T) => string);
-  actions?: Action<T>[];
-  reload?: (...args: unknown[]) => Promise<DataPaginationMeta>;
-  argsFunction?: unknown[];
-  tableTitle?: string;
-  actionsToolbar?: Action<T>[];
-  noPagination?: boolean;
-  limit?: number;
-  total?: number;
-  rowsPerPageOptions?: number[];
-};
-
 export interface GridUiTableProps<T> {
   data?: DataTableProps<T>["value"];
   dataKey?: DataTableProps<T>["dataKey"];
@@ -120,3 +103,8 @@ export interface GridUiTableProvider {
 }
 
 export const GridKey: InjectionKey<GridUiTableProvider> = Symbol("Grid");
+
+export interface GridUiTableExpose {
+  refreshData: () => Promise<void>;
+  rowsSelected: NoInfer<any>[] | NoInfer<any>;
+}

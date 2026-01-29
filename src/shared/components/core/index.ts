@@ -12,6 +12,7 @@ export { default as ToolbarCore } from "./toolbar/index.vue";
 export { default as CardCore } from "./card/index.vue";
 export { default as ToggleCore } from "./toggle/index.vue";
 export { default as ConfirmationCore } from "./confirmation/index.vue";
+export { default as SplitButtonCore } from "./split-button/index.vue";
 
 export { default as InputTextCore } from "./input/text/index.vue";
 export { default as InputPasswordCore } from "./input/password/index.vue";

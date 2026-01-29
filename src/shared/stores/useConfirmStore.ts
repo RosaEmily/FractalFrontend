@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import type { ConfirmationOptions } from "primevue/confirmationoptions";
 import { useConfirm } from "primevue/useconfirm";
 import { ref } from "vue";
+import { string } from "zod";
 
 export const useConfirmStore = defineStore("confirm-store", () => {
   const confirm = useConfirm();
@@ -21,11 +22,20 @@ export const useConfirmStore = defineStore("confirm-store", () => {
     confirm.require(confirmationOptions.value);
   };
 
-  const confirmDelete = (onAccept: () => Promise<void> | void) => {
+  const confirmDelete = (config: {
+    message?: string;
+    header?: string;
+    accept: () => Promise<void> | void;
+  }) => {
+    const {
+      header = "Confirmación",
+      message = "¿Seguro que quieres eliminar este registro?",
+      accept,
+    } = config;
     showConfirm({
-      header: "Confirmación",
-      message: "¿Seguro que quieres eliminar este registro?",
-      accept: onAccept,
+      header,
+      message,
+      accept,
       group: "confirmation",
     });
   };

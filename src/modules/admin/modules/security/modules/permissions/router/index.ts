@@ -9,11 +9,11 @@ const TitleBase = "Seguridad | Permisos |";
 export const routesPermissions: RouteRecordRaw[] = [
   {
     path: "permissions",
-    name: "permission",
+    name: "permissions",
     children: [
       {
         path: "",
-        name: "permission.list",
+        name: "permissions.list",
         component: ListPage,
         meta: {
           page: {
@@ -25,7 +25,7 @@ export const routesPermissions: RouteRecordRaw[] = [
       },
       {
         path: "create",
-        name: "permission.create",
+        name: "permissions.create",
         component: CreatePage,
         meta: {
           page: {
@@ -37,7 +37,7 @@ export const routesPermissions: RouteRecordRaw[] = [
       },
       {
         path: "edit/:id",
-        name: "permission.edit",
+        name: "permissions.edit",
         component: UpdatePage,
         meta: {
           page: {
