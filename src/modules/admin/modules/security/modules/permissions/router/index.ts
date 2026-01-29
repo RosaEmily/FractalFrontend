@@ -30,19 +30,19 @@ export const routesPermissions: RouteRecordRaw[] = [
         meta: {
           page: {
             base: {
-              title: `${TitleBase} Lista`,
+              title: `${TitleBase} Crear`,
             },
           },
         },
       },
       {
-        path: "update",
-        name: "permission.update",
+        path: "edit/:id",
+        name: "permission.edit",
         component: UpdatePage,
         meta: {
           page: {
             base: {
-              title: `${TitleBase} Lista`,
+              title: `${TitleBase} Actualizar`,
             },
           },
         },

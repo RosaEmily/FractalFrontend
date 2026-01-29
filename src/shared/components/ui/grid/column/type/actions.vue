@@ -7,6 +7,7 @@ import HeroCore from "@/shared/components/core/hero/index.vue";
 import ToggleCore from "@/shared/components/core/toggle/index.vue";
 
 import { useToastStore } from "@/shared/stores/useToastStore";
+import { useConfirmStore } from "@/shared/stores/useConfirmStore";
 
 import { mdiTrashCanOutline, mdiPencil } from "@mdi/js";
 import { RouterLink } from "vue-router";
@@ -17,6 +18,7 @@ import { safeRequest } from "@/shared/utils/request";
 const gridKey = inject(GridKey);
 
 const toastStore = useToastStore();
+const confirmStore = useConfirmStore();
 
 const props = withDefaults(
   defineProps<{ col: GridUiColumnProps<T>; data: any }>(),
@@ -55,7 +57,7 @@ const getRedirectHref = (action: Action) => {
 };
 
 const onChangeState = async (action: Action, state?: string | boolean) => {
-  if (state === undefined) return;
+  if (state == undefined) return;
 
   const { columnKey = "status", columnKeyId = "id" } = action;
 
@@ -86,6 +88,30 @@ const onChangeState = async (action: Action, state?: string | boolean) => {
 
   gridKey?.setLoading(false);
 };
+
+const onClick = async (action: Action) => {
+  const { columnKeyId = "id" } = action;
+  const ids = [props.data[columnKeyId]];
+  if (action.type == "delete") {
+    confirmStore.confirmDelete(async () => {
+      const { status, error } = await safeRequest(() => {
+        if (!action?.handler) {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve(action.handler(ids));
+      });
+      if (status && !error) {
+        toastStore.showToastError({
+          summary: "Eliminación",
+          detail: "El registro fue eliminado correctamente.",
+        });
+        gridKey?.refreshData();
+      }
+    });
+  } else {
+    action?.handler?.(ids);
+  }
+};
 </script>
 <template>
   <div class="flex gap-2 items-center">
@@ -93,6 +119,7 @@ const onChangeState = async (action: Action, state?: string | boolean) => {
       <ButtonCore
         v-if="rawAction.type == 'delete' || rawAction.type == 'button'"
         v-bind="normalizeAction(rawAction).buttonProps"
+        @click="onClick(normalizeAction(rawAction))"
         class="!p-1"
       >
         <template #icon v-if="normalizeAction(rawAction).icon">

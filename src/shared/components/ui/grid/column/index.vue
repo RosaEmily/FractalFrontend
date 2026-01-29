@@ -18,10 +18,13 @@ defineProps<{ col: GridUiColumnProps<T> }>();
     :key="col.field"
     :field="col.field"
     :header="col.header"
-    :header-class="`uppercase text-center ${col.headerClass || ''}`"
+    :header-class="`uppercase !text-center ${col.headerClass || ''}`"
   >
     <template #body="{ data }">
-      <div class="flex items-center justify-center" :class="col.class">
+      <div
+        class="flex items-center justify-center text-center"
+        :class="col.class"
+      >
         <slot name="cell" :row="data" :col="col" :value="data[col.field]">
           <template v-if="col.field == 'actions' && col.actions?.length">
             <ColumnActions :col="col" :data="data" />

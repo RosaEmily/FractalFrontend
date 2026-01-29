@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @tailwind utilities;
 
+@layer utilities {
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
 @theme {
   --breakpoint-xs: 480px;
   --color-primary-50: #fff6f2;

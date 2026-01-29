@@ -34,12 +34,12 @@ const columns: GridUiColumnProps<Permission>[] = [
     actions: [
       {
         type: "edit",
-        redirect: "/security/users/edit/{id}",
+        redirect: "/admin/security/permissions/edit/{id}",
       },
       {
         type: "state",
-        handler: (ids: (number | string)[], state: 0 | 1) =>
-          permissionService.status(ids, state),
+        handler: (ids: (number | string)[], state?: 0 | 1) =>
+          permissionService.status(ids, state ?? 1),
       },
       {
         type: "delete",
