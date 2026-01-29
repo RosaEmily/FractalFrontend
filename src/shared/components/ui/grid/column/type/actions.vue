@@ -93,20 +93,22 @@ const onClick = async (action: Action) => {
   const { columnKeyId = "id" } = action;
   const ids = [props.data[columnKeyId]];
   if (action.type == "delete") {
-    confirmStore.confirmDelete(async () => {
-      const { status, error } = await safeRequest(() => {
-        if (!action?.handler) {
-          return Promise.resolve(null);
-        }
-        return Promise.resolve(action.handler(ids));
-      });
-      if (status && !error) {
-        toastStore.showToastError({
-          summary: "Eliminación",
-          detail: "El registro fue eliminado correctamente.",
+    confirmStore.confirmDelete({
+      accept: async () => {
+        const { status, error } = await safeRequest(() => {
+          if (!action?.handler) {
+            return Promise.resolve(null);
+          }
+          return Promise.resolve(action.handler(ids));
         });
-        gridKey?.refreshData();
-      }
+        if (status && !error) {
+          toastStore.showToastError({
+            summary: "Eliminación",
+            detail: "El registro fue eliminado correctamente.",
+          });
+          gridKey?.refreshData();
+        }
+      },
     });
   } else {
     action?.handler?.(ids);

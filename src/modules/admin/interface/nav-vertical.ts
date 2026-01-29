@@ -8,4 +8,5 @@ export interface MenuItem {
   route?: RouteLocationRaw | null;
   roles?: string[];
   children?: MenuItem[];
+  module?: string;
 }

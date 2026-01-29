@@ -14,8 +14,9 @@ export const MENU_SECURITY: MenuItem[] = [
         icon: mdiShieldKeyOutline,
         roles: ["ADMIN"],
         route: {
-          name: "permission.list",
+          name: "permissions.list",
         },
+        module: "permissions",
       },
       {
         id: "security.roles",
@@ -25,6 +26,7 @@ export const MENU_SECURITY: MenuItem[] = [
         route: {
           name: "role.list",
         },
+        module: "roles",
       },
     ],
   },

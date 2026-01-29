@@ -5,8 +5,7 @@ import Column from "primevue/column";
 import Paginator, { type PageState } from "primevue/paginator";
 import GridUiColumn from "./column/index.vue";
 
-import { type GridUiTableProps, GridKey } from "./type";
-import { ToolbarCore } from "../../core";
+import { type GridUiTableExpose, type GridUiTableProps, GridKey } from "./type";
 
 // -------------------- PROPS --------------------
 const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
@@ -23,8 +22,8 @@ const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
 });
 
 // -------------------- ESTADO --------------------
-const rowsSelected = ref<any[]>([]);
-const rows = ref(props.data ?? []);
+const rowsSelected = ref<NoInfer<any>[] | NoInfer<any>>([]);
+const data = ref(props.data ?? []);
 const isLoading = ref(false);
 
 const pagination = reactive({
@@ -44,8 +43,9 @@ const refreshData = async () => {
     ];
     if (props.argsFunction?.length) params.push(...props.argsFunction);
     const response = await props.reload(...params);
-    rows.value = response.items;
+    data.value = response.items;
     pagination.total = response.meta.total;
+    rowsSelected.value = [];
   } catch (error) {
     console.error(error);
   } finally {
@@ -79,17 +79,16 @@ provide(GridKey, {
 });
 
 // -------------------- EXPOSE --------------------
-defineExpose({
+defineExpose<GridUiTableExpose>({
   refreshData,
   rowsSelected,
-  rows,
 });
 </script>
 
 <template>
   <DataTable
     v-model:selection="rowsSelected"
-    :value="rows"
+    :value="data"
     :dataKey="dataKey"
     :loading="isLoading"
     :selectionMode="selectionMode"
@@ -104,52 +103,17 @@ defineExpose({
     :rowsPerPageOptions="rowsPerPageOptions"
     class="fractal-basic-table"
   >
-    <template #header v-if="title">
-      <ToolbarCore class="!p-0 !border-0">
-        <template #start>
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-lg font-bold uppercase">{{ title }}</span>
-          </div>
-        </template>
-      </ToolbarCore>
+    <template #header v-if="$slots['header']">
+      <slot name="header" />
     </template>
 
     <!-- COLUMNAS -->
     <Column
       v-if="selectionMode"
       :selectionMode="selectionMode"
-      style="width: 3rem"
       :exportable="false"
     />
     <GridUiColumn v-for="col in columns" :col="col" :key="col.field" />
-
-    <!-- ACCIONES -->
-    <!-- <Column
-      v-if="actions?.length"
-      :exportable="false"
-      header="Acciones"
-      style="min-width: 12rem"
-    >
-      <template #body="{ data }">
-        <div class="flex gap-2 justify-center">
-          <Button
-            v-for="action in actions"
-            :key="action.label"
-            :outlined="true"
-            :rounded="true"
-            size="small"
-            :severity="action.severity"
-            :as="action.buttonType === 'link' ? 'a' : 'button'"
-            :href="action.href"
-            target="_blank"
-            @click="() => action.handler?.(data)"
-          >
-            <IconForm v-if="action.icon" :path="action.icon" size="18" />
-            <span v-if="action.label">{{ action.label }}</span>
-          </Button>
-        </div>
-      </template>
-    </Column> -->
 
     <!-- EMPTY STATE -->
     <template #empty>

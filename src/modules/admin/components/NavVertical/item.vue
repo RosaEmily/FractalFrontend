@@ -6,7 +6,10 @@ import ListNavVertical from "./list.vue";
 import type { MenuItem } from "@/modules/admin/interface/nav-vertical";
 
 import { useRoute } from "vue-router";
-import type { RouteLocationRaw } from "vue-router";
+import type {
+  RouteLocationNormalizedLoadedGeneric,
+  RouteLocationRaw,
+} from "vue-router";
 
 import { computed } from "vue";
 
@@ -32,16 +35,28 @@ const getRouteName = (route?: RouteLocationRaw | null): string | null => {
   return null;
 };
 
+const isActiveMenuItem = (
+  route: RouteLocationNormalizedLoadedGeneric,
+  item: MenuItem,
+): boolean => {
+  return (
+    route.name === getRouteName(item.route) ||
+    (typeof route.name === "string" &&
+      typeof item.module === "string" &&
+      route.name.includes(item.module))
+  );
+};
+
 const isActive = computed(() => {
   const { item } = props;
   if (!item.route) return false;
-  return route.name === getRouteName(item.route);
+  return isActiveMenuItem(route, item);
 });
 
 const hasActiveChild = (items?: MenuItem[]): boolean => {
   if (!items?.length) return false;
   return items.some((item) => {
-    if (getRouteName(item.route) === route.name) {
+    if (isActiveMenuItem(route, item)) {
       return true;
     }
     return hasActiveChild(item.children);
