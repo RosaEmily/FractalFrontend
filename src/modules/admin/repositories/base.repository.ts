@@ -82,6 +82,26 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
     };
   }
 
+  async all(params?: unknown): Promise<ApiResponse<ListModel<T>[]>> {
+    const response = await apiFractal.get<ListDTO<T>[]>(this.route, {
+      params: {
+        params,
+        ...{ paginate: false },
+      },
+    });
+
+    const adapter = this.getAdapter("list") as ListAdapter<T>;
+
+    if (!response.data || !adapter.many) {
+      throw new Error("Respuesta inválida");
+    }
+
+    return {
+      ...response,
+      data: adapter.many(response.data),
+    };
+  }
+
   async edit(id: number | string): Promise<ApiResponse<EditModel<T> | null>> {
     const response = await apiFractal.get<EditDTO<T>>(`${this.route}/${id}`);
 

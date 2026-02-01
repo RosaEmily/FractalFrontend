@@ -1,4 +1,5 @@
 import type { ComplexValue } from "@/shared/interface/primitive";
+import { safeJsonStringify } from "./safe-json";
 
 // STRING → no vacío
 export const isValidString = (value: string): boolean =>
@@ -54,3 +55,84 @@ export function parseValidUrl(value?: string | null): string | null {
     return null;
   }
 }
+
+const normalizeForCompare = (
+  value: unknown,
+  seen = new WeakMap<object, true>(),
+): unknown => {
+  // Primitive
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+
+  // Circular reference
+  if (seen.has(value)) {
+    return "[Circular]";
+  }
+
+  // File
+  if (value instanceof File) {
+    return {
+      __type: "File",
+      name: value.name,
+      size: value.size,
+      type: value.type,
+      lastModified: value.lastModified,
+    };
+  }
+
+  // Date
+  if (value instanceof Date) {
+    return {
+      __type: "Date",
+      value: value.toISOString(),
+    };
+  }
+
+  seen.set(value, true);
+
+  // Map
+  if (value instanceof Map) {
+    return {
+      __type: "Map",
+      value: Array.from(value.entries())
+        .map(([k, v]) => [
+          normalizeForCompare(k, seen),
+          normalizeForCompare(v, seen),
+        ])
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+    };
+  }
+
+  // Set
+  if (value instanceof Set) {
+    return {
+      __type: "Set",
+      value: Array.from(value.values())
+        .map((v) => normalizeForCompare(v, seen))
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+    };
+  }
+
+  // Array
+  if (Array.isArray(value)) {
+    return value.map((v) => normalizeForCompare(v, seen));
+  }
+
+  // Object
+  return Object.keys(value)
+    .sort()
+    .reduce<Record<string, unknown>>((acc, key) => {
+      acc[key] = normalizeForCompare(
+        (value as Record<string, unknown>)[key],
+        seen,
+      );
+      return acc;
+    }, {});
+};
+
+export const hasChanged = (initData: unknown, newData: unknown): boolean => {
+  const a = normalizeForCompare(initData);
+  const b = normalizeForCompare(newData);
+  return safeJsonStringify(a) !== safeJsonStringify(b);
+};

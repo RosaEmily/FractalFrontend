@@ -1,6 +1,8 @@
 <script setup lang="ts" generic="T">
 import ImageCore from "@/shared/components/core/image/index.vue";
 import TagCore from "@/shared/components/core/tag/index.vue";
+import Filter from "./filters.vue";
+import ArrayComponent from "./type/array.vue";
 
 import ColumnActions from "./type/actions.vue";
 
@@ -8,16 +10,22 @@ import { formatValue, formatUrlValue } from "../utils/format";
 import type { GridUiColumnProps } from "../type";
 import { STATUS } from "../constants";
 import Column from "primevue/column";
+import { computed } from "vue";
 
-defineProps<{ col: GridUiColumnProps<T> }>();
+const props = withDefaults(defineProps<{ col: GridUiColumnProps<T> }>(), {});
+
+const col = computed(() => ({
+  ...props.col,
+  showAddButton: false,
+  showFilterOperator: false,
+}));
 </script>
 
 <template>
   <Column
     v-bind="col"
     :key="col.field"
-    :field="col.field"
-    :header="col.header"
+    :field="String(col.field)"
     :header-class="`uppercase !text-center ${col.headerClass || ''}`"
   >
     <template #body="{ data }">
@@ -64,6 +72,15 @@ defineProps<{ col: GridUiColumnProps<T> }>();
               :is="col.render?.(data)"
             />
 
+            <!-- Array -->
+            <ArrayComponent
+              v-else-if="Array.isArray(data[col.field])"
+              :items="data[col.field]"
+              :display-separator="col.displaySeparator"
+              :key-separator="col.keySeparator"
+              :key-to-render="col.keyToRender"
+            />
+
             <!-- Generales (text, number, currency, date, datetime) -->
             <span v-else>
               {{ formatValue(col, data) }}
@@ -71,6 +88,9 @@ defineProps<{ col: GridUiColumnProps<T> }>();
           </template>
         </slot>
       </div>
+    </template>
+    <template v-if="col.showFilterMenu" #filter="{ filterModel }">
+      <Filter v-model="filterModel.value" :config="col.filterConfig" />
     </template>
   </Column>
 </template>

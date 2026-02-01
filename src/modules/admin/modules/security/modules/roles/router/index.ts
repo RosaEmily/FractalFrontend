@@ -13,7 +13,7 @@ export const routesRoles: RouteRecordRaw[] = [
     children: [
       {
         path: "",
-        name: "role.list",
+        name: "roles.list",
         component: ListPage,
         meta: {
           page: {
@@ -25,7 +25,7 @@ export const routesRoles: RouteRecordRaw[] = [
       },
       {
         path: "create",
-        name: "role.create",
+        name: "roles.create",
         component: CreatePage,
         meta: {
           page: {
@@ -36,8 +36,8 @@ export const routesRoles: RouteRecordRaw[] = [
         },
       },
       {
-        path: "update",
-        name: "role.update",
+        path: "edit/:id",
+        name: "roles.update",
         component: UpdatePage,
         meta: {
           page: {

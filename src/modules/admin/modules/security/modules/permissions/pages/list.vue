@@ -3,30 +3,22 @@ import SectionList from "@/modules/admin/components/Section/list.vue";
 import permissionService from "../services/permission.service";
 import type { Permission } from "../models/permission.model";
 import type { GridUiColumnProps } from "@/shared/components/type";
+import { FilterMatchMode } from "@primevue/core";
 
 const columns: GridUiColumnProps<Permission>[] = [
   {
     field: "name",
     header: "Nombre",
+    sortable: true,
+    showFilterMenu: true,
+    filter: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
   {
     field: "description",
     header: "Descripción",
-  },
-  {
-    field: "created_at",
-    header: "Fecha de creación",
-    type: "date",
-  },
-  {
-    field: "updated_at",
-    header: "Fecha de actualización",
-    type: "date",
-  },
-  {
-    field: "status",
-    header: "Estado",
-    type: "state",
+    sortable: true,
+    showFilterMenu: true,
+    filter: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
 ];
 </script>

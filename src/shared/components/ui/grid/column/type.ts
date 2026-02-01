@@ -2,6 +2,14 @@ import type { ApiResponse } from "@/shared/interface/api-response";
 import type { ColumnProps } from "primevue/column";
 import type { Component } from "vue";
 import type { ButtonCoreProps } from "@/shared/components/core/buttons/type";
+import type {
+  DataTableFilterMetaData,
+  DataTableOperatorFilterMetaData,
+} from "primevue/datatable";
+import type { InputTextCoreProps } from "@/shared/components/core/input/text/type";
+import type { SelectCoreProps } from "@/shared/components/core/select/type";
+import type { DatePickerCoreProps } from "@/shared/components/core/datepicker/type";
+import type { MultiSelectCoreProps } from "@/shared/components/core/multiselect/type";
 
 export interface GridUiColumnProps<T> {
   columnKey?: ColumnProps["columnKey"];
@@ -52,7 +60,7 @@ export interface GridUiColumnProps<T> {
   ptOptions?: ColumnProps["ptOptions"];
   unstyled?: ColumnProps["unstyled"];
 
-  field: keyof T | "actions";
+  field: keyof T | "updated_at" | "status" | "actions";
   type?: "currency" | "number" | "date" | "image" | "url" | "custom" | "state";
 
   /** --- CUSTOM RENDER --- */
@@ -88,7 +96,21 @@ export interface GridUiColumnProps<T> {
   keySeparator?: string;
   displaySeparator?: string;
   actions?: Action[];
-  filterOptionsMatchMode?: string[];
+  filter?: Filter;
+  filterConfig?: FilterConfig;
+}
+
+export type Filter =
+  | string
+  | DataTableFilterMetaData
+  | DataTableOperatorFilterMetaData;
+
+export interface FilterConfig {
+  component: "input" | "datepicker" | "select" | "multiselect";
+  inputProps?: InputTextCoreProps;
+  selectProps?: SelectCoreProps;
+  datepickerProps?: DatePickerCoreProps;
+  multiselectProps?: MultiSelectCoreProps;
 }
 
 export interface Action {

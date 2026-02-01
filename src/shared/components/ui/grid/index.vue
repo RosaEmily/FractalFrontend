@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, provide } from "vue";
-import DataTable from "primevue/datatable";
+import DataTable, { type DataTableFilterMeta } from "primevue/datatable";
 import Column from "primevue/column";
 import Paginator, { type PageState } from "primevue/paginator";
 import GridUiColumn from "./column/index.vue";
 
 import { type GridUiTableExpose, type GridUiTableProps, GridKey } from "./type";
+import { buildFiltersFromColumns, primeToApiFilters } from "./utils/format";
+import { hasChanged } from "@/shared/utils/valid";
+import { safeJsonStringify } from "@/shared/utils/safe-json";
 
 // -------------------- PROPS --------------------
 const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
@@ -19,12 +22,20 @@ const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
   dataKey: "id",
   totalRecords: 0,
   rows: 10,
+  removableSort: true,
+  filterDisplay: "menu",
+  stateStorage: "session",
+  stateKey: "dt-fractal",
 });
 
 // -------------------- ESTADO --------------------
 const rowsSelected = ref<NoInfer<any>[] | NoInfer<any>>([]);
 const data = ref(props.data ?? []);
 const isLoading = ref(false);
+const order = ref({
+  sortField: undefined,
+  sortOrder: 1,
+});
 
 const pagination = reactive({
   limit: props.rows,
@@ -33,16 +44,35 @@ const pagination = reactive({
   first: 0,
 });
 
+const filters = ref<DataTableFilterMeta | undefined>(
+  buildFiltersFromColumns(props.columns),
+);
+
+const prevState = ref({
+  order: { ...order.value },
+  filters: safeJsonStringify(filters.value),
+});
+
 // -------------------- FETCH --------------------
-const refreshData = async () => {
-  if (!props.reload) return;
+const refreshData = async (init: boolean = false) => {
+  if (!props.reload || (!init && !shouldRefresh())) return;
   isLoading.value = true;
   try {
     const params: unknown[] = [
       { limit: pagination.limit, offset: pagination.offset },
     ];
+    if (order.value.sortField) {
+      params.push({
+        order: `${order.value.sortField}:${order.value.sortOrder == 1 ? "asc" : "desc"}`,
+      });
+    }
+    if (filters.value) {
+      params.push({
+        filters: primeToApiFilters(filters.value),
+      });
+    }
     if (props.argsFunction?.length) params.push(...props.argsFunction);
-    const response = await props.reload(...params);
+    const response = await props.reload(Object.assign({}, ...params));
     data.value = response.items;
     pagination.total = response.meta.total;
     rowsSelected.value = [];
@@ -51,6 +81,20 @@ const refreshData = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const shouldRefresh = (): boolean => {
+  const changed = hasChanged(prevState.value, {
+    order: order.value,
+    filters: safeJsonStringify(filters.value),
+  });
+  if (changed) {
+    prevState.value = {
+      order: { ...order.value },
+      filters: safeJsonStringify(filters.value),
+    };
+  }
+  return changed;
 };
 
 // -------------------- PAGINACIÓN --------------------
@@ -64,7 +108,7 @@ const updatePage = async (event: PageState) => {
 };
 
 onMounted(async () => {
-  await refreshData();
+  await refreshData(true);
 });
 
 const setLoading = (value: boolean) => {
@@ -88,6 +132,9 @@ defineExpose<GridUiTableExpose>({
 <template>
   <DataTable
     v-model:selection="rowsSelected"
+    v-model:sortField="order.sortField"
+    v-model:sortOrder="order.sortOrder"
+    v-model:filters="filters"
     :value="data"
     :dataKey="dataKey"
     :loading="isLoading"
@@ -101,6 +148,11 @@ defineExpose<GridUiTableExpose>({
     :paginatorTemplate="paginatorTemplate"
     :currentPageReportTemplate="currentPageReportTemplate"
     :rowsPerPageOptions="rowsPerPageOptions"
+    :removableSort="removableSort"
+    :lazy="lazy"
+    :filterDisplay="filterDisplay"
+    @sort="refreshData(false)"
+    @filter="refreshData(false)"
     class="fractal-basic-table"
   >
     <template #header v-if="$slots['header']">

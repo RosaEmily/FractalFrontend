@@ -4,7 +4,6 @@ import {
   GripUi,
   SplitButtonCore,
   ToolbarCore,
-  ButtonCore,
 } from "@/shared/components";
 import type {
   GridUiColumnProps,
@@ -16,6 +15,7 @@ import { computed, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import { useConfirmStore } from "@/shared/stores/useConfirmStore";
+import { FilterMatchMode } from "@primevue/core";
 
 const router = useRouter();
 const toastStore = useToastStore();
@@ -51,6 +51,46 @@ const keys = computed(() => {
 
 const newColumns: GridUiColumnProps<T>[] = [
   ...props.columns,
+  {
+    field: "updated_at",
+    header: "Fecha de actualización",
+    type: "date",
+    sortable: true,
+    showFilterMenu: true,
+    showFilterMatchModes: false,
+    filter: { value: null, matchMode: FilterMatchMode.BETWEEN },
+    filterConfig: {
+      component: "datepicker",
+      datepickerProps: {
+        maxDate: new Date(),
+        selectionMode: "range",
+        dayjsFormatValue: "YYYY-MM-DD HH:mm:ss",
+        dateUtc: true,
+        hourFormat: "12",
+      },
+    },
+  },
+  {
+    field: "status",
+    header: "Estado",
+    type: "state",
+    sortable: true,
+    showFilterMenu: true,
+    showFilterMatchModes: false,
+    filter: { value: null, matchMode: FilterMatchMode.EQUALS },
+    filterConfig: {
+      component: "select",
+      selectProps: {
+        options: [
+          { value: 0, name: "Deshabilitado" },
+          { value: 1, name: "Habilitado" },
+        ],
+        optionLabel: "name",
+        optionValue: "value",
+        placeholder: "Ingrese estado",
+      },
+    },
+  },
   {
     field: "actions",
     header: "Acciones",
@@ -170,6 +210,7 @@ const actionsMassive = [
       :reload="(params: unknown) => services.list(params)"
       :columns="newColumns"
       selection-mode="multiple"
+      lazy
     >
       <template #header>
         <ToolbarCore class="!p-0 !border-0">

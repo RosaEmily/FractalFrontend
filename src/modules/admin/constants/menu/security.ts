@@ -24,7 +24,7 @@ export const MENU_SECURITY: MenuItem[] = [
         icon: mdiAccountKeyOutline,
         roles: ["ADMIN"],
         route: {
-          name: "role.list",
+          name: "roles.list",
         },
         module: "roles",
       },
