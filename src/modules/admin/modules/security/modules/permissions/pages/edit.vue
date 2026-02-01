@@ -1,15 +1,26 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { onMounted, ref } from "vue";
+
+import { useRoute } from "vue-router";
+
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
-import permissionService from "../services/permission.service";
 import { InputTextCore, TextAreaCore } from "@/shared/components";
+import type { PermissionCreateBodyDTO } from "../dto/permission.dto";
 
-const initialValues = {
+import permissionService from "../services/permission.service";
+import { useLoadingStore } from "@/shared/stores/useLoadingStore";
+
+const route = useRoute();
+
+const initialValues = ref<PermissionCreateBodyDTO>({
   name: null,
   description: null,
-};
+});
+
+const identifier = ref<string>(route.params.id);
 
 const formSchema = z.object({
   name: withRefinements(
@@ -34,14 +45,27 @@ const formSchema = z.object({
     lettersSpaces,
   ),
 });
+
+onMounted(async () => {
+  const landingStore = useLoadingStore();
+  landingStore.start();
+  const resp = await permissionService.edit(identifier.value);
+  landingStore.finish();
+  if (!resp) return;
+  initialValues.value = {
+    name: resp.name,
+    description: resp.description,
+  };
+});
 </script>
 <template>
   <CrudForm
-    title="Crear Permiso"
+    title="Actualizar Permiso"
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="permissions.list"
-    :service="(body) => permissionService.create(body)"
+    :service="(body) => permissionService.update(identifier, body)"
+    submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
       <InputTextCore

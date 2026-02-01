@@ -1,5 +1,8 @@
 import type { RepositoryBase } from "@/modules/admin/interface/base-repository";
-import type { PermissionDTO } from "../dto/permission.dto";
+import type {
+  PermissionCreateBodyDTO,
+  PermissionDTO,
+} from "../dto/permission.dto";
 
 export interface Permission {
   id: number;
@@ -12,4 +15,10 @@ export interface Permission {
 
 export interface PermissionRepositoryTypes {
   base: RepositoryBase<Permission, PermissionDTO>;
+  create: {
+    body: PermissionCreateBodyDTO;
+  };
+  update: {
+    body: PermissionCreateBodyDTO;
+  };
 }

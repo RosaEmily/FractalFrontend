@@ -128,19 +128,17 @@ const onClick = async (action: Action) => {
           <HeroCore :path="normalizeAction(rawAction).icon" size="20" />
         </template>
       </ButtonCore>
-      <RouterLink
+      <ButtonCore
         v-if="rawAction.type == 'redirect' || rawAction.type == 'edit'"
+        v-bind="normalizeAction(rawAction).buttonProps"
         :to="getRedirectHref(normalizeAction(rawAction))"
+        as="RouterLink"
+        class="!p-1"
       >
-        <ButtonCore
-          v-bind="normalizeAction(rawAction).buttonProps"
-          class="!p-1"
-        >
-          <template #icon v-if="normalizeAction(rawAction).icon">
-            <HeroCore :path="normalizeAction(rawAction).icon" size="20" />
-          </template>
-        </ButtonCore>
-      </RouterLink>
+        <template #icon v-if="normalizeAction(rawAction).icon">
+          <HeroCore :path="normalizeAction(rawAction).icon" size="20" />
+        </template>
+      </ButtonCore>
       <ToggleCore
         v-if="rawAction.type == 'state'"
         :model-value="

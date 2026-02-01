@@ -136,3 +136,24 @@ export const hasChanged = (initData: unknown, newData: unknown): boolean => {
   const b = normalizeForCompare(newData);
   return safeJsonStringify(a) !== safeJsonStringify(b);
 };
+
+export function validateUrl(value?: string | null): boolean {
+  if (!value) return false; // vacío no permitido
+
+  try {
+    const url = new URL(value);
+
+    // Protocolo debe ser https:
+    if (url.protocol !== "https:") return false;
+
+    // Debe tener host válido
+    if (!url.hostname) return false;
+
+    // Opcional: que tenga al menos un dominio y extensión (.com, .org, etc.)
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(url.hostname)) return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}

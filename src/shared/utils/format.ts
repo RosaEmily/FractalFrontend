@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import "dayjs/locale/es";
+import type { NormalizeUrlOptions } from "../interface/format";
 dayjs.locale("es");
 
 export const formatPaddedValue = (
@@ -184,4 +185,34 @@ export const slugify = (input: string | number | boolean | unknown): string => {
     .replace(/[^\p{L}\p{N}]+/gu, "-") // reemplaza todo lo que no sea letra o número por guion
     .replace(/-+/g, "-") // unifica múltiples guiones
     .replace(/^-|-$/g, ""); // elimina guion al inicio o final
+};
+
+export const normalizeUrl = (
+  url: string | null,
+  { keepQuery = true, keepHash = true }: NormalizeUrlOptions = {},
+): string => {
+  if (!url) return "";
+
+  const trimmed = url.trim();
+
+  try {
+    const parsed = new URL(
+      /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`,
+    );
+
+    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    const path = parsed.pathname.replace(/\/+$/, "");
+
+    const query = keepQuery ? parsed.search : "";
+    const hash = keepHash ? parsed.hash : "";
+
+    return `${host}${path}${query}${hash}`;
+  } catch {
+    return trimmed
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/+$/, "")
+      .replace(!keepQuery ? /[?#].*$/ : /$/, "");
+  }
 };

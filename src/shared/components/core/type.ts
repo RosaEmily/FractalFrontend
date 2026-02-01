@@ -14,6 +14,8 @@ export * from "./split-button/type";
 export * from "./select/type";
 export * from "./datepicker/type";
 export * from "./multiselect/type";
+export * from "./header/type";
+export * from "./textarea/type";
 
 export * from "./input/password/type";
 export * from "./input/text/type";

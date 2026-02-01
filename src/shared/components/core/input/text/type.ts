@@ -14,4 +14,5 @@ export interface InputTextCoreProps {
   ptOptions?: InputTextProps["ptOptions"];
   unstyled?: InputTextProps["unstyled"];
   messageError?: string | null;
+  messagesInfo?: string | string[] | null;
 }

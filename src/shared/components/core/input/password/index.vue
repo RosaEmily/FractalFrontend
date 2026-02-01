@@ -28,7 +28,7 @@ const model = defineModel<string | null>({
       :html-for="props.inputId"
     />
 
-    <Password v-bind="props" v-model="model" />
+    <Password v-trim v-bind="props" v-model="model" />
 
     <MessageCore
       v-if="messageError"
