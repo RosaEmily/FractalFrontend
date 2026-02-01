@@ -1,5 +1,5 @@
 import type { RepositoryBase } from "@/modules/admin/interface/base-repository";
-import type { RoleDTO } from "../dto/role.dto";
+import type { RoleBodyDTO, RoleDTO } from "../dto/role.dto";
 
 export interface Role {
   id: number;
@@ -9,8 +9,15 @@ export interface Role {
   created_at: Date;
   updated_at: Date;
   permissions: string[];
+  permissionIds: number[];
 }
 
 export interface RoleRepositoryTypes {
   base: RepositoryBase<Role, RoleDTO>;
+  create: {
+    body: RoleBodyDTO;
+  };
+  update: {
+    body: RoleBodyDTO;
+  };
 }

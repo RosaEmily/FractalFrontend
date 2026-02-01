@@ -10,6 +10,7 @@ export const RoleAdapter = {
     created_at: dto.created_at,
     updated_at: dto.updated_at,
     permissions: dto.permissions,
+    permissionIds: dto.permissionIds,
   }),
 
   many: (dtos: RoleDTO[]): Role[] => dtos.map((dto) => RoleAdapter.one(dto)),

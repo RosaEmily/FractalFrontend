@@ -6,4 +6,11 @@ export interface RoleDTO {
   created_at: Date;
   updated_at: Date;
   permissions: string[];
+  permissionIds: number[];
+}
+
+export interface RoleBodyDTO {
+  name: string | null;
+  description: string | null;
+  permissions?: number[];
 }
