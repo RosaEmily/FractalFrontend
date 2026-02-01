@@ -47,9 +47,6 @@ const onSubmit = handleSubmit(async (values: T) => {
     toastStore.showToastSuccess({
       detail: "Registro creado o actualizado correctamente",
     });
-    console.log("props ==>", {
-      name: props.redirectOnSuccess ?? props.redirect,
-    });
     router.replace({ name: props.redirectOnSuccess ?? props.redirect });
   } else if (error?.details && !Array.isArray(error.details)) {
     (Object.keys(error.details) as (keyof T)[]).forEach((key) => {

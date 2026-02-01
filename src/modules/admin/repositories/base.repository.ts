@@ -83,10 +83,15 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
   }
 
   async all(params?: unknown): Promise<ApiResponse<ListModel<T>[]>> {
+    const safeParams =
+      typeof params === "object" && params !== null && !Array.isArray(params)
+        ? params
+        : {};
+
     const response = await apiFractal.get<ListDTO<T>[]>(this.route, {
       params: {
-        params,
-        ...{ paginate: false },
+        ...safeParams,
+        paginate: false,
       },
     });
 
