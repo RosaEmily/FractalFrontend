@@ -32,6 +32,15 @@ export abstract class BaseService<
     return resp.data;
   }
 
+  // ALL
+  async all(params?: unknown): Promise<ListModel<T>[]> {
+    const resp = await this.repository.all(params);
+    if (!resp.data) {
+      throw new Error("No hay data en el repositorio");
+    }
+    return resp.data;
+  }
+
   // EDIT
   async edit(id: number | string): Promise<EditModel<T> | null> {
     const resp = await this.repository.edit(id);

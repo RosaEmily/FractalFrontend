@@ -15,6 +15,7 @@ export { default as ConfirmationCore } from "./confirmation/index.vue";
 export { default as SplitButtonCore } from "./split-button/index.vue";
 export { default as SelectCore } from "./select/index.vue";
 export { default as DatePicketCore } from "./datepicker/index.vue";
+export { default as MultiselectCore } from "./multiselect/index.vue";
 
 export { default as InputTextCore } from "./input/text/index.vue";
 export { default as InputPasswordCore } from "./input/password/index.vue";

@@ -9,6 +9,7 @@ import type {
 import type { InputTextCoreProps } from "@/shared/components/core/input/text/type";
 import type { SelectCoreProps } from "@/shared/components/core/select/type";
 import type { DatePickerCoreProps } from "@/shared/components/core/datepicker/type";
+import type { MultiSelectCoreProps } from "@/shared/components/core/multiselect/type";
 
 export interface GridUiColumnProps<T> {
   columnKey?: ColumnProps["columnKey"];
@@ -109,6 +110,7 @@ export interface FilterConfig {
   inputProps?: InputTextCoreProps;
   selectProps?: SelectCoreProps;
   datepickerProps?: DatePickerCoreProps;
+  multiselectProps?: MultiSelectCoreProps;
 }
 
 export interface Action {

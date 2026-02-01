@@ -83,4 +83,6 @@ export interface SelectCoreProps {
 
   unstyled?: SelectProps["unstyled"];
   messageError?: string | null;
+  service?: () => Promise<unknown[]>;
+  autoLoad?: boolean;
 }

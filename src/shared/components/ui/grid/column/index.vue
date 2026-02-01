@@ -2,6 +2,7 @@
 import ImageCore from "@/shared/components/core/image/index.vue";
 import TagCore from "@/shared/components/core/tag/index.vue";
 import Filter from "./filters.vue";
+import ArrayComponent from "./type/array.vue";
 
 import ColumnActions from "./type/actions.vue";
 
@@ -69,6 +70,15 @@ const col = computed(() => ({
             <component
               v-else-if="col.type === 'custom'"
               :is="col.render?.(data)"
+            />
+
+            <!-- Array -->
+            <ArrayComponent
+              v-else-if="Array.isArray(data[col.field])"
+              :items="data[col.field]"
+              :display-separator="col.displaySeparator"
+              :key-separator="col.keySeparator"
+              :key-to-render="col.keyToRender"
             />
 
             <!-- Generales (text, number, currency, date, datetime) -->

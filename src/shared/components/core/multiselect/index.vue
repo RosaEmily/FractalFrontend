@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Select } from "primevue";
-import type { SelectCoreProps } from "./type";
+import MultiSelect from "primevue/multiselect";
+import type { MultiSelectCoreProps } from "./type";
 import LabelCore from "../label/index.vue";
 import MessageCore from "../message/index.vue";
 import { computed, onMounted, ref } from "vue";
 
-const propsInit = withDefaults(defineProps<SelectCoreProps>(), {
+const propsInit = withDefaults(defineProps<MultiSelectCoreProps>(), {
   size: "small",
 });
 
@@ -41,7 +41,7 @@ onMounted(async () => {
 <template>
   <div>
     <LabelCore v-if="props.label" :text="props.label" :html-for="props.name" />
-    <Select class="w-full" v-bind="props" v-model="model" />
+    <MultiSelect class="w-full" v-bind="props" v-model="model" />
     <MessageCore
       v-if="messageError"
       :text="messageError"

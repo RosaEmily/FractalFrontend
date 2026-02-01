@@ -13,6 +13,7 @@ export * from "./toggle/type";
 export * from "./split-button/type";
 export * from "./select/type";
 export * from "./datepicker/type";
+export * from "./multiselect/type";
 
 export * from "./input/password/type";
 export * from "./input/text/type";

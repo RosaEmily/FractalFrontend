@@ -2,6 +2,7 @@
 import InputCore from "@/shared/components/core/input/text/index.vue";
 import SelectCore from "@/shared/components/core/select/index.vue";
 import DatePickerCore from "@/shared/components/core/datepicker/index.vue";
+import MultiselectCore from "@/shared/components/core/multiselect/index.vue";
 
 import type { FilterConfig } from "./type";
 
@@ -30,5 +31,10 @@ const model = defineModel({
     v-model="model"
     v-bind="config.datepickerProps"
     v-if="config.component === 'datepicker'"
+  />
+  <MultiselectCore
+    v-model="model"
+    v-bind="config.multiselectProps"
+    v-if="config.component === 'multiselect'"
   />
 </template>
