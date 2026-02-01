@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { InputText } from "primevue";
-import type { InputTextCoreProps } from "./type";
-import LabelCore from "../../label/index.vue";
-import MessageCore from "../../message/index.vue";
+import { Textarea } from "primevue";
+import type { TextareaCoreProps } from "./type";
+import LabelCore from "../label/index.vue";
+import MessageCore from "../message/index.vue";
 import { computed } from "vue";
 
-const props = withDefaults(defineProps<InputTextCoreProps>(), {
+const props = withDefaults(defineProps<TextareaCoreProps>(), {
   size: "small",
 });
 
@@ -23,7 +23,7 @@ const messages = computed(() => {
 <template>
   <div>
     <LabelCore v-if="props.label" :text="props.label" :html-for="props.name" />
-    <InputText v-trim class="w-full" v-bind="props" v-model="model" />
+    <Textarea v-trim class="w-full" v-bind="props" v-model="model" />
     <MessageCore
       v-for="(msg, index) in messages"
       :key="index"

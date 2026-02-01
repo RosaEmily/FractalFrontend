@@ -1,6 +1,6 @@
 import ListPage from "../pages/list.vue";
 import CreatePage from "../pages/create.vue";
-import UpdatePage from "../pages/update.vue";
+import EditPage from "../pages/edit.vue";
 
 import type { RouteRecordRaw } from "vue-router";
 
@@ -38,7 +38,7 @@ export const routesPermissions: RouteRecordRaw[] = [
       {
         path: "edit/:id",
         name: "permissions.edit",
-        component: UpdatePage,
+        component: EditPage,
         meta: {
           page: {
             base: {
