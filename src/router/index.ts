@@ -12,7 +12,11 @@ import { routesError } from "@/modules/error/router";
 import { applyPageMeta } from "@/shared/utils/meta";
 
 const routes: RouteRecordRaw[] = [
-  { path: "/", name: "home", component: HomeView },
+  {
+    path: "",
+    name: "home",
+    component: HomeView,
+  },
   ...routesAuth,
   ...routesAdmin,
   ...routesError,
