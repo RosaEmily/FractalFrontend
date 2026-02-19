@@ -16,7 +16,7 @@ export const useLandingGeneralStore = defineStore('general', () => {
     loading.value = true
     error.value = null
     try {
-      const items = await landingGeneralService.fetchLanding()
+      const items = await landingGeneralService.fetchLandingGeneralData()
       data.value = useLandingGeneralAdapter(items)
     } catch (err: unknown) {
       error.value = isApiError(err) ? err : {
