@@ -33,17 +33,9 @@
 
 <script setup lang="ts">
   import { ref, watch, computed, onMounted } from 'vue'
-  import type { FunctionalComponent } from 'vue'
   import { useIntersectionObserver } from '@/composables/useIntersectionObserver'
   import { useCountUp } from '@/composables/useCountUp'
-
-  type Kpi = {
-    id: number
-    icon: FunctionalComponent
-    number: number
-    description: string
-    format: string
-  }
+  import type { Kpi } from '@/types/kpi';
 
   const props = defineProps<{ 
     kpis: Kpi[]; 

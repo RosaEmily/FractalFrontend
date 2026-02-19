@@ -1,0 +1,33 @@
+import { ref } from 'vue'
+import { defineStore } from 'pinia'
+import { LandingGeneralService } from '@/services/landing/general.service'
+import { type LandingGeneralData } from '@/types/response/general'
+import { isApiError, type ApiError } from '@/types/response/api'
+import { useLandingGeneralAdapter } from '@/composables/useLandingAdapter'
+
+const landingGeneralService = new LandingGeneralService()
+
+export const useLandingGeneralStore = defineStore('general', () => {
+  const data = ref<LandingGeneralData | null>(null)
+  const loading = ref(false)
+  const error = ref<ApiError | null>(null)
+
+  const fetchLandingGeneral = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const items = await landingGeneralService.fetchLanding()
+      data.value = useLandingGeneralAdapter(items)
+    } catch (err: unknown) {
+      error.value = isApiError(err) ? err : {
+        code: 500,
+        message: 'Unexpected error',
+        details: null
+      }  
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { data, loading, error, fetchLandingGeneral }
+})

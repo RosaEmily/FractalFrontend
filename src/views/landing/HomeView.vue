@@ -1,48 +1,35 @@
 <template>
-  <Navbar class="sticky top-0 z-50"/>
-  <main>
-    <BannerSection :images="banner" :skeleton="loading || error"/>
-    <KpisSection :kpis="kpis" :skeleton="loading || error"/>
+  <LandingLayout>
+    <BannerSection :images="banner" :skeleton="loading || !!error"/>
+    <KpisSection :kpis="kpis" :skeleton="loading || !!error"/>
     <CoursesSection :callouts="callouts"/>
     <RoutesSection />
     <TeachersSection :teachers="teachers" />
-    <PartnersSection :sponsors="sponsors" />
+    <PartnersSection :partners="partners" :skeleton="loading || !!error"/>
     <ReviewsSection :reviews="reviews" />
-  </main>
-  <Footer />
+  </LandingLayout>
 </template>
 
 <script setup>
   import { computed, onMounted } from 'vue'
-  import Navbar from '@/components/home/Navbar.vue'
-  import BannerSection from '@/components/home/Banner.vue'
-  import KpisSection from '@/components/home/Kpis.vue'
-  import RoutesSection from '@/components/home/Routes.vue'
-  import CoursesSection from '@/components/home/Courses.vue'
-  import TeachersSection from '@/components/home/Teachers.vue'
-  import PartnersSection from '@/components/home/Partners.vue'
-  import ReviewsSection from '@/components/home/Reviews.vue'
-  import Footer from '@/components/home/Footer.vue'
-  
-  import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon } from '@heroicons/vue/24/outline'
+  import LandingLayout from '@/layouts/LandingLayout.vue'
+  import BannerSection from '@/components/landing/Banner.vue'
+  import KpisSection from '@/components/landing/Kpis.vue'
+  import RoutesSection from '@/components/landing/Routes.vue'
+  import CoursesSection from '@/components/landing/Courses.vue'
+  import TeachersSection from '@/components/landing/Teachers.vue'
+  import PartnersSection from '@/components/landing/Partners.vue'
+  import ReviewsSection from '@/components/landing/Reviews.vue'
+  import { useLandingGeneralStore } from '@/stores/landing/general.store'
 
-  import { useLandingStore } from '@/stores/landing.store'
+  const landingGeneralStore = useLandingGeneralStore()
 
-  const landingStore = useLandingStore()
+  const loading = computed(() => landingGeneralStore.loading)
+  const error = computed(() => landingGeneralStore.error)
 
-  const loading = computed(() => landingStore.loading)
+  const banner = computed(() => landingGeneralStore.data?.banner ?? [])
 
-  const error = computed(() => landingStore.error == null ? false : true)
-
-  const banner = computed(() => landingStore.data?.banner ?? [])
-
-  const sponsors = [
-    new URL('@/assets/sponsor/sponsor1.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor2.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor3.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor4.png', import.meta.url).href,
-    new URL('@/assets/sponsor/sponsor5.png', import.meta.url).href,
-  ];
+  const partners = computed(() => landingGeneralStore.data?.partners ?? [])
 
   const callouts = [
     {
@@ -79,16 +66,7 @@
     }
   ]
 
-  const kpis = computed(() => {
-    if (!landingStore.data?.kpis) return []
-
-    const icons = [AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon]
-
-    return landingStore.data.kpis.map((item, index) => ({
-      ...item,
-      icon: icons[index] ?? null
-    }))
-  })
+  const kpis = computed(() => landingGeneralStore.data?.kpis ?? [])
   
   const teachers = [
     {
@@ -171,11 +149,14 @@
   ]
 
   onMounted(async () => {
-    await landingStore.fetchLanding()
-    console.log('Landing store después de fetch:', landingStore.data)
-    console.log('loading:', loading.value)
-    console.log('error:', error.value)
-    console.log('banner:', banner.value)
-    console.log('kpis:', kpis.value)
+    await landingGeneralStore.fetchLandingGeneral()
+    console.log('Data fetchLandingGeneral:', landingGeneralStore.data)
+    //console.log('st_loading:', loading.value)
+    //console.log('st_error:', !!error.value)
+    //console.log('st_skeleton:', loading.value || !!error.value)
+    //console.log('obj_error:', error.value)
+    //console.log('obj_banner:', banner.value)
+    //console.log('obj_kpis:', kpis.value)
+    //console.log('obj_partners:', partners.value)
   })
 </script>

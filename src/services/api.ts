@@ -7,14 +7,14 @@ export const api = axios.create({
 
 // Interceptor de request
 api.interceptors.request.use(config => {
-  console.log('[API Request]', config.method?.toUpperCase(), config.url)
+  console.info('[API Request]', config.method?.toUpperCase(), config.url)
   return config
 })
 
 // Interceptor de response
 api.interceptors.response.use(
   response => {
-    console.log('[API Response]', response.status, response.config.url)
+    console.info('[API Response]', response.status, response.config.url)
     return response
   },
   error => {
