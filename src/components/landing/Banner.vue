@@ -1,9 +1,9 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-white">
-    <div class="relative w-full overflow-hidden rounded-lg aspect-16/8 md:aspect-16/6">
+    <div class="relative flex items-center justify-center w-full overflow-hidden rounded-lg aspect-16/8 md:aspect-16/6">
       <!-- Skeletons mientras cargan los datos -->
-      <div v-if="skeleton" class="min-w-full px-6 aspect-16/8 md:aspect-16/6 flex items-center justify-center">
+      <div v-if="skeleton" class="min-w-full px-6 md:aspect-16/6">
         <picture>
           <source media="(min-width: 768px)" :srcset="placeholder" />
           <img :src="placeholder_mobile" class="w-full h-auto object-cover block" alt="Banner placeholder"/>
