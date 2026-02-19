@@ -1,12 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-white">
-    <div class="relative w-full overflow-hidden rounded-lg">
+    <div class="relative w-full overflow-hidden rounded-lg aspect-16/8 md:aspect-16/6">
       <!-- Skeletons mientras cargan los datos -->
-      <div v-if="skeleton" class="min-w-full px-6">
+      <div v-if="skeleton" class="min-w-full px-6 aspect-16/8 md:aspect-16/6 flex items-center justify-center">
         <picture>
           <source media="(min-width: 768px)" :srcset="placeholder" />
-          <img :src="placeholder_mobile" class="w-full h-auto xl:h-130 object-cover block" alt="Banner placeholder"/>
+          <img :src="placeholder_mobile" class="w-full h-auto object-cover block" alt="Banner placeholder"/>
         </picture>
       </div>
       <!-- Componente real -->
@@ -14,7 +14,7 @@
         <div v-for="(item, i) in images" :key="i" class="min-w-full px-6">
           <picture>
             <source media="(min-width: 768px)" :srcset="item.desktop" />
-            <img :src="item.mobile" :alt="item.imageAlt" class="w-full h-auto xl:h-130 object-cover block"/>
+            <img :src="item.mobile" :alt="item.imageAlt" class="w-full h-auto object-cover block"/>
           </picture>
         </div>
       </div>
