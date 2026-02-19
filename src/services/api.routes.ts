@@ -4,6 +4,7 @@ export const TEACHERS_BASE = '/teachers'
 export const LANDING_ENDPOINTS = {
   base: LANDING_BASE,
   general: LANDING_BASE + '/general',
+  footer: LANDING_BASE + '/footer',
   teachers: LANDING_BASE + '/teachers'
 }
 

@@ -1,6 +1,5 @@
 <template>
-  <Navbar class="sticky top-0 z-50"/>
-  <main>
+  <LandingLayout>
     <BannerSection :images="banner" :skeleton="loading || !!error"/>
     <KpisSection :kpis="kpis" :skeleton="loading || !!error"/>
     <CoursesSection :callouts="callouts"/>
@@ -8,32 +7,29 @@
     <TeachersSection :teachers="teachers" />
     <PartnersSection :partners="partners" :skeleton="loading || !!error"/>
     <ReviewsSection :reviews="reviews" />
-  </main>
-  <Footer :contact="contact" :social_networks="social_networks" :complaints_book="complaints_book"/>
+  </LandingLayout>
 </template>
 
 <script setup>
   import { computed, onMounted } from 'vue'
-  import Navbar from '@/components/home/Navbar.vue'
-  import BannerSection from '@/components/home/Banner.vue'
-  import KpisSection from '@/components/home/Kpis.vue'
-  import RoutesSection from '@/components/home/Routes.vue'
-  import CoursesSection from '@/components/home/Courses.vue'
-  import TeachersSection from '@/components/home/Teachers.vue'
-  import PartnersSection from '@/components/home/Partners.vue'
-  import ReviewsSection from '@/components/home/Reviews.vue'
-  import Footer from '@/components/home/Footer.vue'
-  import { useLandingStore } from '@/stores/landing.store'
+  import LandingLayout from '@/layouts/LandingLayout.vue'
+  import BannerSection from '@/components/landing/Banner.vue'
+  import KpisSection from '@/components/landing/Kpis.vue'
+  import RoutesSection from '@/components/landing/Routes.vue'
+  import CoursesSection from '@/components/landing/Courses.vue'
+  import TeachersSection from '@/components/landing/Teachers.vue'
+  import PartnersSection from '@/components/landing/Partners.vue'
+  import ReviewsSection from '@/components/landing/Reviews.vue'
+  import { useLandingGeneralStore } from '@/stores/landing/general.store'
 
-  const landingStore = useLandingStore()
+  const landingGeneralStore = useLandingGeneralStore()
 
-  const loading = computed(() => landingStore.loading)
+  const loading = computed(() => landingGeneralStore.loading)
+  const error = computed(() => landingGeneralStore.error)
 
-  const error = computed(() => landingStore.error)
+  const banner = computed(() => landingGeneralStore.data?.banner ?? [])
 
-  const banner = computed(() => landingStore.data?.banner ?? [])
-
-  const partners = computed(() => landingStore.data?.partners ?? [])
+  const partners = computed(() => landingGeneralStore.data?.partners ?? [])
 
   const callouts = [
     {
@@ -70,7 +66,7 @@
     }
   ]
 
-  const kpis = computed(() => landingStore.data?.kpis ?? [])
+  const kpis = computed(() => landingGeneralStore.data?.kpis ?? [])
   
   const teachers = [
     {
@@ -152,24 +148,15 @@
     },
   ]
 
-  const contact = computed(() => landingStore.data?.contact ?? [])
-
-  const social_networks = computed(() => landingStore.data?.social_networks ?? [])
-
-  const complaints_book = computed(() => landingStore.data?.complaints_book ?? '')
-
   onMounted(async () => {
-    await landingStore.fetchLanding()
-    console.log('Landing store después de fetch:', landingStore.data)
-    console.log('st_loading:', loading.value)
-    console.log('st_error:', !!error.value)
-    console.log('st_skeleton:', loading.value || !!error.value)
-    console.log('obj_error:', error.value)
-    console.log('obj_banner:', banner.value)
-    console.log('obj_kpis:', kpis.value)
-    console.log('obj_partners:', partners.value)
-    console.log('obj_contact:', contact.value)
-    console.log('obj_social_networks:', social_networks.value)
-    console.log('obj_complaints_book:', complaints_book.value)
+    await landingGeneralStore.fetchLandingGeneral()
+    console.log('Data fetchLandingGeneral:', landingGeneralStore.data)
+    //console.log('st_loading:', loading.value)
+    //console.log('st_error:', !!error.value)
+    //console.log('st_skeleton:', loading.value || !!error.value)
+    //console.log('obj_error:', error.value)
+    //console.log('obj_banner:', banner.value)
+    //console.log('obj_kpis:', kpis.value)
+    //console.log('obj_partners:', partners.value)
   })
 </script>

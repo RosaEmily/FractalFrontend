@@ -1,9 +1,11 @@
-import type { LandingData } from '@/types/response/landing'
+import type { LandingGeneralData } from '@/types/response/general'
+import type { LandingFooterData } from '@/types/response/footer'
 import type { Banner, BannerData } from '@/types/banner'
 import type { Kpi, KpiData } from '@/types/kpi'
+import type { ItemHrefData } from '@/types/item-href'
 import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon, KeyIcon } from '@heroicons/vue/24/outline'
 import type { Partner, PartnerData } from '@/types/partner'
-import type { SocialNetwork, SocialNetworkData } from '@/types/social-network'
+import type { SocialNetwork } from '@/types/social-network'
 import type { FunctionalComponent } from 'vue'
 
 const kpi_icons: Array<FunctionalComponent> = [
@@ -31,7 +33,7 @@ const social_icons: Record<string, string> =  {
   `,
 }
 
-export function useLandingAdapter(data: LandingData) {
+export function useLandingGeneralAdapter(data: LandingGeneralData) {
   return {
     ...data,
     banner: data.banner.map((item: BannerData, index): Banner => ({
@@ -46,7 +48,13 @@ export function useLandingAdapter(data: LandingData) {
       ...item,
       imageAlt: `Logo de ${item.name}`
     })),
-    social_networks: data.social_networks.map((item: SocialNetworkData): SocialNetwork => ({
+  }
+}
+
+export function useLandingFooterAdapter(data: LandingFooterData) {
+  return {
+    ...data,
+    social_networks: data.social_networks.map((item: ItemHrefData): SocialNetwork => ({
       ...item,
       logo: social_icons[item.name.toLowerCase()] ?? ''
     }))
