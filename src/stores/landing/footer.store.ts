@@ -16,7 +16,7 @@ export const useLandingFooterStore = defineStore('footer', () => {
     loading.value = true
     error.value = null
     try {
-      const items = await landingFooterService.fetchLanding()
+      const items = await landingFooterService.fetchLandingFooterData()
       data.value = useLandingFooterAdapter(items)
     } catch (err: unknown) {
       error.value = isApiError(err) ? err : {
