@@ -1,18 +1,10 @@
-import { BaseService } from '../base.service'
-import { api } from '../api'
-import { LANDING_ENDPOINTS } from '../api.routes'
-import type { LandingFooterData, LandingFooterResponse } from '@/types/response/footer'
+import type { LandingFooterData } from '@/types/response/footer'
 import type { ILandingFooterRepository } from '@/interfaces/footer.repository'
-import type { ApiError } from '@/types/response/api'
+import footerConfig from '@/assets/config/footer.json'
 
-export class LandingFooterService extends BaseService implements ILandingFooterRepository {
-  constructor() {
-    super(api)
-  }
+export class LandingFooterService implements ILandingFooterRepository {
 
   async fetchLandingFooterData(): Promise<LandingFooterData> {
-    const res = await this.get<LandingFooterResponse>(LANDING_ENDPOINTS.footer)
-    if (!res.success) throw res.error as ApiError
-    return res.data
+    return footerConfig as LandingFooterData
   }
 }
