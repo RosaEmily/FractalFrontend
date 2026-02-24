@@ -21,8 +21,10 @@
   import PartnersSection from '@/components/landing/Partners.vue'
   import ReviewsSection from '@/components/landing/Reviews.vue'
   import { useLandingGeneralStore } from '@/stores/landing/general.store'
+  import { useLandingTeacherStore } from '@/stores/landing/teacher.store'
 
   const landingGeneralStore = useLandingGeneralStore()
+  const landingTeacherStore = useLandingTeacherStore()
 
   const loading = computed(() => landingGeneralStore.loading)
   const error = computed(() => landingGeneralStore.error)
@@ -30,6 +32,8 @@
   const banner = computed(() => landingGeneralStore.data?.banner ?? [])
 
   const partners = computed(() => landingGeneralStore.data?.partners ?? [])
+
+  const teachers = computed(() => landingTeacherStore.data?.teachers ?? [])
 
   const callouts = [
     {
@@ -67,59 +71,6 @@
   ]
 
   const kpis = computed(() => landingGeneralStore.data?.kpis ?? [])
-  
-  const teachers = [
-    {
-      name: 'Owen Rodriguez Lopez',
-      title: 'Arquitectura | Especialista BIM',
-      bio: 'Con experiencia en proyectos complejos y docencia profesional. Instructor certificado por Autodesk, experto en Revit y coordinación interdisciplinaria.',
-      image: new URL('@/assets/teacher/prof1.png', import.meta.url).href,
-      linkedinUrl: 'https://www.linkedin.com/in/owen-snayder-rodriguez-lopez-305655365/',
-      otherUrl: 'https://www.behance.net/owenrodriguez',
-      cvUrl: 'https://example.com/cv/owen-rodriguez-lopez.pdf',
-      phrase: 'Transformación Digital en AEC',
-    },
-    {
-      name: 'Maité Avalos Soplopuco',
-      title: 'Arquitectura | Planificadora Urbana',
-      bio: 'Expande el conocimiento en modelado estructural.',
-      image: new URL('@/assets/teacher/prof2.png', import.meta.url).href,
-      linkedinUrl: 'https://www.linkedin.com/in/maite-avalos/',
-      otherUrl: 'https://www.camila-torres-portfolio.com',
-      cvUrl: 'https://example.com/cv/camila-torres.pdf',
-      phrase: 'Urbanismo Sostenible',
-    },
-    {
-      name: 'Jonathan Picon Torres',
-      title: 'Ing. Civil | BIM Manager',
-      bio: 'Formador certificado por Autodesk, ha liderado numerosos proyectos y capacitaciones especializadas. Destaca por su enfoque innovador y compromiso con la excelencia.',
-      image: new URL('@/assets/teacher/prof3.png', import.meta.url).href,
-      linkedinUrl: 'https://www.linkedin.com/in/jonathan-arley-picon-torres-2b5a92143/',
-      otherUrl: 'https://www.youtube.com/@jpbimRevit',
-      cvUrl: 'https://example.com/cv/mariana-perez.pdf',
-      phrase: 'Gestión de la Construcción',
-    },
-    {
-      name: 'Nixon Delgado Toro',
-      title: 'Ing Civil | Especialista Estructural',
-      bio: 'Modelador BIM con experiencia en análisis sísmico, geotecnia y cimentaciones. Comprometido con la innovación, la eficiencia y la calidad en proyectos de edificación.',
-      image: new URL('@/assets/teacher/prof4.png', import.meta.url).href,
-      linkedinUrl: 'https://www.linkedin.com/in/nixon-gary-delgado-toro-10133320b/',
-      otherUrl: 'https://www.luis-ramirez-design.com',
-      cvUrl: 'https://example.com/cv/luis-ramirez.pdf',
-      phrase: 'Innovación en Infraestructura',
-    },
-    {
-      name: 'Juan Carlos Santamaria',
-      title: 'Arquitectura | Especialista BIM',
-      bio: 'Centrado en la gestión y coordinación de proyectos bajo estándares BIM. Con habilidades de liderazgo, gestión de equipo de trabajo y destrezas tecnológicas.',
-      image: new URL('@/assets/teacher/prof5.png', import.meta.url).href,
-      linkedinUrl: 'https://www.linkedin.com/in/juancarlos-snt/',
-      otherUrl: 'https://www.carlos-gomez-management.com',
-      cvUrl: 'https://example.com/cv/carlos-gomez.pdf',
-      phrase: 'Programación Dynamo BIM',
-    },
-  ]
 
   const reviews = [
     {
@@ -151,6 +102,8 @@
   onMounted(async () => {
     await landingGeneralStore.fetchLandingGeneral()
     console.log('Data fetchLandingGeneral:', landingGeneralStore.data)
+    await landingTeacherStore.fetchLandingTeacher()
+    console.log('Data fetchLandingTeacher:', landingTeacherStore.data)
     //console.log('st_loading:', loading.value)
     //console.log('st_error:', !!error.value)
     //console.log('st_skeleton:', loading.value || !!error.value)
