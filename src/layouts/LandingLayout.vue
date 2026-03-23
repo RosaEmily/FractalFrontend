@@ -6,13 +6,19 @@
   <Footer :contact="contact" :social_networks="social_networks" :information="information" :company="company" />
 </template>
 
-<script setup>
-  import { computed, onMounted } from 'vue'
-  import Navbar from '@/components/landing/Navbar.vue'
-  import Footer from '@/components/landing/Footer.vue'
+<script setup lang="ts">
+  import { computed, onMounted, watch } from 'vue'
+  import Navbar from '@/components/landing/NavbarHeader.vue'
+  import Footer from '@/components/landing/FooterSection.vue'
   import { useLandingFooterStore } from '@/stores/landing/footer.store'
+  import { useToast } from '@/composables/useToast'
 
   const landingFooterStore = useLandingFooterStore()
+  const { show: showToast } = useToast()
+
+  watch(() => landingFooterStore.error, (err) => {
+    if (err) showToast(err.message)
+  })
 
   const contact = computed(() => landingFooterStore.data?.contact ?? [])
   const social_networks = computed(() => landingFooterStore.data?.social_networks ?? [])

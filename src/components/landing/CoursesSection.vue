@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-white">
     <div class="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
@@ -26,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'  
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { ChevronRightIcon } from '@heroicons/vue/24/solid'
 
   type Callout = {
@@ -41,12 +40,10 @@
   defineProps<{ callouts: Callout[]}>()
 
   const screenWidth = ref(window.innerWidth)
+  const onResize = () => { screenWidth.value = window.innerWidth }
 
-  onMounted(() => {
-    window.addEventListener('resize', () => {
-      screenWidth.value = window.innerWidth
-    })
-  })
+  onMounted(() => window.addEventListener('resize', onResize))
+  onUnmounted(() => window.removeEventListener('resize', onResize))
 
   const visibleCount = computed(() => {
     if (screenWidth.value >= 1024) return 4 // lg

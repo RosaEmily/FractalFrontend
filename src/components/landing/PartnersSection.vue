@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-primary-500 py-8 md:py-10">
     <div class=" relative w-full overflow-hidden">

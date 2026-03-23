@@ -1,33 +1,40 @@
 <template>
   <LandingLayout>
-    <BannerSection :images="banner" :skeleton="loading || !!error"/>
-    <KpisSection :kpis="kpis" :skeleton="loading || !!error"/>
+    <BannerSection :images="banner" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
+    <KpisSection :kpis="kpis" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
     <CoursesSection :callouts="callouts"/>
     <RoutesSection />
-    <TeachersSection :teachers="teachers" />
-    <PartnersSection :partners="partners" :skeleton="loading || !!error"/>
+    <TeachersSection :teachers="teachers" :skeleton="landingTeacherStore.loading || !!landingTeacherStore.error" />
+    <PartnersSection :partners="partners" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
     <ReviewsSection :reviews="reviews" />
   </LandingLayout>
 </template>
 
-<script setup>
-  import { computed, onMounted } from 'vue'
+<script setup lang="ts">
+  import { computed, onMounted, watch } from 'vue'
   import LandingLayout from '@/layouts/LandingLayout.vue'
-  import BannerSection from '@/components/landing/Banner.vue'
-  import KpisSection from '@/components/landing/Kpis.vue'
-  import RoutesSection from '@/components/landing/Routes.vue'
-  import CoursesSection from '@/components/landing/Courses.vue'
-  import TeachersSection from '@/components/landing/Teachers.vue'
-  import PartnersSection from '@/components/landing/Partners.vue'
-  import ReviewsSection from '@/components/landing/Reviews.vue'
+  import BannerSection from '@/components/landing/BannerSection.vue'
+  import KpisSection from '@/components/landing/KpisSection.vue'
+  import RoutesSection from '@/components/landing/RoutesSection.vue'
+  import CoursesSection from '@/components/landing/CoursesSection.vue'
+  import TeachersSection from '@/components/landing/TeachersSection.vue'
+  import PartnersSection from '@/components/landing/PartnersSection.vue'
+  import ReviewsSection from '@/components/landing/ReviewsSection.vue'
   import { useLandingGeneralStore } from '@/stores/landing/general.store'
   import { useLandingTeacherStore } from '@/stores/landing/teacher.store'
+  import { useToast } from '@/composables/useToast'
 
   const landingGeneralStore = useLandingGeneralStore()
   const landingTeacherStore = useLandingTeacherStore()
+  const { show: showToast } = useToast()
 
-  const loading = computed(() => landingGeneralStore.loading)
-  const error = computed(() => landingGeneralStore.error)
+  watch(() => landingGeneralStore.error, (err) => {
+    if (err) showToast(err.message)
+  })
+
+  watch(() => landingTeacherStore.error, (err) => {
+    if (err) showToast(err.message)
+  })
 
   const banner = computed(() => landingGeneralStore.data?.banner ?? [])
 

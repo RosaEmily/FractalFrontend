@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <footer class="px-6 md:px-16 lg:px-24 xl:px-32 pt-12 items-center w-full text-white bg-primary-500">
     <div class="flex flex-col md:flex-row items-start justify-center gap-10 pb-10 border-b border-primary-400">

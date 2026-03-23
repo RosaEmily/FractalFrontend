@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-white">
     <div class="relative flex items-center justify-center w-full overflow-hidden rounded-lg aspect-16/8 md:aspect-16/6">

@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section ref="sectionRef" class="bg-primary-500 py-28">
     <div class="mx-auto max-w-7xl px-6 md:px-16 lg:px-24 xl:px-32 text-center">

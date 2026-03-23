@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-white">
     <div class="relative isolate mx-auto max-w-7xl px-16 sm:px-6 md:px-8 lg:px-10">
@@ -8,7 +7,19 @@
             Docentes <span class="uppercase font-bold">EXPERTOS</span> en el rubro
           </h1>
           <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-            <div v-for="item in teachers.slice(0, visibleCount)" :key="item.first_name" class="contents">
+            <!-- Skeleton -->
+            <template v-if="skeleton">
+              <div v-for="i in visibleCount" :key="i" class="contents">
+                <div class="shadow-lg relative overflow-hidden">
+                  <img :src="placeholder" alt="Cargando docente..." class="w-full h-96 object-cover object-top" />
+                </div>
+                <div class="hidden md:flex w-full h-96 p-16 bg-secondary-100 items-center justify-center transition-all duration-300 hover:bg-primary-200 text-primary-500 hover:text-primary-600">
+                  <span class="font-semibold text-lg uppercase tracking-widest">FRACTAL STUDIO</span>
+                </div>
+              </div>
+            </template>
+            <!-- Docentes reales -->
+            <div v-else v-for="item in teachers.slice(0, visibleCount)" :key="item.first_name" class="contents">
               <div class="shadow-lg relative overflow-hidden group">
                 <img :src="item.photo_url" :alt="item.first_name" class="w-full h-96 object-cover object-top"/>
                 <div class="absolute bg-black opacity-75 -translate-x-full group-hover:translate-x-0 top-0 left-0 w-full h-full flex items-center justify-center transition-transform duration-500">
@@ -68,18 +79,18 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
   import type { Teacher } from '@/types/teacher';
 
-  defineProps<{ teachers: Teacher[]}>()
+  defineProps<{ teachers: Teacher[], skeleton: boolean }>()
+
+  const placeholder = new URL('@/assets/teacher/placeholder.jpg', import.meta.url).href
 
   const screenWidth = ref(window.innerWidth)
+  const onResize = () => { screenWidth.value = window.innerWidth }
 
-  onMounted(() => {
-    window.addEventListener('resize', () => {
-      screenWidth.value = window.innerWidth
-    })
-  })
+  onMounted(() => window.addEventListener('resize', onResize))
+  onUnmounted(() => window.removeEventListener('resize', onResize))
 
   const visibleCount = computed(() => {
     if (screenWidth.value >= 1024) return 5 // lg

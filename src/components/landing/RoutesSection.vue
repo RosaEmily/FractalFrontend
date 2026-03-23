@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="bg-primary-500">
     <div class="relative isolate px-6 md:px-16 lg:px-24 xl:px-32 py-12">

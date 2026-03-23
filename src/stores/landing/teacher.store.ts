@@ -1,14 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { LandingTeacherService } from '@/services/landing/teacher.service'
-import { type LandingTeacherData } from '@/types/response/teacher'
 import { isApiError, type ApiError } from '@/types/response/api'
 import { useLandingTeacherAdapter } from '@/composables/useLandingAdapter'
 
 const landingTeacherService = new LandingTeacherService()
 
+type LandingTeacherAdapted = ReturnType<typeof useLandingTeacherAdapter>
+
 export const useLandingTeacherStore = defineStore('teacher', () => {
-  const data = ref<LandingTeacherData | null>(null)
+  const data = ref<LandingTeacherAdapted | null>(null)
   const loading = ref(false)
   const error = ref<ApiError | null>(null)
 
