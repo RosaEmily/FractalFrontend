@@ -8,7 +8,7 @@
           </div>
         </template>
         <template v-else v-for="loop in 2" :key="loop">
-          <img v-for="(item, n) in partners" :key="`${loop}-${n}`" :src="item.image" :alt="item.imageAlt" class="h-20 md:h-24 lg:h-26 xl:h-28 w-auto mx-4 rounded-lg"/>
+          <img v-for="(item, n) in partners" :key="`${loop}-${n}`" :src="item.image" :alt="item.image_alt" class="h-20 md:h-24 lg:h-26 xl:h-28 w-auto mx-4 rounded-lg"/>
         </template>
       </div>
     </div>

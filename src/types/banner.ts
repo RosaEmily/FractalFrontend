@@ -5,5 +5,5 @@ export interface BannerData {
 }
 
 export interface Banner extends BannerData {
-  imageAlt: string
+  image_alt: string
 }

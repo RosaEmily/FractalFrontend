@@ -11,13 +11,26 @@
           </button>
         </div>
         <div class="mt-6 space-y-12 sm:grid sm:grid-cols-2 sm:space-y-6 sm:gap-x-6 md:gap-x-8 lg:grid lg:grid-cols-4 lg:space-y-0 lg:gap-x-8">
-          <div v-for="callout in callouts.slice(0, visibleCount)" :key="callout.name" class="group relative px-10 sm:px-0 transition-transform duration-300 hover:-translate-y-2 cursor-pointer">
-            <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-lg bg-white">
-              <img :src="callout.imageSrc" :alt="callout.imageAlt" class="w-full object-cover group-hover:opacity-75 max-sm:h-40 aspect-2/1 lg:aspect-square" />
+          <!-- Skeleton -->
+          <template v-if="skeleton">
+            <div v-for="i in visibleCount" :key="i" class="group relative px-10 sm:px-0">
+              <div class="rounded-lg overflow-hidden shadow-sm bg-white">
+                <img :src="placeholder" alt="Cargando oferta..." class="w-full object-cover max-sm:h-40 aspect-2/1 lg:aspect-square" />
+              </div>
+              <div class="mt-6 h-4 w-1/2 bg-gray-200 rounded animate-pulse mx-auto"></div>
+              <div class="mt-2 h-5 w-3/4 bg-gray-200 rounded animate-pulse mx-auto"></div>
             </div>
-            <h3 class="mt-6 text-sm md:text-base text-gray-500">{{ callout.description }}</h3>
-            <p class="text-base md:text-lg font-semibold text-gray-900 pt-1 uppercase">{{ callout.name }}</p>
-          </div>
+          </template>
+          <!-- Ofertas reales -->
+          <template v-else>
+            <div v-for="offer in offers.slice(0, visibleCount)" :key="offer.id" class="group relative px-10 sm:px-0 transition-transform duration-300 hover:-translate-y-2 cursor-pointer">
+              <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-lg bg-white">
+                <img :src="offer.image_url" :alt="offer.image_alt" class="w-full object-cover group-hover:opacity-75 max-sm:h-40 aspect-2/1 lg:aspect-square" />
+              </div>
+              <h3 class="mt-6 text-sm md:text-base text-gray-500">{{ offer.prefix }}</h3>
+              <p class="text-base md:text-lg font-semibold text-gray-900 pt-1 uppercase">{{ offer.name }}</p>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -27,17 +40,11 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { ChevronRightIcon } from '@heroicons/vue/24/solid'
+  import type { Offer } from '@/types/offer'
 
-  type Callout = {
-    name: string
-    description: string
-    tags?: string[]
-    imageSrc: string
-    imageAlt: string
-    href?: string
-  }
+  defineProps<{ offers: Offer[], skeleton: boolean }>()
 
-  defineProps<{ callouts: Callout[]}>()
+  const placeholder = new URL('@/assets/course/placeholder.jpg', import.meta.url).href
 
   const screenWidth = ref(window.innerWidth)
   const onResize = () => { screenWidth.value = window.innerWidth }

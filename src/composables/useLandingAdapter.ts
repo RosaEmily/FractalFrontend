@@ -4,6 +4,8 @@ import type { LandingTeacherData } from '@/types/response/teacher'
 import type { Banner, BannerData } from '@/types/banner'
 import type { Kpi, KpiData } from '@/types/kpi'
 import type { Teacher, TeacherData } from '@/types/teacher'
+import type { Offer, OfferData } from '@/types/offer'
+import type { LandingOfferData } from '@/types/response/offer'
 import type { ItemHrefData } from '@/types/item-href'
 import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon, KeyIcon } from '@heroicons/vue/24/outline'
 import type { Partner, PartnerData } from '@/types/partner'
@@ -48,7 +50,7 @@ export function useLandingGeneralAdapter(data: LandingGeneralData) {
     ...data,
     banner: data.banner.map((item: BannerData, index): Banner => ({
       ...item,
-      imageAlt: `Banner número ${index + 1}`
+      image_alt: `Banner número ${index + 1}`
     })),
     kpis: data.kpis.map((item: KpiData, index): Kpi => ({
       ...item,
@@ -56,7 +58,7 @@ export function useLandingGeneralAdapter(data: LandingGeneralData) {
     })),
     partners: data.partners.map((item: PartnerData): Partner => ({
       ...item,
-      imageAlt: `Logo de ${item.name}`
+      image_alt: `Logo de ${item.name}`
     })),
   }
 }
@@ -76,6 +78,17 @@ export function useLandingTeacherAdapter(data: LandingTeacherData) {
     teachers: data.teachers.map((item: TeacherData, index): Teacher => ({
       ...item,
       phrase: teachers_phrase[index % teachers_phrase.length] ?? 'Fractal Studio'
+    }))
+  }
+}
+
+export function useLandingOfferAdapter(data: LandingOfferData) {
+  return {
+    ...data,
+    items: data.items.map((item: OfferData): Offer => ({
+      ...item,
+      image_alt: `Imagen representativa de ${item.name}`,
+      href: '#'
     }))
   }
 }

@@ -13,7 +13,7 @@
         <div v-for="(item, i) in images" :key="i" class="min-w-full px-6">
           <picture>
             <source media="(min-width: 768px)" :srcset="item.desktop" />
-            <img :src="item.mobile" :alt="item.imageAlt" class="w-full h-auto object-cover block"/>
+            <img :src="item.mobile" :alt="item.image_alt" class="w-full h-auto object-cover block"/>
           </picture>
         </div>
       </div>

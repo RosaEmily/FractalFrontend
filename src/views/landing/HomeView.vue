@@ -2,7 +2,7 @@
   <LandingLayout>
     <BannerSection :images="banner" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
     <KpisSection :kpis="kpis" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
-    <CoursesSection :callouts="callouts"/>
+    <CoursesSection :offers="offers" :skeleton="landingOfferStore.loading || !!landingOfferStore.error"/>
     <RoutesSection />
     <TeachersSection :teachers="teachers" :skeleton="landingTeacherStore.loading || !!landingTeacherStore.error" />
     <PartnersSection :partners="partners" :skeleton="landingGeneralStore.loading || !!landingGeneralStore.error"/>
@@ -22,10 +22,12 @@
   import ReviewsSection from '@/components/landing/ReviewsSection.vue'
   import { useLandingGeneralStore } from '@/stores/landing/general.store'
   import { useLandingTeacherStore } from '@/stores/landing/teacher.store'
+  import { useLandingOfferStore } from '@/stores/landing/offer.store'
   import { useToast } from '@/composables/useToast'
 
   const landingGeneralStore = useLandingGeneralStore()
   const landingTeacherStore = useLandingTeacherStore()
+  const landingOfferStore = useLandingOfferStore()
   const { show: showToast } = useToast()
 
   watch(() => landingGeneralStore.error, (err) => {
@@ -36,48 +38,15 @@
     if (err) showToast(err.message)
   })
 
+  watch(() => landingOfferStore.error, (err) => {
+    if (err) showToast(err.message)
+  })
+
   const banner = computed(() => landingGeneralStore.data?.banner ?? [])
-
   const partners = computed(() => landingGeneralStore.data?.partners ?? [])
-
-  const teachers = computed(() => landingTeacherStore.data?.teachers ?? [])
-
-  const callouts = [
-    {
-      name: 'Modelado y Gestión BIM',
-      description: 'Diplomado internacional en',
-      tags: ['Revit structure', 'Revit Architecture', 'Revit MEP', 'Dynamo', 'Power BI', 'Autodesk Construction Cloud Introduction'],
-      imageSrc: new URL('@/assets/route/ruta1.jpg', import.meta.url).href,
-      imageAlt: 'Imagen representativa de Modelado y Gestión BIM',
-      href: '#',
-    },
-    {
-      name: 'Coordinación y Gestión BIM',
-      description: 'Diplomado internacional en',
-      tags: ['Autodesk Revit', 'Autodesk Construction Cloud', 'Navisworks Manage', 'Revizto', 'Trimble Connect', 'Dalux', 'Presto'],
-      imageSrc: new URL('@/assets/route/ruta3.jpg', import.meta.url).href,
-      imageAlt: 'Imagen representativa de Coordinación y Gestión BIM',
-      href: '#',
-    },
-    {
-      name: 'Diseño con AutoCAD',
-      description: 'Certificación internacional en',
-      tags: ['AutoCAD 2D', 'AutoCAD 3D'],
-      imageSrc: new URL('@/assets/route/ruta2.jpg', import.meta.url).href,
-      imageAlt: 'Imagen representativa de Diseño con AutoCAD',
-      href: '#',
-    },
-    {
-      name: 'Infraestructura Civil',
-      description: 'Especialización en',
-      tags: ['Civil 3D Autodesk',  'Recap Pro Autodesk', 'Infraworks Autodesk', 'BIM', '3ds Max'],
-      imageSrc: new URL('@/assets/route/ruta4.png', import.meta.url).href,
-      imageAlt: 'Imagen representativa de Infraestructura Civil',
-      href: '#',
-    }
-  ]
-
   const kpis = computed(() => landingGeneralStore.data?.kpis ?? [])
+  const teachers = computed(() => landingTeacherStore.data?.teachers ?? [])
+  const offers = computed(() => landingOfferStore.data?.items ?? [])
 
   const reviews = [
     {
@@ -107,16 +76,13 @@
   ]
 
   onMounted(async () => {
-    await landingGeneralStore.fetchLandingGeneral()
+    await Promise.all([
+      landingGeneralStore.fetchLandingGeneral(),
+      landingTeacherStore.fetchLandingTeacher(),
+      landingOfferStore.fetchLandingOffer()
+    ])
     console.log('Data fetchLandingGeneral:', landingGeneralStore.data)
-    await landingTeacherStore.fetchLandingTeacher()
     console.log('Data fetchLandingTeacher:', landingTeacherStore.data)
-    //console.log('st_loading:', loading.value)
-    //console.log('st_error:', !!error.value)
-    //console.log('st_skeleton:', loading.value || !!error.value)
-    //console.log('obj_error:', error.value)
-    //console.log('obj_banner:', banner.value)
-    //console.log('obj_kpis:', kpis.value)
-    //console.log('obj_partners:', partners.value)
+    console.log('Data fetchLandingOffer:', landingOfferStore.data)
   })
 </script>

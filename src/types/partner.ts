@@ -5,5 +5,5 @@ export interface PartnerData {
 }
 
 export interface Partner extends PartnerData {
-  imageAlt: string
+  image_alt: string
 }
