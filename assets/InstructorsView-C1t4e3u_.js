@@ -1,0 +1,1 @@
+import{_ as s}from"./LandingLayout.vue_vue_type_script_setup_true_lang-5Gx3B-gM.js";import{l as a,o as e,s as r,a as o}from"./index-DX2podsn.js";const c={__name:"InstructorsView",setup(n){return(_,t)=>(e(),a(s,null,{default:r(()=>[...t[0]||(t[0]=[o("h2",null,"INSTRUCTORES",-1)])]),_:1}))}};export{c as default};

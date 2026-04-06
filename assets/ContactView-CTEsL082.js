@@ -1,0 +1,1 @@
+import{_ as a}from"./LandingLayout.vue_vue_type_script_setup_true_lang-5Gx3B-gM.js";import{l as e,o,s,a as r}from"./index-DX2podsn.js";const m={__name:"ContactView",setup(n){return(_,t)=>(o(),e(a,null,{default:s(()=>[...t[0]||(t[0]=[r("h2",null,"CONTACTO",-1)])]),_:1}))}};export{m as default};

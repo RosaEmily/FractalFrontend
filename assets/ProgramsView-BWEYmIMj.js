@@ -1,0 +1,1 @@
+import{_ as e}from"./LandingLayout.vue_vue_type_script_setup_true_lang-5Gx3B-gM.js";import{l as r,o as s,s as t,a as o}from"./index-DX2podsn.js";const p={__name:"ProgramsView",setup(_){return(l,a)=>(s(),r(e,null,{default:t(()=>[...a[0]||(a[0]=[o("h2",null,"PROGRAMA",-1)])]),_:1}))}};export{p as default};
