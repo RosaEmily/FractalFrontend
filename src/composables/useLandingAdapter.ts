@@ -1,14 +1,16 @@
 import type { LandingGeneralData } from '@/types/response/general'
 import type { LandingFooterData } from '@/types/response/footer'
+import type { LandingTeacherData } from '@/types/response/teacher'
 import type { Banner, BannerData } from '@/types/banner'
 import type { Kpi, KpiData } from '@/types/kpi'
+import type { Teacher, TeacherData } from '@/types/teacher'
 import type { ItemHrefData } from '@/types/item-href'
 import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon, KeyIcon } from '@heroicons/vue/24/outline'
 import type { Partner, PartnerData } from '@/types/partner'
 import type { SocialNetwork } from '@/types/social-network'
 import type { FunctionalComponent } from 'vue'
 
-const kpi_icons: Array<FunctionalComponent> = [
+const kpi_icons: FunctionalComponent[] = [
   AcademicCapIcon, 
   BriefcaseIcon, 
   GlobeAltIcon, 
@@ -32,6 +34,14 @@ const social_icons: Record<string, string> =  {
   </svg>
   `,
 }
+
+const teachers_phrase: string[] = [
+  'Transformación Digital en AEC',
+  'Urbanismo Sostenible',
+  'Gestión de la Construcción',
+  'Innovación en Infraestructura',
+  'Programación Dynamo BIM'
+]
 
 export function useLandingGeneralAdapter(data: LandingGeneralData) {
   return {
@@ -57,6 +67,15 @@ export function useLandingFooterAdapter(data: LandingFooterData) {
     social_networks: data.social_networks.map((item: ItemHrefData): SocialNetwork => ({
       ...item,
       logo: social_icons[item.name.toLowerCase()] ?? ''
+    }))
+  }
+}
+
+export function useLandingTeacherAdapter(data: LandingTeacherData) {
+  return {
+    teachers: data.teachers.map((item: TeacherData, index): Teacher => ({
+      ...item,
+      phrase: teachers_phrase[index % teachers_phrase.length] ?? 'Fractal Studio'
     }))
   }
 }

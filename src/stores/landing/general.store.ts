@@ -1,14 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { LandingGeneralService } from '@/services/landing/general.service'
-import { type LandingGeneralData } from '@/types/response/general'
 import { isApiError, type ApiError } from '@/types/response/api'
 import { useLandingGeneralAdapter } from '@/composables/useLandingAdapter'
 
 const landingGeneralService = new LandingGeneralService()
 
+type LandingGeneralAdapted = ReturnType<typeof useLandingGeneralAdapter>
+
 export const useLandingGeneralStore = defineStore('general', () => {
-  const data = ref<LandingGeneralData | null>(null)
+  const data = ref<LandingGeneralAdapted | null>(null)
   const loading = ref(false)
   const error = ref<ApiError | null>(null)
 

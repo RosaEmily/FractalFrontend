@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <header class="bg-white border-b-2 border-gray-200">
     <nav class="mx-auto flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4" aria-label="Global">

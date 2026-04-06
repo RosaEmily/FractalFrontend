@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { ApiError } from '@/types/response/api'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_FRACTAL,
@@ -18,8 +19,12 @@ api.interceptors.response.use(
     return response
   },
   error => {
-    const message = error.response?.data?.error?.message || error.message
-    console.error('[API Error]', message)
-    return Promise.reject(new Error(message))
+    const apiError: ApiError = error.response?.data?.error ?? {
+      code: error.response?.status ?? 500,
+      message: error.message,
+      details: null
+    }
+    console.error('[API Error]', apiError.code, apiError.message, apiError.details)
+    return Promise.reject(apiError)
   }
 )

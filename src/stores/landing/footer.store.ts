@@ -1,14 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { LandingFooterService } from '@/services/landing/footer.service'
-import { type LandingFooterData } from '@/types/response/footer'
 import { isApiError, type ApiError } from '@/types/response/api'
 import { useLandingFooterAdapter } from '@/composables/useLandingAdapter'
 
 const landingFooterService = new LandingFooterService()
 
+type LandingFooterAdapted = ReturnType<typeof useLandingFooterAdapter>
+
 export const useLandingFooterStore = defineStore('footer', () => {
-  const data = ref<LandingFooterData | null>(null)
+  const data = ref<LandingFooterAdapted | null>(null)
   const loading = ref(false)
   const error = ref<ApiError | null>(null)
 
