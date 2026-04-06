@@ -1,0 +1,58 @@
+<template>
+  <section class="bg-white">
+    <div class="relative flex items-center justify-center w-full overflow-hidden rounded-lg aspect-16/8 md:aspect-16/6">
+      <!-- Skeletons mientras cargan los datos -->
+      <div v-if="skeleton" class="min-w-full px-6 md:aspect-16/6">
+        <picture>
+          <source media="(min-width: 768px)" :srcset="placeholder" />
+          <img :src="placeholder_mobile" class="w-full h-auto object-cover block" alt="Banner placeholder"/>
+        </picture>
+      </div>
+      <!-- Componente real -->
+      <div v-else class="flex transition-transform duration-700" :style="{ transform: `translateX(-${current * 100}%)` }">
+        <div v-for="(item, i) in images" :key="i" class="min-w-full px-6">
+          <picture>
+            <source media="(min-width: 768px)" :srcset="item.desktop" />
+            <img :src="item.mobile" :alt="item.imageAlt" class="w-full h-auto object-cover block"/>
+          </picture>
+        </div>
+      </div>
+
+      <button v-if="!skeleton" @click="prev" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 p-2 text-white w-10 rounded-full cursor-pointer">
+        <ChevronLeftIcon class="size-6" aria-hidden="true" />
+      </button>
+      <button v-if="!skeleton" @click="next" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 p-2 text-white w-10 rounded-full cursor-pointer">
+        <ChevronRightIcon class="size-6" aria-hidden="true" />
+      </button>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
+  import type { Banner } from '@/types/banner';
+
+  const props = defineProps<{
+    images: Banner[]
+    skeleton: boolean
+  }>()
+
+  const placeholder = new URL('@/assets/banner/placeholder.jpg', import.meta.url).href
+  const placeholder_mobile = new URL('@/assets/banner/placeholder_mobile.jpg', import.meta.url).href
+
+  const current = ref(0)
+
+  const next = () => { current.value = (current.value + 1) % props.images.length }
+  const prev = () => { current.value = (current.value - 1 + props.images.length) % props.images.length }
+
+  let interval: number | null = null
+
+  onMounted(() => {
+    if (!props.skeleton) interval = setInterval(next, 5000)
+  })
+
+  onUnmounted(() => {
+    if (interval) clearInterval(interval)
+  })
+</script>

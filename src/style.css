@@ -2,6 +2,7 @@
 @tailwind utilities;
 
 @theme {
+  --breakpoint-xs: 480px;
   --color-primary-50: #fff6f2;
   --color-primary-100: #ffeadd;
   --color-primary-200: #ffd1b3;
