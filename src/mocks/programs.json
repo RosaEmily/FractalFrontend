@@ -1,0 +1,1530 @@
+﻿{
+  "success": true,
+  "error": {
+    "code": 0,
+    "message": "Información completa de las ofertas",
+    "details": null
+  },
+  "data": {
+    "offers": [
+      {
+        "id": 6,
+        "name": "Modelado y Gestión BIM",
+        "prefix": "Diplomado internacional en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-03-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-05-15T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 30,
+        "enrolled_students_count": 12,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 77.90",
+        "courses": [
+          {
+            "name": "Modelado y Gestión BIM",
+            "description": "Domina Revit y las metodologías BIM para la gestión integral de proyectos.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Revit Architecture",
+              "Revit Structure",
+              "Revit MEP",
+              "Dynamo",
+              "Power BI"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-03-10 00:00:00",
+            "end_date": "2026-05-10 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "name": "Coordinación y Gestión BIM",
+        "prefix": "Diplomado internacional en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-02-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-04-30T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 30,
+        "enrolled_students_count": 8,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 77.90",
+        "courses": [
+          {
+            "name": "Coordinación y Gestión BIM",
+            "description": "Aprende a coordinar modelos BIM con las herramientas líderes del sector.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Navisworks Manage",
+              "Autodesk Construction Cloud",
+              "Revizto",
+              "Trimble Connect",
+              "Dalux"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-02-10 00:00:00",
+            "end_date": "2026-04-10 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "name": "Diseño con AutoCAD",
+        "prefix": "Certificación internacional en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-01-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-03-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 30,
+        "enrolled_students_count": 20,
+        "duration_days": 45,
+        "duration_months": 2,
+        "price": "S/ 71.90",
+        "courses": [
+          {
+            "name": "Diseño con AutoCAD",
+            "description": "Domina AutoCAD 2D y 3D para proyectos de arquitectura e ingeniería.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "AutoCAD 2D",
+              "AutoCAD 3D"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-01-20 00:00:00",
+            "end_date": "2026-03-05 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "09:00:00",
+                "end_time": "13:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "name": "Infraestructura Civil",
+        "prefix": "Especialización en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-01-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-04-15T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 30,
+        "enrolled_students_count": 5,
+        "duration_days": 75,
+        "duration_months": 3,
+        "price": "S/ 25.90",
+        "courses": [
+          {
+            "name": "Infraestructura Civil",
+            "description": "Diseña y modela infraestructura civil con herramientas Autodesk.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Civil 3D",
+              "Recap Pro",
+              "Infraworks",
+              "BIM",
+              "3ds Max"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-01-10 00:00:00",
+            "end_date": "2026-04-10 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Revit Structure",
+        "prefix": "Certificación en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-04-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-06-30T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 25,
+        "enrolled_students_count": 3,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 49.90",
+        "courses": [
+          {
+            "name": "Revit Structure",
+            "description": "Modelado estructural avanzado con Autodesk Revit.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Revit Structure",
+              "BIM",
+              "Estructuras"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-05-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "name": "Revit MEP",
+        "prefix": "Certificación en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-04-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-06-30T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 25,
+        "enrolled_students_count": 7,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 49.90",
+        "courses": [
+          {
+            "name": "Revit MEP",
+            "description": "Instalaciones mecánicas, eléctricas y sanitarias con Revit.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Revit MEP",
+              "BIM",
+              "Instalaciones"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-05-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "name": "Dynamo para BIM",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-05-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-07-15T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 39.90",
+        "courses": [
+          {
+            "name": "Dynamo para BIM",
+            "description": "Automatiza flujos de trabajo en Revit con programación visual en Dynamo.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Dynamo",
+              "BIM",
+              "Automatización",
+              "Revit Architecture"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-05-05 00:00:00",
+            "end_date": "2026-06-05 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "10:00:00",
+                "end_time": "13:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "name": "Navisworks Manage",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-03-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-05-30T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 11,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 39.90",
+        "courses": [
+          {
+            "name": "Navisworks Manage",
+            "description": "Revisión, detección de interferencias y gestión de modelos BIM.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Navisworks Manage",
+              "BIM",
+              "Coordinación"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-03-17 00:00:00",
+            "end_date": "2026-04-17 23:59:59",
+            "schedules": [
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "name": "Power BI para Construcción",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-06-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-08-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 44.90",
+        "courses": [
+          {
+            "name": "Power BI para Construcción",
+            "description": "Visualización y análisis de datos aplicado a proyectos de construcción.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Power BI",
+              "Digital",
+              "Gestión"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-06-02 00:00:00",
+            "end_date": "2026-07-02 23:59:59",
+            "schedules": [
+              {
+                "day": "Viernes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "name": "Sketchup Pro",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-04-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-06-15T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 9,
+        "duration_days": 45,
+        "duration_months": 2,
+        "price": "S/ 55.90",
+        "courses": [
+          {
+            "name": "Sketchup Pro",
+            "description": "Modelado y presentación arquitectónica con Sketchup Pro y V-Ray.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Sketchup",
+              "V-Ray",
+              "Arquitectura",
+              "Digital"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-04-15 00:00:00",
+            "end_date": "2026-06-15 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "09:00:00",
+                "end_time": "12:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "name": "Lumion para Arquitectura",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-05-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-07-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 4,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 44.90",
+        "courses": [
+          {
+            "name": "Lumion para Arquitectura",
+            "description": "Renderizado y visualización arquitectónica en tiempo real con Lumion.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Lumion",
+              "Arquitectura",
+              "Digital",
+              "Renderizado"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-05-15 00:00:00",
+            "end_date": "2026-06-15 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "name": "Gestión de Proyectos PMI",
+        "prefix": "Certificación en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-03-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-05-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 25,
+        "enrolled_students_count": 15,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 69.90",
+        "courses": [
+          {
+            "name": "Gestión de Proyectos PMI",
+            "description": "Fundamentos de gestión de proyectos bajo el estándar PMI-PMBOK.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Gestión",
+              "PMI",
+              "Proyectos",
+              "Infraestructura"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-03-03 00:00:00",
+            "end_date": "2026-05-03 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "name": "Civil 3D Autodesk",
+        "prefix": "Especialización en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-06-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-08-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 59.90",
+        "courses": [
+          {
+            "name": "Civil 3D Autodesk",
+            "description": "Diseño vial, hidrología y lotización con Autodesk Civil 3D.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Civil 3D",
+              "Infraestructura",
+              "BIM",
+              "Autodesk"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-06-02 00:00:00",
+            "end_date": "2026-08-02 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "09:00:00",
+                "end_time": "13:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "name": "Archicad Básico a Avanzado",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-07-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-09-30T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 64.90",
+        "courses": [
+          {
+            "name": "Archicad Básico a Avanzado",
+            "description": "Modelado arquitectónico BIM con Graphisoft Archicad.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Archicad",
+              "BIM",
+              "Arquitectura"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-07-07 00:00:00",
+            "end_date": "2026-09-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Viernes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "name": "Diseño Paramétrico con Grasshopper",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-08-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-10-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 15,
+        "enrolled_students_count": 0,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 54.90",
+        "courses": [
+          {
+            "name": "Diseño Paramétrico con Grasshopper",
+            "description": "Generación algorítmica de formas y geometrías arquitectónicas complejas.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Grasshopper",
+              "Rhino",
+              "Digital",
+              "Automatización",
+              "Arquitectura"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-08-04 00:00:00",
+            "end_date": "2026-09-04 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "09:00:00",
+                "end_time": "13:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "name": "Fotorrealismo con 3ds Max y Corona",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-05-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-07-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 15,
+        "enrolled_students_count": 6,
+        "duration_days": 45,
+        "duration_months": 2,
+        "price": "S/ 59.90",
+        "courses": [
+          {
+            "name": "Fotorrealismo con 3ds Max y Corona",
+            "description": "Renders fotorrealistas de interiores y exteriores arquitectónicos.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "3ds Max",
+              "Corona Renderer",
+              "Renderizado",
+              "Digital"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-05-05 00:00:00",
+            "end_date": "2026-07-05 23:59:59",
+            "schedules": [
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "name": "Urbanismo y Sostenibilidad",
+        "prefix": "Especialización en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-04-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-06-30T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 25,
+        "enrolled_students_count": 13,
+        "duration_days": 60,
+        "duration_months": 2,
+        "price": "S/ 64.90",
+        "courses": [
+          {
+            "name": "Urbanismo y Sostenibilidad",
+            "description": "Planificación urbana sostenible con criterios de eficiencia energética y resilencia.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Sostenibilidad",
+              "Infraestructura",
+              "Urbanismo",
+              "Gestión"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-06-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "name": "BIM Manager",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-03-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-06-30T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 25,
+        "enrolled_students_count": 18,
+        "duration_days": 180,
+        "duration_months": 6,
+        "price": "S/ 199.90",
+        "courses": [
+          {
+            "name": "Modelado BIM con Revit",
+            "description": "Base del programa: modelado arquitectónico, estructural y MEP con Revit.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Revit Architecture",
+              "Revit Structure",
+              "Revit MEP",
+              "BIM"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-03-03 00:00:00",
+            "end_date": "2026-04-03 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Coordinación y Clash Detection",
+            "description": "Navisworks, Revizto y detección de interferencias en proyectos reales.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Navisworks Manage",
+              "Revizto",
+              "Coordinación",
+              "BIM"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-05-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "BIM Management y Liderazgo",
+            "description": "Gestión de equipos BIM, estándares ISO 19650 y estrategia digital.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "BIM",
+              "Gestión",
+              "Digital",
+              "Autodesk Construction Cloud"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-05-05 00:00:00",
+            "end_date": "2026-06-30 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "name": "Especialista en Infraestructura Civil BIM",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-04-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-09-30T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 25,
+        "enrolled_students_count": 7,
+        "duration_days": 180,
+        "duration_months": 6,
+        "price": "S/ 219.90",
+        "courses": [
+          {
+            "name": "Civil 3D Autodesk",
+            "description": "Diseño vial y de redes con Civil 3D.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Civil 3D",
+              "Infraestructura",
+              "Autodesk"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-05-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Infraworks y Recap Pro",
+            "description": "Modelado de entorno y levantamiento fotogramétrico aplicado a obra civil.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Infraworks",
+              "Recap Pro",
+              "BIM",
+              "Infraestructura"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-06-02 00:00:00",
+            "end_date": "2026-07-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "name": "Diseñador Arquitectónico Digital",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-05-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-12-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 4,
+        "duration_days": 240,
+        "duration_months": 8,
+        "price": "S/ 249.90",
+        "courses": [
+          {
+            "name": "AutoCAD 2D y 3D",
+            "description": "Fundamentos de dibujo técnico digital con AutoCAD.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "AutoCAD 2D",
+              "AutoCAD 3D"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-05-05 00:00:00",
+            "end_date": "2026-06-30 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Sketchup Pro y V-Ray",
+            "description": "Modelado y renderizado arquitectónico.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Sketchup",
+              "V-Ray",
+              "Arquitectura",
+              "Digital"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-07-01 00:00:00",
+            "end_date": "2026-08-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Lumion Avanzado",
+            "description": "Visualización arquitectónica en tiempo real.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Lumion",
+              "Digital",
+              "Renderizado"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-09-01 00:00:00",
+            "end_date": "2026-10-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "name": "Gestión de la Construcción",
+        "prefix": "Línea de carrera en",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-03-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-09-15T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 25,
+        "enrolled_students_count": 22,
+        "duration_days": 180,
+        "duration_months": 6,
+        "price": "S/ 229.90",
+        "courses": [
+          {
+            "name": "Gestión de Proyectos PMI",
+            "description": "Estándares internacionales de gestión de proyectos.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Gestión",
+              "PMI",
+              "Proyectos"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-03-17 00:00:00",
+            "end_date": "2026-05-17 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Planificación y Control de Obras",
+            "description": "Lean Construction, Last Planner y control de costos en obra.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Gestión",
+              "Infraestructura",
+              "Lean Construction"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-05-19 00:00:00",
+            "end_date": "2026-07-19 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "name": "Transformación Digital AEC",
+        "prefix": "Línea de carrera en",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-06-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-12-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 2,
+        "duration_days": 210,
+        "duration_months": 7,
+        "price": "S/ 259.90",
+        "courses": [
+          {
+            "name": "BIM y Digitalización",
+            "description": "Introducción a la metodología BIM y herramientas de digitalización.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "BIM",
+              "Digital",
+              "Autodesk Construction Cloud"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-06-02 00:00:00",
+            "end_date": "2026-07-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Innovación y Tecnologías AEC",
+            "description": "Realidad aumentada, gemelos digitales e IA aplicada a la construcción.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Digital",
+              "BIM",
+              "Innovación",
+              "Gestión"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-08-04 00:00:00",
+            "end_date": "2026-10-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "name": "Especialista en Revit Architecture",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-04-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-08-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 9,
+        "duration_days": 150,
+        "duration_months": 5,
+        "price": "S/ 189.90",
+        "courses": [
+          {
+            "name": "Revit Architecture Básico",
+            "description": "Modelado de proyectos arquitectónicos con Revit.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Revit Architecture",
+              "BIM",
+              "Arquitectura"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-04-07 00:00:00",
+            "end_date": "2026-06-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Revit Architecture Avanzado y Families",
+            "description": "Familias paramétricas, plantillas y flujos BIM avanzados.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Revit Architecture",
+              "BIM",
+              "Dynamo"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-06-10 00:00:00",
+            "end_date": "2026-08-10 23:59:59",
+            "schedules": [
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "name": "Especialista en AutoCAD Civil",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-05-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-09-30T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 6,
+        "duration_days": 150,
+        "duration_months": 5,
+        "price": "S/ 179.90",
+        "courses": [
+          {
+            "name": "AutoCAD 2D y 3D",
+            "description": "Dibujo técnico profesional con AutoCAD.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "AutoCAD 2D",
+              "AutoCAD 3D"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-05-05 00:00:00",
+            "end_date": "2026-06-30 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Civil 3D para Proyectos Viales",
+            "description": "Diseño geométrico de carreteras y redes con Civil 3D.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Civil 3D",
+              "Infraestructura",
+              "AutoCAD 3D"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-07-07 00:00:00",
+            "end_date": "2026-09-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "name": "Dirección de Proyectos de Construcción",
+        "prefix": "Línea de carrera en",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-07-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-12-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 365,
+        "duration_months": 12,
+        "price": "S/ 349.90",
+        "courses": [
+          {
+            "name": "Gestión de Proyectos PMI",
+            "description": "Fundamentos y certificación PMI.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Gestión",
+              "PMI",
+              "Infraestructura"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-07-07 00:00:00",
+            "end_date": "2026-09-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          },
+          {
+            "name": "BIM para Dirección de Proyectos",
+            "description": "Integración BIM en la toma de decisiones gerenciales.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "BIM",
+              "Gestión",
+              "Digital",
+              "Autodesk Construction Cloud"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-09-08 00:00:00",
+            "end_date": "2026-11-08 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Liderazgo y Negociación en Construcción",
+            "description": "Habilidades blandas y dirección de equipos en proyectos de construcción.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Gestión",
+              "Liderazgo"
+            ],
+            "teacher": "Jonathan Picon Torres",
+            "start_date": "2026-11-10 00:00:00",
+            "end_date": "2026-12-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "name": "Tekla Structures",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-06-15T00:00:00.000000Z",
+        "enrollment_end_date": "2026-08-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 15,
+        "enrolled_students_count": 0,
+        "duration_days": 45,
+        "duration_months": 2,
+        "price": "S/ 69.90",
+        "courses": [
+          {
+            "name": "Tekla Structures",
+            "description": "Modelado estructural BIM con Tekla para estructuras de acero y concreto.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Tekla",
+              "BIM",
+              "Estructuras",
+              "Infraestructura"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-06-16 00:00:00",
+            "end_date": "2026-08-16 23:59:59",
+            "schedules": [
+              {
+                "day": "Sábado",
+                "start_time": "09:00:00",
+                "end_time": "13:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "name": "Autodesk Construction Cloud",
+        "prefix": "Certificación en",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+        "enrollment_start_date": "2026-07-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-09-30T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 44.90",
+        "courses": [
+          {
+            "name": "Autodesk Construction Cloud",
+            "description": "Gestión colaborativa de proyectos BIM en la nube con ACC.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order3_giopkw.jpg",
+            "tags": [
+              "Autodesk Construction Cloud",
+              "BIM",
+              "Digital",
+              "Coordinación"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-07-07 00:00:00",
+            "end_date": "2026-08-07 23:59:59",
+            "schedules": [
+              {
+                "day": "Viernes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "name": "Revizto para Coordinación BIM",
+        "prefix": "Curso de",
+        "type": "Curso",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+        "enrollment_start_date": "2026-08-01T00:00:00.000000Z",
+        "enrollment_end_date": "2026-10-31T23:59:59.000000Z",
+        "min_students": 8,
+        "max_students": 15,
+        "enrolled_students_count": 0,
+        "duration_days": 30,
+        "duration_months": 1,
+        "price": "S/ 39.90",
+        "courses": [
+          {
+            "name": "Revizto para Coordinación BIM",
+            "description": "Revisión de modelos y gestión de issues con Revizto en proyectos BIM.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order4_etc8tu.jpg",
+            "tags": [
+              "Revizto",
+              "BIM",
+              "Coordinación"
+            ],
+            "teacher": "Owen Rodriguez Lopez",
+            "start_date": "2026-08-04 00:00:00",
+            "end_date": "2026-09-04 23:59:59",
+            "schedules": [
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "name": "Innovación en Infraestructura",
+        "prefix": "Línea de carrera en",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+        "enrollment_start_date": "2026-08-01T00:00:00.000000Z",
+        "enrollment_end_date": "2027-01-31T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 180,
+        "duration_months": 6,
+        "price": "S/ 239.90",
+        "courses": [
+          {
+            "name": "Civil 3D y BIM para Infraestructura",
+            "description": "Diseño y coordinación BIM en proyectos de infraestructura vial.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Civil 3D",
+              "BIM",
+              "Infraestructura"
+            ],
+            "teacher": "Nixon Delgado Toro",
+            "start_date": "2026-08-04 00:00:00",
+            "end_date": "2026-10-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Sostenibilidad e Innovación en Obras Civiles",
+            "description": "Tecnologías emergentes, sostenibilidad y futuro de la ingeniería civil.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order1_pqhqb4.jpg",
+            "tags": [
+              "Infraestructura",
+              "Sostenibilidad",
+              "Innovación",
+              "BIM"
+            ],
+            "teacher": "Maité Avalos Soplopuco",
+            "start_date": "2026-11-03 00:00:00",
+            "end_date": "2027-01-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Martes",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              },
+              {
+                "day": "Jueves",
+                "start_time": "19:00:00",
+                "end_time": "21:00:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "name": "Especialista BIM MEP",
+        "prefix": "Línea de carrera",
+        "type": "Línea de carrera",
+        "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+        "enrollment_start_date": "2026-09-01T00:00:00.000000Z",
+        "enrollment_end_date": "2027-02-28T23:59:59.000000Z",
+        "min_students": 10,
+        "max_students": 20,
+        "enrolled_students_count": 0,
+        "duration_days": 180,
+        "duration_months": 6,
+        "price": "S/ 209.90",
+        "courses": [
+          {
+            "name": "Revit MEP Básico",
+            "description": "Modelado de instalaciones mecánicas, eléctricas y sanitarias.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Revit MEP",
+              "BIM",
+              "Instalaciones"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-09-01 00:00:00",
+            "end_date": "2026-10-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          },
+          {
+            "name": "Coordinación MEP y Clash Detection",
+            "description": "Navisworks y gestión de interferencias en modelos MEP.",
+            "image_url": "https://res.cloudinary.com/dxdlvtizu/image/upload/v1775444587/FractalProject/callouts/order2_h6duow.jpg",
+            "tags": [
+              "Revit MEP",
+              "Navisworks Manage",
+              "BIM",
+              "Coordinación"
+            ],
+            "teacher": "Juan Carlos Santamaria",
+            "start_date": "2026-11-03 00:00:00",
+            "end_date": "2027-01-31 23:59:59",
+            "schedules": [
+              {
+                "day": "Lunes",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              },
+              {
+                "day": "Miércoles",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "take": 30,
+      "total": 30,
+      "pageCount": 1,
+      "lastPage": 1,
+      "firstPage": 1,
+      "hasPreviousPage": false,
+      "hasNextPage": false,
+      "previousPage": null,
+      "nextPage": null,
+      "order": "desc",
+      "sort": "enrollment_end_date",
+      "from": 1,
+      "to": 30
+    }
+  }
+}

@@ -4,7 +4,7 @@ import type { LandingTeacherData } from '@/types/response/teacher'
 import type { Banner, BannerData } from '@/types/banner'
 import type { Kpi, KpiData } from '@/types/kpi'
 import type { Teacher, TeacherData } from '@/types/teacher'
-import type { Offer, OfferData } from '@/types/offer'
+import type { Offer, OfferData, OfferStatus } from '@/types/offer'
 import type { LandingOfferData } from '@/types/response/offer'
 import type { ItemHrefData } from '@/types/item-href'
 import { AcademicCapIcon, BriefcaseIcon, GlobeAltIcon, SparklesIcon, KeyIcon } from '@heroicons/vue/24/outline'
@@ -45,50 +45,106 @@ const teachers_phrase: string[] = [
   'Programación Dynamo BIM'
 ]
 
-export function useLandingGeneralAdapter(data: LandingGeneralData) {
+export function useLandingGeneralAdapter(landingGeneralData: LandingGeneralData) {
   return {
-    ...data,
-    banner: data.banner.map((item: BannerData, index): Banner => ({
-      ...item,
+    ...landingGeneralData,
+    banner: landingGeneralData.banner.map((bannerData: BannerData, index): Banner => ({
+      ...bannerData,
       image_alt: `Banner número ${index + 1}`
     })),
-    kpis: data.kpis.map((item: KpiData, index): Kpi => ({
-      ...item,
+    kpis: landingGeneralData.kpis.map((kpiData: KpiData, index): Kpi => ({
+      ...kpiData,
       icon: kpi_icons[index] ?? KeyIcon
     })),
-    partners: data.partners.map((item: PartnerData): Partner => ({
-      ...item,
-      image_alt: `Logo de ${item.name}`
+    partners: landingGeneralData.partners.map((partnerData: PartnerData): Partner => ({
+      ...partnerData,
+      image_alt: `Logo de ${partnerData.name}`
     })),
   }
 }
 
-export function useLandingFooterAdapter(data: LandingFooterData) {
+export function useLandingFooterAdapter(landingFooterData: LandingFooterData) {
   return {
-    ...data,
-    social_networks: data.social_networks.map((item: ItemHrefData): SocialNetwork => ({
-      ...item,
-      logo: social_icons[item.name.toLowerCase()] ?? ''
+    ...landingFooterData,
+    social_networks: landingFooterData.social_networks.map((itemHrefData: ItemHrefData): SocialNetwork => ({
+      ...itemHrefData,
+      logo: social_icons[itemHrefData.name.toLowerCase()] ?? ''
     }))
   }
 }
 
-export function useLandingTeacherAdapter(data: LandingTeacherData) {
+export function useLandingTeacherAdapter(landingTeacherData: LandingTeacherData) {
   return {
-    teachers: data.teachers.map((item: TeacherData, index): Teacher => ({
-      ...item,
+    teachers: landingTeacherData.teachers.map((teacherData: TeacherData, index): Teacher => ({
+      ...teacherData,
       phrase: teachers_phrase[index % teachers_phrase.length] ?? 'Fractal Studio'
     }))
   }
 }
 
-export function useLandingOfferAdapter(data: LandingOfferData) {
+function resolveOfferStatus(offerData: OfferData): OfferStatus {
+  const now = new Date()
+  const courseEnd   = new Date(offerData.courses[0]?.end_date ?? '')
+  const courseStart = new Date(offerData.courses[0]?.start_date ?? '')
+  const enrollEnd   = new Date(offerData.enrollment_end_date)
+  if (courseEnd < now)    return 'ended'
+  if (courseStart <= now) return 'ongoing'
+  if (enrollEnd < now)    return 'upcoming'
+  return 'open'
+}
+
+const STATUS_LABEL: Record<OfferStatus, string> = {
+  open:     'Inscripciones Abiertas',
+  upcoming: 'Inscripciones Cerradas',
+  ongoing:  'En Progreso',
+  ended:    'Finalizado',
+}
+
+const STATUS_CLASS: Record<OfferStatus, string> = {
+  open:     'bg-green-100 text-green-700',
+  upcoming: 'bg-blue-100 text-blue-700',
+  ongoing:  'bg-yellow-100 text-yellow-700',
+  ended:    'bg-red-100 text-red-700',
+}
+
+export function useLandingOfferListAdapter(landingOfferData: LandingOfferData) {
   return {
-    ...data,
-    items: data.items.map((item: OfferData): Offer => ({
-      ...item,
-      image_alt: `Imagen representativa de ${item.name}`,
-      href: '#'
-    }))
+    ...landingOfferData,
+    offers: landingOfferData.offers.map((offerData: OfferData): Offer => {
+      const status = resolveOfferStatus(offerData)
+      return {
+        ...offerData,
+        image_alt: `Imagen representativa de ${offerData.name}`,
+        href: '#',
+        courses: offerData.courses.map(course => ({
+          ...course,
+          image_alt: `Imagen representativa de ${course.name}`
+        })),
+        status,
+        status_label: STATUS_LABEL[status],
+        status_class: STATUS_CLASS[status],
+      }
+    })
+  }
+}
+
+export function useLandingOfferAdapter(landingOfferData: LandingOfferData) {
+  return {
+    ...landingOfferData,
+    offers: landingOfferData.offers.map((offerData: OfferData): Offer => {
+      const status = resolveOfferStatus(offerData)
+      return {
+        ...offerData,
+        image_alt: `Imagen representativa de ${offerData.name}`,
+        href: '#',
+        courses: offerData.courses.map(course => ({
+          ...course,
+          image_alt: `Imagen representativa de ${course.name}`
+        })),
+        status,
+        status_label: STATUS_LABEL[status],
+        status_class: STATUS_CLASS[status],
+      }
+    })
   }
 }

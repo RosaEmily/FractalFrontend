@@ -3,7 +3,7 @@ import type { OfferData } from '@/types/offer'
 import type { PaginationMeta } from '@/types/response/pagination'
 
 export interface LandingOfferData {
-  items: OfferData[]
+  offers: OfferData[]
   meta: PaginationMeta
 }
 

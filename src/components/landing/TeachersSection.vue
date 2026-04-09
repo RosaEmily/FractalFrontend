@@ -21,7 +21,7 @@
             <!-- Docentes reales -->
             <div v-else v-for="item in teachers.slice(0, visibleCount)" :key="item.first_name" class="contents">
               <div class="shadow-lg relative overflow-hidden group">
-                <img :src="item.photo_url" :alt="item.first_name" class="w-full h-96 object-cover object-top"/>
+                <img :src="item.photo_url" :alt="item.first_name" @error="(e) => (e.target as HTMLImageElement).src = placeholder" class="w-full h-96 object-cover object-top"/>
                 <div class="absolute bg-black opacity-75 -translate-x-full group-hover:translate-x-0 top-0 left-0 w-full h-full flex items-center justify-center transition-transform duration-500">
                   <div class="relative p-4 text-center">
                     <h3 class="text-lg font-semibold text-primary-400">

@@ -23,7 +23,7 @@
     </nav>
     <Dialog class="md:hidden" @close="mobileMenuOpen = false" :open="mobileMenuOpen">
       <div class="fixed inset-0 z-50" />
-      <DialogPanel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-4 md:max-w-sm md:ring-1 md:ring-gray-100/10">
+      <DialogPanel class="fixed inset-y-0 left-0 z-50 w-full overflow-y-auto bg-white px-6 py-4 md:max-w-sm md:ring-1 md:ring-gray-100/10">
         <div class="flex items-center justify-between">
           <router-link to="/" class="-m-1.5 p-1.5">
             <img class="h-16 w-auto" src="@/assets/fractal.png" alt="Logo Fractal" />

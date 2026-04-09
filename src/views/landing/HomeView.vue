@@ -46,7 +46,7 @@
   const partners = computed(() => landingGeneralStore.data?.partners ?? [])
   const kpis = computed(() => landingGeneralStore.data?.kpis ?? [])
   const teachers = computed(() => landingTeacherStore.data?.teachers ?? [])
-  const offers = computed(() => landingOfferStore.data?.items ?? [])
+  const offers = computed(() => landingOfferStore.data?.offers ?? [])
 
   const reviews = [
     {

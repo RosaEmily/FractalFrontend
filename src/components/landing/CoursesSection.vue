@@ -25,7 +25,7 @@
           <template v-else>
             <div v-for="offer in offers.slice(0, visibleCount)" :key="offer.id" class="group relative px-10 sm:px-0 transition-transform duration-300 hover:-translate-y-2 cursor-pointer">
               <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-lg bg-white">
-                <img :src="offer.image_url" :alt="offer.image_alt" class="w-full object-cover group-hover:opacity-75 max-sm:h-40 aspect-2/1 lg:aspect-square" />
+                <img :src="offer.image_url" :alt="offer.image_alt" @error="(e) => (e.target as HTMLImageElement).src = placeholder" class="w-full object-cover group-hover:opacity-75 max-sm:h-40 aspect-2/1 lg:aspect-square" />
               </div>
               <h3 class="mt-6 text-sm md:text-base text-gray-500">{{ offer.prefix }}</h3>
               <p class="text-base md:text-lg font-semibold text-gray-900 pt-1 uppercase">{{ offer.name }}</p>
