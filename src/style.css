@@ -6,34 +6,103 @@
     overflow-wrap: anywhere;
     word-break: break-word;
   }
+  .font-display { font-family: var(--font-display); }
+  .font-body    { font-family: var(--font-body); }
+  .font-mono    { font-family: var(--font-mono); }
+  .antialiased  { -webkit-font-smoothing: antialiased; }
+
+  .shadow-sm     { box-shadow: var(--shadow-sm); }
+  .shadow-md     { box-shadow: var(--shadow-md); }
+  .shadow-lg     { box-shadow: var(--shadow-lg); }
+  .shadow-accent { box-shadow: var(--shadow-accent); }
 }
 
 @theme {
+  /* ── Breakpoints ─────────────────────────────────────────── */
   --breakpoint-xs: 480px;
-  --color-primary-50: #fff6f2;
-  --color-primary-100: #ffeadd;
-  --color-primary-200: #ffd1b3;
-  --color-primary-300: #ffb580;
-  --color-primary-400: #ff8a4d;
-  --color-primary-500: #ff5b26;
-  --color-primary-600: #e14f21;
-  --color-primary-700: #b83f1a;
-  --color-primary-800: #8f3013;
-  --color-primary-900: #65210c;
-  --color-secondary-50: var(--color-gray-50);
-  --color-secondary-100: var(--color-gray-100);
-  --color-secondary-200: var(--color-gray-200);
-  --color-secondary-300: var(--color-gray-300);
-  --color-secondary-400: var(--color-gray-400);
-  --color-secondary-500: var(--color-gray-500);
-  --color-secondary-600: var(--color-gray-600);
-  --color-secondary-700: var(--color-gray-700);
-  --color-secondary-800: var(--color-gray-800);
-  --color-secondary-900: var(--color-gray-900);
-  --h-130: calc(var(--spacing) * 130);
 
-  --shadow-card: 0rem 0.25rem 0.75rem 0rem #96a7b9b2;
+  /* ── Tipografías V3 ──────────────────────────────────────── */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Inter Tight', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-sans:    'Inter Tight', system-ui, sans-serif;
+
+  /* ── Paleta principal (accent naranja) ───────────────────── */
+  --color-primary-50:  #fff6f2;
+  --color-primary-100: #ffe3d3;
+  --color-primary-200: #ffc4a0;
+  --color-primary-300: #ffa06d;
+  --color-primary-400: #f5763a;
+  --color-primary-500: #e94e1b;   /* accent — naranja protagonista */
+  --color-primary-600: #c13e0e;   /* accentDeep */
+  --color-primary-700: #9a3009;
+  --color-primary-800: #742205;
+  --color-primary-900: #4d1502;
+
+  /* ── Paleta secundaria (grises cálidos / ink) ────────────── */
+  --color-secondary-50:  #faf6ee;   /* bg page — cream cálido */
+  --color-secondary-100: #f4ebd9;   /* cream */
+  --color-secondary-200: #f7efe0;   /* sand */
+  --color-secondary-300: #ebe2d0;   /* line */
+  --color-secondary-400: #9c9384;   /* ink3 — terciario */
+  --color-secondary-500: #675e50;   /* ink2 — secundario */
+  --color-secondary-600: #4a4338;
+  --color-secondary-700: #342e25;
+  --color-secondary-800: #2d2418;   /* deepWarm */
+  --color-secondary-900: #1f1a14;   /* ink — texto principal */
+
+  /* ── Superficies y fondos ────────────────────────────────── */
+  --color-surface-page:  #faf6ee;   /* bg base */
+  --color-surface-paper: #ffffff;   /* cards / elevated */
+  --color-surface-soft:  #fff1e8;   /* tint sección alternada */
+  --color-surface-cream: #f4ebd9;   /* featured surfaces */
+  --color-surface-sand:  #f7efe0;
+
+  /* ── Tints del accent ────────────────────────────────────── */
+  --color-accent-tint: #ffe3d3;
+  --color-accent-soft: #fff1e8;
+  --color-accent-dim:  rgba(233,78,27,0.12);
+
+  /* ── Colores semánticos secundarios ──────────────────────── */
+  --color-amber-DEFAULT: #f5a623;
+  --color-amber-soft:    #fff0d6;
+  --color-success-DEFAULT: #2d9a7d;
+  --color-success-soft:    #dbf1e9;
+  --color-info-DEFAULT:    #2d6fcf;
+  --color-info-soft:       #dceafa;
+
+  /* ── Líneas / bordes ─────────────────────────────────────── */
+  --color-line:       #ebe2d0;
+  --color-line-soft:  #f2ead8;
+  --color-line-strong:#1f1a14;
+
+  /* ── Sombras premium ─────────────────────────────────────── */
+  --shadow-sm:     0 1px 2px rgba(31,26,20,0.04), 0 2px 4px rgba(31,26,20,0.04);
+  --shadow-md:     0 4px 8px rgba(31,26,20,0.04), 0 8px 16px rgba(31,26,20,0.06);
+  --shadow-lg:     0 8px 16px rgba(31,26,20,0.06), 0 16px 40px rgba(31,26,20,0.08);
+  --shadow-accent: 0 8px 24px rgba(233,78,27,0.22);
+  /* legado */
+  --shadow-card:    0rem 0.25rem 0.75rem 0rem #96a7b9b2;
   --shadow-card-lg: 0rem 1rem 1.5rem 0rem #96a7b966;
   --shadow-card-sm: 0rem 0.125rem 0.375rem 0.125rem #96a7b9b2;
   --shadow-card-xs: 0rem 0.0625rem 0.125rem 0rem #96a7b966;
+
+  /* ── Radios ──────────────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   18px;
+  --radius-xl:   28px;
+  --radius-pill: 9999px;
+
+  /* ── Misc ────────────────────────────────────────────────── */
+  --h-130: calc(var(--spacing) * 130);
 }
+
+/* ── Animaciones globales ──────────────────────────────────── */
+@keyframes marquee  { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes fadeup   { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pulse-dot{ 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.animate-marquee  { animation: marquee 24s linear infinite; }
+.animate-fadeup   { animation: fadeup .3s ease both; }
+.animate-pulse-dot{ animation: pulse-dot 2s ease-in-out infinite; }

@@ -6,15 +6,15 @@ export interface BannerDTO {
 
 export interface KpiDTO {
   id: string;
-  label: string;
-  value: number;
-  suffix?: string;
+  description: string;
+  number: number;
+  format: string;
 }
 
 export interface PartnerDTO {
   id: string;
   name: string;
-  image_url: string;
+  image: string;
 }
 
 export interface GeneralDTO {

@@ -1,101 +1,188 @@
+<script setup lang="ts">
+import { RouterLink } from 'vue-router'
+import LandingSectionHeader from './ui/LandingSectionHeader.vue'
+import LandingButton from './ui/LandingButton.vue'
+import LandingImage from './ui/LandingImage.vue'
+import type { Teacher } from '@/modules/landing/models/teacher.model'
+
+defineProps<{ teachers: Teacher[]; skeleton: boolean }>()
+
+const placeholder = new URL('@/assets/teacher/placeholder.jpg', import.meta.url).href
+
+const PALETTES = [
+  { bg: '#FFE3D3', fg: '#E94E1B' },
+  { bg: '#FFF0D6', fg: '#A56E00' },
+  { bg: '#DBF1E9', fg: '#2D9A7D' },
+  { bg: '#DCEAFA', fg: '#2D6FCF' },
+]
+
+function initials(t: Teacher) {
+  return `${t.first_name[0] ?? ''}${t.last_name[0] ?? ''}`.toUpperCase()
+}
+
+function specialtyList(t: Teacher): string[] {
+  if (Array.isArray(t.specialty)) return t.specialty as unknown as string[]
+  return (t.specialty as string).split(',').map((s: string) => s.trim()).filter(Boolean)
+}
+</script>
+
 <template>
-  <section class="bg-white">
-    <div class="relative isolate mx-auto max-w-7xl px-16 sm:px-6 md:px-8 lg:px-10">
-      <div class="mx-auto max-w-2xl lg:max-w-none py-12 sm:py-16 lg:py-24 text-center">
-        <div class="text-center">
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance text-primary-500 pb-16">
-            Docentes <span class="uppercase font-bold">EXPERTOS</span> en el rubro
-          </h1>
-          <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-            <!-- Skeleton -->
-            <template v-if="skeleton">
-              <div v-for="i in visibleCount" :key="i" class="contents">
-                <div class="shadow-lg relative overflow-hidden">
-                  <img :src="placeholder" alt="Cargando docente..." class="w-full h-96 object-cover object-top" />
-                </div>
-                <div class="hidden md:flex w-full h-96 p-16 bg-secondary-100 items-center justify-center transition-all duration-300 hover:bg-primary-200 text-primary-500 hover:text-primary-600">
-                  <span class="font-semibold text-lg uppercase tracking-widest">FRACTAL STUDIO</span>
-                </div>
+  <section class="bg-surface-page py-24">
+    <div class="px-6 md:px-16">
+      <LandingSectionHeader
+        :index="5"
+        eyebrow="CLAUSTRO · DOCENTES EN ACTIVO"
+        subtitle="Profesionales que diseñan, modelan y coordinan obras BIM en Perú y el extranjero. No solo enseñan: ejercen."
+      >
+        <template #title>
+          Aprende con <span class="text-primary-500 italic">expertos</span><br>que coordinan obras reales.
+        </template>
+        <template #action>
+          <RouterLink to="/instructors">
+            <LandingButton variant="secondary" size="md">Ver claustro completo</LandingButton>
+          </RouterLink>
+        </template>
+      </LandingSectionHeader>
+
+      <div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Skeleton -->
+        <template v-if="skeleton">
+          <div v-for="i in 4" :key="i" class="bg-surface-paper border border-line rounded-lg overflow-hidden shadow-sm animate-pulse">
+            <div class="aspect-4/5 bg-line-soft" />
+            <div class="p-5 flex flex-col gap-3">
+              <div class="h-4 w-3/4 bg-line rounded" />
+              <div class="h-3 w-1/2 bg-line-soft rounded" />
+              <div class="flex gap-2 mt-2">
+                <div class="h-5 w-12 bg-line-soft rounded" />
+                <div class="h-5 w-16 bg-line-soft rounded" />
               </div>
-            </template>
-            <!-- Docentes reales -->
-            <div v-else v-for="item in teachers.slice(0, visibleCount)" :key="item.first_name" class="contents">
-              <div class="shadow-lg relative overflow-hidden group">
-                <img :src="item.photo_url" :alt="item.first_name" @error="(e) => (e.target as HTMLImageElement).src = placeholder" class="w-full h-96 object-cover object-top"/>
-                <div class="absolute bg-black opacity-75 -translate-x-full group-hover:translate-x-0 top-0 left-0 w-full h-full flex items-center justify-center transition-transform duration-500">
-                  <div class="relative p-4 text-center">
-                    <h3 class="text-lg font-semibold text-primary-400">
-                      {{ item.first_name }} {{ item.last_name }}
-                    </h3>
-                    <p class="mt-1 mb-2 text-sm text-primary-200">
-                      {{ item.academic_degree_name }} | {{ item.specialty }}
-                    </p>
-                    <p class="mt-1 mb-4 text-sm text-white">
-                      {{ item.description }}
-                    </p>
-                    <ul>
-                      <li class="inline-block mx-1" v-if="item.social_networks.linkedin">
-                        <a :href="item.social_networks.linkedin" target="_blank" class="text-primary-200 hover:text-primary-400">
-                          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-6 inline-block ml-1">
-                            <path d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                          </svg>
-                        </a>
-                      </li>
-                      <li class="inline-block mx-1" v-if="item.social_networks.other">
-                        <a :href="item.social_networks.other" target="_blank" class="text-primary-200 hover:text-primary-400">
-                          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="size-7 inline-block ml-1">
-                            <path d="M21.721 12.752a9.711 9.711 0 0 0-.945-5.003 12.754 12.754 0 0 1-4.339 2.708 18.991 18.991 0 0 1-.214 4.772 17.165 17.165 0 0 0 5.498-2.477ZM14.634 15.55a17.324 17.324 0 0 0 .332-4.647c-.952.227-1.945.347-2.966.347-1.021 0-2.014-.12-2.966-.347a17.515 17.515 0 0 0 .332 4.647 17.385 17.385 0 0 0 5.268 0ZM9.772 17.119a18.963 18.963 0 0 0 4.456 0A17.182 17.182 0 0 1 12 21.724a17.18 17.18 0 0 1-2.228-4.605ZM7.777 15.23a18.87 18.87 0 0 1-.214-4.774 12.753 12.753 0 0 1-4.34-2.708 9.711 9.711 0 0 0-.944 5.004 17.165 17.165 0 0 0 5.498 2.477ZM21.356 14.752a9.765 9.765 0 0 1-7.478 6.817 18.64 18.64 0 0 0 1.988-4.718 18.627 18.627 0 0 0 5.49-2.098ZM2.644 14.752c1.682.971 3.53 1.688 5.49 2.099a18.64 18.64 0 0 0 1.988 4.718 9.765 9.765 0 0 1-7.478-6.816ZM13.878 2.43a9.755 9.755 0 0 1 6.116 3.986 11.267 11.267 0 0 1-3.746 2.504 18.63 18.63 0 0 0-2.37-6.49ZM12 2.276a17.152 17.152 0 0 1 2.805 7.121c-.897.23-1.837.353-2.805.353-.968 0-1.908-.122-2.805-.353A17.151 17.151 0 0 1 12 2.276ZM10.122 2.43a18.629 18.629 0 0 0-2.37 6.49 11.266 11.266 0 0 1-3.746-2.504 9.754 9.754 0 0 1 6.116-3.985Z" />
-                          </svg>
-                        </a>
-                      </li>
-                      <li class="inline-block mx-1">
-                        <a :href="item.cv" target="_blank" class="text-primary-200 hover:text-primary-400">
-                          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="size-7 inline-block ml-1">
-                            <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd" />
-                            <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
-                          </svg> 
-                        </a> 
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="hidden md:flex w-full h-96 p-16 bg-secondary-100 items-center justify-center transition-all duration-300 hover:bg-primary-200 text-primary-500 hover:text-primary-600">
-                <span class="font-semibold text-lg uppercase tracking-widest">
-                  {{ item.phrase }}
-                </span>
-              </div>
-            </div>
-            <div class="col-span-full flex items-center justify-center">
-              <button class="uppercase font-semibold text-base tracking-widest w-full p-4 bg-primary-100 hover:bg-primary-200 text-primary-500 hover:text-primary-600 cursor-pointer">
-                Ver todos los instructores
-              </button>
             </div>
           </div>
-        </div>
+        </template>
+
+        <!-- Real teachers -->
+        <article
+          v-else
+          v-for="(teacher, i) in teachers.slice(0, 4)"
+          :key="teacher.first_name"
+          class="bg-surface-paper border border-line rounded-lg overflow-hidden shadow-sm hover:-translate-y-1 transition-transform duration-300 flex flex-col"
+        >
+          <!-- Photo / Placeholder -->
+          <div
+            class="relative aspect-4/5 flex items-center justify-center overflow-hidden"
+            :style="{ background: PALETTES[i % 4].bg }"
+          >
+            <!-- Dot pattern overlay -->
+            <div
+              class="absolute inset-0"
+              :style="{
+                backgroundImage: `radial-gradient(${PALETTES[i % 4].fg}26 1px, transparent 1px)`,
+                backgroundSize: '14px 14px',
+                maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
+                WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
+              }"
+            />
+
+            <LandingImage
+              :src="teacher.photo_url"
+              :alt="`${teacher.first_name} ${teacher.last_name}`"
+              img-class="absolute inset-0 w-full h-full object-cover object-top z-10"
+            >
+              <span
+                class="relative font-display font-extrabold leading-none tracking-tight select-none z-0"
+                :style="{ fontSize: '140px', color: PALETTES[i % 4].fg, letterSpacing: '-0.05em' }"
+              >
+                {{ initials(teacher) }}
+              </span>
+            </LandingImage>
+
+            <!-- Top labels -->
+            <div class="absolute top-3.5 left-3.5 right-3.5 flex justify-between items-center z-20">
+              <span class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900">
+                {{ teacher.specialty?.toString().split(',')[0]?.trim() || 'BIM' }}
+              </span>
+              <span class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#e94e1b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                {{ teacher.experience_years }}+ años
+              </span>
+            </div>
+
+            <!-- Bottom name overlay -->
+            <div
+              class="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-8 z-20"
+              :style="{ background: `linear-gradient(to top, ${PALETTES[i % 4].bg} 30%, transparent)` }"
+            >
+              <p class="font-mono text-[0.594rem] tracking-widest uppercase opacity-70" :style="{ color: PALETTES[i % 4].fg }">
+                {{ teacher.academic_degree_name }}
+              </p>
+              <p class="font-display font-bold text-[1.375rem] leading-[1.05] tracking-tight text-secondary-900 mt-1">
+                {{ teacher.first_name }} {{ teacher.last_name }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Card body -->
+          <div class="p-5">
+            <p class="font-body text-[0.8125rem] text-secondary-500 mb-3">{{ teacher.description?.split('.')[0] || 'Docente especializado en BIM y herramientas Autodesk.' }}</p>
+
+            <!-- Specialty chips -->
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="s in specialtyList(teacher).slice(0, 3)"
+                :key="s"
+                class="font-mono text-[0.594rem] text-secondary-500 font-medium px-2 py-0.5 border border-line rounded tracking-wide"
+              >
+                {{ s }}
+              </span>
+            </div>
+
+            <!-- Social row -->
+            <div class="flex items-center gap-1.5 mt-4 pt-4 border-t border-line">
+              <a
+                v-if="teacher.social_networks.linkedin"
+                :href="teacher.social_networks.linkedin"
+                target="_blank"
+                class="w-8 h-8 rounded-full bg-surface-page border border-line flex items-center justify-center text-secondary-500 hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-colors"
+              >
+                <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd" fill-rule="evenodd"/>
+                </svg>
+              </a>
+              <a
+                v-if="teacher.social_networks.other"
+                :href="teacher.social_networks.other"
+                target="_blank"
+                class="w-8 h-8 rounded-full bg-surface-page border border-line flex items-center justify-center text-secondary-500 hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-colors"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </a>
+              <a
+                v-if="teacher.cv"
+                :href="teacher.cv"
+                target="_blank"
+                class="w-8 h-8 rounded-full bg-surface-page border border-line flex items-center justify-center text-secondary-500 hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-colors"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/>
+                </svg>
+              </a>
+              <RouterLink
+                to="/instructors"
+                class="ml-auto font-body text-[0.781rem] font-semibold text-primary-500 flex items-center gap-1 hover:opacity-70 transition-opacity"
+              >
+                Ver perfil
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8H13M9 4L13 8L9 12"/>
+                </svg>
+              </RouterLink>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
 </template>
-
-<script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
-  import type { Teacher } from '@/modules/landing/models/teacher.model';
-
-  defineProps<{ teachers: Teacher[], skeleton: boolean }>()
-
-  const placeholder = new URL('@/assets/teacher/placeholder.jpg', import.meta.url).href
-
-  const screenWidth = ref(window.innerWidth)
-  const onResize = () => { screenWidth.value = window.innerWidth }
-
-  onMounted(() => window.addEventListener('resize', onResize))
-  onUnmounted(() => window.removeEventListener('resize', onResize))
-
-  const visibleCount = computed(() => {
-    if (screenWidth.value >= 1024) return 5 // lg
-    if (screenWidth.value >= 640) return 3 // md
-    if (screenWidth.value >= 480) return 4 // sm
-    return 3 // xs
-  })
-</script>

@@ -148,6 +148,9 @@ modules/landing/
 │   ├── BannerSection.vue, KpisSection.vue, CoursesSection.vue
 │   ├── TeachersSection.vue, PartnersSection.vue, ReviewsSection.vue
 │   ├── RoutesSection.vue, ContactSection.vue, NavbarHeader.vue, FooterSection.vue
+│   ├── ui/
+│   │   ├── LandingImage.vue  → imagen con fallback (ver detalle abajo)
+│   │   └── ... (LandingBadge, LandingButton, LandingCard, LandingEyebrow, LandingSectionHeader, LandingStars)
 │   └── programs/
 │       ├── ProgramCard.vue, ProgramFilters.vue, ProgramFilterDrawer.vue
 ├── pages/
@@ -166,6 +169,8 @@ modules/landing/
 - La API de teachers devuelve `TeacherDTO[]` directamente (sin wrapper), sin campo `id`
 - La API de offers devuelve `{ data: { items: [], meta: {} } }` — campo `items`, no `offers`
 - Footer cargado desde `assets/config/footer.json` (estático, síncrono)
+- Copyright y año en FooterSection usan `new Date().getFullYear()` — nunca hardcodear el año
+- KpisSection usa `new Date().getFullYear()` para el label de métricas
 
 **Assets:**
 - `assets/banner/placeholder.jpg` (desktop y mobile)
@@ -174,3 +179,63 @@ modules/landing/
 - `assets/review/reviewer1-3.jpg`
 - `assets/config/footer.json` — configuración estática del footer
 - `src/mocks/programs-mockoon.json` — datos mock para programas
+
+---
+
+### `GET /landing/general` — campos y mapeo
+
+El endpoint retorna: `banner[]`, `kpis[]`, `partners[]`, `contact[]`, `social_networks[]`, `complaints_book`.
+
+**Mapeos en `GeneralAdapter.one()`:**
+
+| Campo DTO | Campo Model | Nota |
+|---|---|---|
+| `kpi.description` | `kpi.label` | |
+| `kpi.number` | `kpi.value` | |
+| `kpi.format` (ej. `"+{n}%"`) | `kpi.suffix` (ej. `"+%"`) | Se extrae con `.replace('{n}', '').trim()` |
+| `partner.image` | `partner.image_url` | Backend manda `image`, model usa `image_url` |
+| `partner.name` | `partner.image_alt` | El alt es el name del partner |
+
+**Pendiente de conectar** (el backend los manda, el frontend no los consume aún):
+- `contact[]` — ContactView lo tiene hardcodeado
+- `social_networks[]` — FooterSection lo tiene hardcodeado
+- `complaints_book` — FooterSection lo tiene hardcodeado
+- `logo` — frontend usa `@/assets/fractal.png` directamente, ignora este campo
+
+---
+
+### `PartnersSection` — dos bloques independientes
+
+- **Grid superior** (sponsors): lista hardcodeada de empresas con diseño texto + diamante de color. Itera sobre `partners` del backend mostrando `partner.name` con `SPONSOR_COLORS[i % 4]`.
+- **Marquee inferior** (acreditaciones): usa imágenes del backend — `partner.image_url` con `alt=partner.name`. Se triplica para efecto infinito (`v-for="loop in 3"`).
+- La grid se adapta al número de partners: 5 partners → `grid-cols-3` (3+2), 4 → `grid-cols-4`, etc. Controlado por `colWidth` computed.
+
+---
+
+### `LandingImage` — componente de imagen con fallback
+
+`src/modules/landing/components/ui/LandingImage.vue`
+
+Maneja tres casos automáticamente:
+1. `src` válida → muestra `<img>`. Si falla `@error` → activa fallback
+2. `fallbackSrc` → imagen estática de placeholder
+3. slot default → contenido personalizado (ej. iniciales del teacher)
+
+```vue
+<!-- Con placeholder estático -->
+<LandingImage
+  :src="offer.image_url"
+  :alt="offer.name"
+  :fallback-src="placeholder"
+  img-class="w-full h-full object-cover"
+/>
+
+<!-- Con slot de iniciales -->
+<LandingImage :src="teacher.photo_url" :alt="nombre" img-class="...">
+  <span class="...">{{ initials(teacher) }}</span>
+</LandingImage>
+```
+
+**Props:** `src?`, `alt?`, `fallbackSrc?`, `fallbackText?`, `imgClass?`, `fallbackClass?`
+
+Usar en cualquier componente del landing que muestre imágenes. Actualmente usado en `TeachersSection` y `ProgramCard`.
