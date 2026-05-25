@@ -1,0 +1,63 @@
+{
+  "contact": [
+    {
+      "id": "1",
+      "description": "Correo electrónico general",
+      "isFavorite": true,
+      "type": "email",
+      "value": "contacto@proyectofractal.com"
+    },
+    {
+      "id": "2",
+      "description": "Dirección general",
+      "isFavorite": true,
+      "type": "address",
+      "value": "Av. Ejemplo 123, Lima, Perú"
+    },
+    {
+      "id": "3",
+      "description": "Número de celular general",
+      "isFavorite": true,
+      "type": "mobile",
+      "value": "+51 987 654 321"
+    }
+  ],
+  "social_networks": [
+    {
+      "name": "facebook",
+      "url": "https://www.facebook.com/fractalstudio.arq/"
+    },
+    {
+      "name": "instagram",
+      "url": "https://www.instagram.com/fractalstudio.pe/"
+    },
+    {
+      "name": "linkedin",
+      "url": "https://www.linkedin.com/company/fractal-studio-arq/"
+    }
+  ],
+  "information": [
+    {
+      "name": "Preguntas frecuentes",
+      "url": "#"
+    },
+    {
+      "name": "Comunidad",
+      "url": "#"
+    }
+  ],
+  "company": [
+    {
+      "name": "Política de privacidad",
+      "url": "#"
+    },
+    {
+      "name": "Términos y condiciones",
+      "url": "#"
+    },
+    {
+      "name": "Libro de reclamaciones",
+      "url": "https://www.proyectofractal.com/libro-reclamaciones"
+    }
+  ]
+}

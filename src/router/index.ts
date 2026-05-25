@@ -1,22 +1,17 @@
 import { createRouter, createWebHistory } from "vue-router";
+import Cookies from "js-cookie";
 import type { RouteRecordRaw } from "vue-router";
 
-import HomeView from "../views/home/HomeView.vue";
-
 import { COOKIE_NAME_SESSION } from "@/shared/config/env.config";
-import Cookies from "js-cookie";
 
+import { routesLanding } from "@/modules/landing/router";
 import { routesAuth } from "@/modules/auth/router";
 import { routesAdmin } from "@/modules/admin/router";
 import { routesError } from "@/modules/error/router";
 import { applyPageMeta } from "@/shared/utils/meta";
 
 const routes: RouteRecordRaw[] = [
-  {
-    path: "",
-    name: "home",
-    component: HomeView,
-  },
+  ...routesLanding,
   ...routesAuth,
   ...routesAdmin,
   ...routesError,
