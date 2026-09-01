@@ -45,4 +45,6 @@ export interface InputPasswordCoreProps {
   unstyled?: PasswordProps["unstyled"];
 
   messageError?: string | null;
+  /** Aclaración corta junto al label (el diseño la llama hint). */
+  hintLabel?: string | null;
 }

@@ -93,6 +93,8 @@ export interface DatePickerCoreProps {
   unstyled?: DatePickerProps["unstyled"];
 
   messageError?: string | null;
+  /** Aclaración corta junto al label (el diseño la llama hint). */
+  hintLabel?: string | null;
 
   dayjsFormatValue?: string;
   dayjsFormatInput?: string;
