@@ -1,5 +1,7 @@
 import { BusinessError } from "@/shared/errors/business.error";
 import { RequestError } from "@/shared/errors/request.error";
+import { handleSessionExpired } from "@/shared/utils/session";
+import { ErrorCode } from "@/shared/constants/error-code";
 import type { ApiResponse } from "@/shared/interface/api-response";
 import axios, {
   isAxiosError,
@@ -43,6 +45,27 @@ export class ApiRequest {
           const response = error.response;
           const httpCode = response?.status ?? 500;
           const data = response?.data?.error ?? {};
+
+          /*
+           * 🔒 El token ya no sirve → limpiar cookies y mandar al login.
+           *
+           * Se decide por el HTTP 401 y no por `code: "UNAUTHORIZED"` porque
+           * el código viaja en el body, y ante una caída de la API, un HTML
+           * de error o un 401 emitido por un proxy/WAF no hay body que leer:
+           * el usuario quedaría atrapado con la cookie muerta. El 401 siempre
+           * está.
+           *
+           * Los permisos insuficientes son 403 + INSUFFICIENT_PERMISSIONS
+           * (AuthorizationMiddleware), así que no se cierra la sesión de
+           * alguien que sí está autenticado. Aun así se respeta ese código si
+           * llegara con un 401.
+           */
+          if (
+            httpCode === 401 &&
+            data.code !== ErrorCode.INSUFFICIENT_PERMISSIONS
+          ) {
+            handleSessionExpired();
+          }
 
           // ⛔ Otros errores → flujo normal
           return Promise.reject(
