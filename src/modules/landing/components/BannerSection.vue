@@ -172,13 +172,17 @@ onUnmounted(() => clearInterval(timer))
         <div class="flex gap-1.5">
           <button @click="prev" :class="[
             'w-10 h-10 rounded-full border-[0.094rem] inline-flex items-center justify-center transition-colors',
-            slide.dark ? 'border-white text-white hover:bg-white/10' : 'border-secondary-900 text-secondary-900 hover:bg-secondary-900/5',
+            slide.dark
+              ? 'border-white text-white hover:bg-white hover:text-primary-500 active:bg-white/90'
+              : 'border-secondary-900 text-secondary-900 hover:bg-secondary-900 hover:text-white active:bg-black',
           ]">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13 8H3 M7 4L3 8L7 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <button @click="next" :class="[
             'w-10 h-10 rounded-full border-[0.094rem] inline-flex items-center justify-center transition-colors',
-            slide.dark ? 'bg-white text-primary-500 border-white hover:bg-white/90' : 'bg-secondary-900 text-white border-secondary-900 hover:bg-black',
+            slide.dark
+              ? 'border-white text-white hover:bg-white hover:text-primary-500 active:bg-white/90'
+              : 'border-secondary-900 text-secondary-900 hover:bg-secondary-900 hover:text-white active:bg-black',
           ]">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8H13 M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>

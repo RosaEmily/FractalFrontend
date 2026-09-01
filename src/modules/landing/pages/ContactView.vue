@@ -33,9 +33,10 @@ const CONTACTS = [
 
 const PROGRAMS = [
   'Diplomado en Modelado y Gestión BIM',
-  'Certificación AutoCAD 2D/3D',
-  'Especialización Civil 3D',
+  'Diplomado en Coordinación y Gestión BIM',
   'Diplomado BIM Manager',
+  'Curso AutoCAD 2D/3D',
+  'Curso Civil 3D',
   'Otro / aún no decido',
 ]
 
