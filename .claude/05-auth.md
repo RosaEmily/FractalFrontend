@@ -44,23 +44,48 @@ Authorization: Bearer <token_de_cookie>
 
 El token se lee de `Cookies.get(COOKIE_NAME_SESSION)` en cada request.
 
-## Sesión expirada
+## Sesión expirada (401)
 
-Cuando el backend responde 401:
-1. `ApiRequest` convierte el error en `BusinessError`
-2. El componente que llamó a `safeRequest` recibe `{ status: false, error }`
-3. `useSessionStore.openSessionModal(retryFn)` muestra el modal de sesión
-4. El usuario puede renovar la sesión y el modal llama `retryLastRequest()` que reejercuta la función original
+El interceptor de respuesta de `ApiRequest` (`shared/helpers/axios/base.ts`) detecta
+el 401 de **cualquier** petición y llama a `handleSessionExpired()`:
 
-## useSessionStore
+1. Borra las tres cookies (`clearSession()` en `shared/utils/session.ts`)
+2. Redirige a `login` con `?redirect=<ruta actual>` para volver tras reingresar
 
 ```ts
-const session = useSessionStore();
-session.openSessionModal(async () => {
-  // función que se reintentará tras renovar sesión
-  await reloadData();
-});
+if (httpCode === 401 && data.code !== ErrorCode.INSUFFICIENT_PERMISSIONS) {
+  handleSessionExpired();
+}
 ```
+
+**Se decide por el HTTP 401, no por `code: "UNAUTHORIZED"`**: el código viaja en el
+body, y ante una caída de la API, un HTML de error o un 401 emitido por un proxy/WAF
+no hay body que leer — el usuario quedaría atrapado con la cookie muerta.
+
+**Un 403 NO cierra la sesión.** Los permisos insuficientes son `403` +
+`INSUFFICIENT_PERMISSIONS` (`AuthorizationMiddleware` de la API): la sesión es
+válida, solo falta el rol.
+
+Detalles:
+
+- `handleSessionExpired` es idempotente: N peticiones en paralelo que fallen con
+  401 producen **una sola** redirección.
+- Si no hay cookie de sesión no hace nada: un 401 en una pantalla pública o en un
+  login fallido lo maneja la propia pantalla.
+- La redirección se **inyecta** desde `main.ts` con `setSessionExpiredHandler()`,
+  porque el interceptor no puede importar el router sin crear un ciclo
+  (router → páginas → servicios → axios).
+- `clearSession()` borra pasando `cookieOptions`: sin el mismo `path` js-cookie no
+  encuentra la cookie y el borrado falla en silencio.
+- `AuthPage` llama a `clearSession()` al montarse, para que no sobreviva la cookie
+  de usuario de una sesión anterior.
+
+### useSessionStore (sin uso)
+
+`shared/stores/useSessionStore.ts` y `modules/components/alert/session.vue` existen
+pero **no están montados ni se invocan**. Fueron pensados para otro escenario (abrir
+el login en otra pestaña vía `HOME_BASE_URL` sin perder el trabajo en curso). El
+admin usa la redirección directa descrita arriba.
 
 ## Configuración de cookies
 

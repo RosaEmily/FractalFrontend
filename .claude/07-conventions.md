@@ -141,3 +141,39 @@ Cada ítem de menú en `constants/menu/` tiene:
 - No importar desde `primevue/` directo en páginas — usar los componentes del design system (`shared/components/core/`)
 - `BaseRepository.all()` siempre agrega `?paginate=false` internamente
 - Los servicios son singletons (exportados como `export default new XService()`)
+
+## Regla: nada de valores crudos en componentes
+
+**Ningún color, tamaño, radio o espaciado se escribe literal en un `.vue`.** Todo valor reutilizable se declara con nombre en el bloque `@theme` de `src/style.css` y se usa por su clase.
+
+| Prohibido | Correcto |
+|---|---|
+| `style="color: #e94e1b"` | `class="text-primary-500"` |
+| `class="text-[0.844rem]"` | `class="text-adm-base"` |
+| `class="bg-[#f5f0e5]"` | `class="bg-admin-bg"` |
+| `class="rounded-[14px]"` | `class="rounded-adm-lg"` |
+| `class="border-l-[1px]"` | `class="border-l"` |
+
+**Por qué:** un hex repetido en 20 componentes es imposible de cambiar de forma consistente; con nombre, se cambia en un solo lugar. Además el nombre comunica intención (`danger`, `admin-pane`) donde el hex no dice nada.
+
+**Si el valor no existe todavía:** agregarlo a `@theme` con un nombre semántico (por lo que *significa*, no por cómo se ve — `--color-danger-DEFAULT`, no `--color-rojo`) y un comentario de dónde se usa. Nunca inventar la clase arbitraria en el componente.
+
+**Excepciones legítimas:** valores realmente únicos y no reutilizables (el `left: -4px` de un indicador concreto). Ante la duda, nombrarlo.
+
+### Escalas disponibles
+
+- **Color:** `primary-{50..900}`, `secondary-{50..950}`, `surface-{page,paper,soft,cream,sand}`, `admin-{bg,pane,row-hover}`, `danger-{DEFAULT,soft}`, `success-*`, `amber-*`, `info-*`, `line{,-soft,-strong}`, `control-{border,off}`
+- **Tipografía admin:** `text-adm-{xs,sm,base,md,lg,xl,label}`
+- **Radios:** `rounded-{sm,md,lg,xl,pill}` (V3) y `rounded-adm-{sm,md,lg,xl}` (admin, más cerrados)
+- **Sombras:** `shadow-{sm,md,lg,accent}`
+- **Fuentes:** `font-{display,body,mono}`
+
+⚠️ Los tokens con sufijo `-DEFAULT` **exigen escribirlo**: `text-danger-DEFAULT` genera CSS, `text-danger` no.
+
+### El preset de PrimeVue también usa los tokens
+
+`src/shared/constants/primevue.ts` referencia las variables CSS (`var(--color-primary-500)`), no hex. Así el preset y las clases Tailwind comparten una única fuente de verdad: cambiar el token en `@theme` actualiza ambos.
+
+### Deuda conocida
+
+El módulo `landing/` tiene ~300 valores arbitrarios y hex crudos de antes de esta regla (`ProgramDetailView.vue` es el peor, con 110). No se migró en bloque para no mezclar ese cambio con otro trabajo. **Al tocar un componente de landing, migrar sus valores de paso.**
