@@ -1,7 +1,10 @@
 <script setup lang="ts">
 /**
  * Vista previa en vivo de cómo se verá el valor en la landing.
- * El diseño la incluye en los 4 formularios de contenido.
+ *
+ * El diseño la exige en TODO lo que se publica: los 7 módulos de Sitio web.
+ * Quien edita esta sección es marketing, no un técnico — sin ver el resultado
+ * hay que publicar y abrir la web para saber si quedó bien.
  */
 interface Props {
   label?: string;

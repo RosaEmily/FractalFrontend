@@ -12,6 +12,14 @@ export const StudentEvaluationAdapter = {
     evaluatedAt: dto.evaluated_at
       ? dayjs(dto.evaluated_at).format("YYYY-MM-DD")
       : null,
+    studentName: dto.student_name ?? null,
+    studentDocument: dto.student_document ?? null,
+    evaluationName: dto.evaluation_name ?? null,
+    maxScore: dto.max_score !== null && dto.max_score !== undefined
+      ? Number(dto.max_score)
+      : null,
+    courseName: dto.course_name ?? null,
+    offerName: dto.offer_name ?? null,
     status: dto.status,
     updated_at: dto.updated_at,
   }),

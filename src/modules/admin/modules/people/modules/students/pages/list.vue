@@ -14,7 +14,11 @@ const columns: GridUiColumnProps<Student>[] = [
   {
     field: "full_name",
     header: "Nombre",
-    sortable: true,
+    /*
+     * Sin `sortable`: el nombre vive en `users`, no en esta tabla, y el
+     * `order` que enviaba la cabecera ("full_name") hacía fallar la
+     * consulta. Ordenar por nombre exige un join en la API.
+     */
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     type: "custom",
@@ -25,6 +29,7 @@ const columns: GridUiColumnProps<Student>[] = [
     field: "documentLabel",
     header: "Documento",
     sortable: true,
+    sortField: "document_number",
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     type: "custom",
@@ -39,6 +44,7 @@ const columns: GridUiColumnProps<Student>[] = [
     field: "career_name",
     header: "Carrera",
     sortable: true,
+    sortField: "career",
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.EQUALS },
     filterConfig: {
@@ -75,6 +81,11 @@ const columns: GridUiColumnProps<Student>[] = [
 ];
 </script>
 <template>
+  <!--
+    ⚠️ `keys.identifier` es obligatorio acá: la PK es `document_number`, no
+    `id`. Sin él, editar apuntaba a `/edit/undefined` y el toggle de estado
+    mandaba `[undefined]` al servidor.
+  -->
   <SectionList
     :columns="columns"
     :services="{
@@ -86,5 +97,6 @@ const columns: GridUiColumnProps<Student>[] = [
     :show-updated-at="false"
     title="Lista de estudiantes"
     module="people/students"
+    :keys="{ identifier: 'document_number', status: 'status' }"
   />
 </template>

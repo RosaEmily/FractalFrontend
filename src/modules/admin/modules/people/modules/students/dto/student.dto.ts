@@ -35,4 +35,6 @@ export interface StudentBodyDTO {
   birth_date: string | null;
   address: string | null;
   phone: string | null;
+  /** Alumno destacado para testimonios y otras secciones de la landing. */
+  is_favorite?: boolean;
 }

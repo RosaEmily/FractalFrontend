@@ -36,6 +36,7 @@ const columns: GridUiColumnProps<Currency>[] = [
     field: "isoNumber",
     header: "ISO 4217",
     sortable: true,
+    sortField: "iso_number",
     showFilterMenu: false,
     type: "custom",
     render: (row: Currency) =>
@@ -56,6 +57,7 @@ const columns: GridUiColumnProps<Currency>[] = [
     field: "decimalPlaces",
     header: "Decimales",
     sortable: true,
+    sortField: "decimal_places",
     showFilterMenu: false,
     type: "custom",
     render: (row: Currency) =>

@@ -11,6 +11,9 @@ export interface CourseEvaluation {
   name: string;
   weight: number;
   maxScore: number;
+  courseName: string | null;
+  offerName: string | null;
+  evaluationTypeName: string | null;
   status: number;
   updated_at: string;
 }

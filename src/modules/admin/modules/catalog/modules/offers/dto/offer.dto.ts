@@ -48,6 +48,8 @@ export interface OfferScheduleBodyDTO {
   day_of_week: string;
   start_time: string;
   end_time: string;
+  /** Archivo nuevo; si no se elige, se conserva la imagen guardada. */
+  image_url?: File | null;
 }
 
 export interface OfferCourseBodyDTO {

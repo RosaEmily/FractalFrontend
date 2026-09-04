@@ -11,6 +11,12 @@ export interface StudentEvaluation {
   score: number | null;
   feedback: string | null;
   evaluatedAt: string | null;
+  studentName: string | null;
+  studentDocument: string | null;
+  evaluationName: string | null;
+  maxScore: number | null;
+  courseName: string | null;
+  offerName: string | null;
   status: number;
   updated_at: string;
 }

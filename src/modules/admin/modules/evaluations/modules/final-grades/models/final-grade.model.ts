@@ -7,6 +7,12 @@ export interface FinalGrade {
   finalScore: number | null;
   approved: boolean;
   calculatedAt: string | null;
+  studentName: string | null;
+  studentDocument: string | null;
+  courseName: string | null;
+  offerName: string | null;
+  /** Fecha de cierre del acta; null mientras siga abierta. */
+  closedAt: string | null;
   status: number;
   updated_at: string;
 }

@@ -9,6 +9,8 @@ import {
   ToggleCore,
   LabelCore,
 } from "@/shared/components";
+import FieldPreview from "../../../components/field-preview.vue";
+import ContactPreview from "../components/contact-preview.vue";
 import contactService from "../services/contact.service";
 import { CONTACT_TYPE_OPTIONS } from "../constants/contact.constant";
 import type { ContactBodyDTO } from "../dto/contact.dto";
@@ -74,6 +76,13 @@ const formSchema = z.object({
           :message-error="errors.value"
         />
       </div>
+
+      <FieldPreview hint="así se ve en el pie de página">
+        <ContactPreview
+          :type="fields.type.value as string | null"
+          :value="fields.value.value as string | null"
+        />
+      </FieldPreview>
 
       <div>
         <LabelCore

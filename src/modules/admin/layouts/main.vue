@@ -11,19 +11,19 @@ import Logo from "@/assets/fractal.png";
 import authService from "../services/auth.service";
 import { useUserStore } from "../stores/useUserStore";
 import { onMounted, ref } from "vue";
-import Cookies from "js-cookie";
 import { safeJsonParse, safeJsonStringify } from "@/shared/utils/safe-json";
-import { clearSession } from "@/shared/utils/session";
+import {
+  clearSession,
+  getSessionExpires,
+  getSessionUserRaw,
+  hasSession,
+  roleNames,
+  setSessionUser,
+} from "@/shared/utils/session";
 import { safeRequest } from "@/shared/utils/request";
 import type { MeResponse } from "../models/auth.model";
-import { cookieOptions } from "@/shared/config/cookie.config";
 import { useRouter } from "vue-router";
 import { MENU_LAYOUT } from "../constants/layout";
-import {
-  COOKIE_NAME_SESSION,
-  COOKIE_NAME_EXPIRES,
-  COOKIE_NAME_USER,
-} from "@/shared/config/env.config";
 import { useClickOutsideMulti } from "@/shared/composables/useClickOutside";
 import type { MenuLayout } from "@/shared/interface/layout";
 
@@ -55,17 +55,25 @@ const logout = async () => {
   // Si el token ya venció, el logout responde 401 y el interceptor se encarga;
   // no debe impedir que se limpie la sesión local.
   await safeRequest(() => authService.logout(), { showAlert: false });
-  clearSession();
+  // Solo la del panel: si el usuario tiene el aula abierta en otra pestaña, esa
+  // sesión sigue siendo válida y el backend tampoco la cierra.
+  clearSession("admin");
   router.push({ name: "login" });
   logoutLoading.value = false;
   logoutEnable.value = false;
 };
 
 onMounted(async () => {
-  const token = Cookies.get(COOKIE_NAME_SESSION);
-  const expires_at = Cookies.get(COOKIE_NAME_EXPIRES);
-  if (token) {
-    let user = safeJsonParse<MeResponse>(Cookies.get(COOKIE_NAME_USER));
+  const expires_at = getSessionExpires("admin");
+
+  /*
+   * El token es HttpOnly: no se puede leer desde JS. La cookie de perfil DEL
+   * PANEL es la única señal de sesión disponible acá; la verdad la tiene la
+   * API. Se consulta explícitamente la del panel: este layout solo se monta
+   * bajo `/admin`, y una sesión de aula no debe darle nada por válido.
+   */
+  if (hasSession("admin")) {
+    let user = safeJsonParse<MeResponse>(getSessionUserRaw("admin"));
     if (!user) {
       // Si el token está vencido esto responde 401: el interceptor ya limpió
       // la sesión y redirige al login, así que no hay que cachear la falla.
@@ -75,13 +83,11 @@ onMounted(async () => {
       if (!data) return;
 
       user = data;
-      const expires = expires_at
-        ? new Date(expires_at)
-        : new Date(Date.now() + 60 * 60 * 1000);
-      Cookies.set(COOKIE_NAME_USER, safeJsonStringify(user), {
-        expires,
-        ...cookieOptions,
-      });
+      setSessionUser(
+        "admin",
+        safeJsonStringify(user),
+        expires_at ?? new Date(Date.now() + 60 * 60 * 1000),
+      );
     }
     if (user) {
       const { first_name, last_name, photo_url, roles, email } =
@@ -91,7 +97,12 @@ onMounted(async () => {
         lastName: last_name,
         photo: photo_url,
         email,
-        role: roles[0] ?? "",
+        // `roles` llega como objetos {name, description}: sin normalizar, el
+        // store guardaría el objeto entero donde espera el nombre del rol.
+        role: roleNames(roles)[0] ?? "",
+        // La lista completa: el menú se filtra con TODOS los roles, no solo
+        // con el principal (un usuario puede ser ADMIN y COORDINATOR).
+        roles: roleNames(roles),
       });
     }
   }

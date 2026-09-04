@@ -11,6 +11,8 @@ import {
   LabelCore,
 } from "@/shared/components";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
+import FieldPreview from "../../../components/field-preview.vue";
+import ContactPreview from "../components/contact-preview.vue";
 import contactService from "../services/contact.service";
 import { CONTACT_TYPE_OPTIONS } from "../constants/contact.constant";
 import type { ContactBodyDTO } from "../dto/contact.dto";
@@ -95,6 +97,13 @@ onMounted(async () => {
           :message-error="errors.value"
         />
       </div>
+
+      <FieldPreview hint="así se ve en el pie de página">
+        <ContactPreview
+          :type="fields.type.value as string | null"
+          :value="fields.value.value as string | null"
+        />
+      </FieldPreview>
 
       <div>
         <LabelCore

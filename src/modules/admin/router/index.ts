@@ -27,9 +27,24 @@ export const routesAdmin: RouteRecordRaw[] = [
     },
     children: [
       {
+        /*
+         * Los roles del panel se declaran ACÁ, en el padre: vue-router los hace
+         * visibles en `to.meta` de toda ruta hija, así que ningún módulo del
+         * admin puede nacer sin protección por olvidarse de ponerlos.
+         *
+         * Hasta sep 2026 solo Home y Reportes llevaban `meta.roles`; los otros
+         * ~23 módulos quedaban abiertos a cualquier autenticado, y un STUDENT
+         * podía abrir `/admin/security/users` y ver el shell completo del panel.
+         *
+         * Un módulo que necesite ser más estricto lo redefine en su propia ruta
+         * (Reportes ya lo hace con ADMIN a secas) — la meta de la hija gana.
+         */
         path: "/admin",
         name: "layout.main.admin",
         component: LayoutAdminMain,
+        meta: {
+          roles: ["ADMIN", "COORDINATOR", "MANAGER"],
+        },
         children: [
           ...routesHome,
           ...routesReports,

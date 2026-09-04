@@ -4,6 +4,14 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
+import {
+  AGE_LIMIT,
+  birthDateMax,
+  birthDateMin,
+  isValidBirthDate,
+} from "@/modules/admin/constants/age-limits";
+import PersonPhotoField from "@/modules/admin/components/ui/person-photo-field.vue";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { numbersOnly } from "@/shared/utils/zod/shortcuts";
 import {
@@ -26,6 +34,14 @@ const route = useRoute();
 /** La API identifica al estudiante por document_number, no por id. */
 const identifier = ref<string>(String(route.params.id));
 
+/*
+ * La foto no es un campo del formulario: vive en `users` y se guarda por su
+ * propio endpoint al elegirla. Acá solo se guarda lo necesario para pintarla.
+ */
+const userId = ref<number | null>(null);
+const photoUrl = ref<string | null>(null);
+const fullName = ref<string>("");
+
 const initialValues = ref<StudentBodyDTO>({
   document_type: null,
   document_number: null,
@@ -35,6 +51,7 @@ const initialValues = ref<StudentBodyDTO>({
   birth_date: null,
   address: null,
   phone: null,
+  is_favorite: false,
 });
 
 const formSchema = z.object({
@@ -49,13 +66,20 @@ const formSchema = z.object({
   education_level: z.string({ message: "El nivel educativo es obligatorio" }),
   career: z.string({ message: "La carrera es obligatoria" }),
   other_career: z.string().max(100).nullable().optional(),
-  birth_date: z.string({ message: "La fecha de nacimiento es obligatoria" }),
+  // El calendario ya bloquea las fechas fuera de rango, pero el input
+  // acepta texto: sin esta regla se podría teclear una edad inválida.
+  birth_date: z
+    .string({ message: "La fecha de nacimiento es obligatoria" })
+    .refine(isValidBirthDate, {
+      message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
+    }),
   address: z.string().max(255).nullable().optional(),
   phone: z
     .string()
     .max(20, { message: "El teléfono es demasiado largo" })
     .nullable()
     .optional(),
+  is_favorite: z.boolean().optional(),
 });
 
 onMounted(async () => {
@@ -64,6 +88,10 @@ onMounted(async () => {
   const resp = await studentService.edit(identifier.value);
   loadingStore.finish();
   if (!resp) return;
+
+  userId.value = resp.user_id ?? null;
+  photoUrl.value = resp.photo_url ?? null;
+  fullName.value = resp.full_name ?? "";
 
   initialValues.value = {
     document_type: resp.document_type,
@@ -74,6 +102,8 @@ onMounted(async () => {
     birth_date: resp.birth_date,
     address: resp.address,
     phone: resp.phone,
+    // La API lo devuelve como 0/1; el toggle trabaja con boolean.
+    is_favorite: Number(resp.is_favorite) === 1,
   };
 });
 </script>
@@ -84,10 +114,21 @@ onMounted(async () => {
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="students.list"
-    :service="(body) => studentService.update(identifier, body)"
+    :service="(body) => studentService.update(identifier, body as never)"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
+      <!--
+        La foto se guarda sola al elegirla, por `security/users`: el endpoint
+        de este formulario no la acepta. Por eso va fuera del flujo de guardado.
+      -->
+      <PersonPhotoField
+        :user-id="userId"
+        :current="photoUrl"
+        :full-name="fullName"
+        @uploaded="photoUrl = $event"
+      />
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectCore
           v-model="fields.document_type.value"
@@ -145,6 +186,9 @@ onMounted(async () => {
           v-model="fields.birth_date.value"
           label="Fecha de nacimiento"
           dayjs-format-value="YYYY-MM-DD"
+          :min-date="birthDateMin()"
+          :max-date="birthDateMax()"
+          :hint-label="`Entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`"
           :invalid="!!errors.birth_date"
           :message-error="errors.birth_date"
         />
@@ -161,6 +205,17 @@ onMounted(async () => {
         label="Dirección"
         :invalid="!!errors.address"
         :message-error="errors.address"
+      />
+
+      <!--
+        "Destacado" se mostraba en el listado pero no se podía cambiar desde
+        ningún formulario, pese a que la API ya lo acepta en el update.
+      -->
+      <ToggleCheck
+        label="Destacado"
+        :hint="'Alumno destacado para testimonios u otras secciones de la landing.'"
+        :on="!!fields.is_favorite?.value"
+        @toggle="fields.is_favorite && (fields.is_favorite.value = $event)"
       />
     </template>
   </CrudForm>

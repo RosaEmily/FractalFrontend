@@ -20,12 +20,25 @@ import type { Teacher } from "../../teachers/models/teacher.model";
 
 const model = defineModel<OfferCourseItem[]>({ default: () => [] });
 
-defineProps<{
-  courses: Course[];
-  teachers: Teacher[];
-  invalid?: boolean;
-  messageError?: string | null;
-}>();
+withDefaults(
+  defineProps<{
+    courses: Course[];
+    teachers: Teacher[];
+    invalid?: boolean;
+    messageError?: string | null;
+    /**
+     * Los cursos del programa los define su tipo —los de la línea de carrera,
+     * o el único curso elegido—, así que agregar o quitar filas a mano
+     * desincronizaría el programa de su origen.
+     */
+    lockCourses?: boolean;
+    /** Problemas por fila, para marcar cuál falla. */
+    problems?: string[];
+    /** Inicio de la matrícula: acota la fecha mínima de cada curso. */
+    enrollmentStartDate?: Date;
+  }>(),
+  { lockCourses: false, problems: () => [] },
+);
 
 const emptySchedule = () => ({
   dayOfWeek: "",
@@ -97,30 +110,38 @@ const removeSchedule = (courseIndex: number, scheduleIndex: number) => {
             <SelectCore
               v-model="item.courseId"
               label="Curso"
-              filter
               optionLabel="name"
               optionValue="id"
               placeholder="Seleccione el curso"
+              filter
+              filter-placeholder="Buscar curso…"
+              :disabled="lockCourses"
               :options="courses"
             />
             <SelectCore
               v-model="item.teacherId"
               label="Docente"
-              filter
               optionLabel="fullName"
               optionValue="documentNumber"
               placeholder="Seleccione el docente"
+              filter
+              filter-placeholder="Buscar docente…"
               :options="teachers"
             />
+            <!-- El curso no puede empezar antes de que abra la matrícula:
+                 nadie podría haberse inscrito todavía. -->
             <DatePicketCore
               v-model="item.startDate"
               label="Fecha de inicio"
               dayjs-format-value="YYYY-MM-DD"
+              :min-date="enrollmentStartDate"
+              :max-date="item.endDate ? new Date(`${item.endDate}T00:00:00`) : undefined"
             />
             <DatePicketCore
               v-model="item.endDate"
               label="Fecha de fin"
               dayjs-format-value="YYYY-MM-DD"
+              :min-date="item.startDate ? new Date(`${item.startDate}T00:00:00`) : enrollmentStartDate"
             />
             <div class="md:col-span-2">
               <InputTextCore
@@ -130,7 +151,10 @@ const removeSchedule = (courseIndex: number, scheduleIndex: number) => {
               />
             </div>
           </div>
+          <!-- Con los cursos fijados por el tipo, quitarlos rompería el
+               programa respecto a su línea o su curso de origen. -->
           <ButtonCore
+            v-if="!lockCourses"
             class="!w-auto mt-6 shrink-0"
             severity="danger"
             text
@@ -201,6 +225,7 @@ const removeSchedule = (courseIndex: number, scheduleIndex: number) => {
       class="!w-auto"
       severity="secondary"
       outlined
+      v-if="!lockCourses"
       label="Agregar curso"
       @click="addCourse"
     />

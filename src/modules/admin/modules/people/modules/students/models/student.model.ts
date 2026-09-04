@@ -4,6 +4,8 @@ export interface Student {
   document_type: string | null;
   /** "DNI 45211398" — tipo y número juntos, como en el diseño. */
   documentLabel: string;
+  /** Id del usuario dueño de este perfil: la foto y el correo viven allí. */
+  user_id: number | null;
   full_name: string;
   first_name: string;
   last_name: string;

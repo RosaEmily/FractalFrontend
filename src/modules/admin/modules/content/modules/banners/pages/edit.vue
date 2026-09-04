@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { z } from "zod";
-import { onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
-import ImageField from "../../../components/image-field.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
+import FieldPreview from "../../../components/field-preview.vue";
+import BannerPreview from "../components/banner-preview.vue";
 import bannerService from "../services/banner.service";
 import type { BannerBodyDTO } from "../dto/banner.dto";
 
@@ -26,6 +28,23 @@ const formSchema = z.object({
   alt_desktop: z.string().max(255).nullable().optional(),
   alt_mobile: z.string().max(255).nullable().optional(),
 });
+
+/*
+ * URL local del archivo recién elegido; se libera al reemplazarlo y al
+ * desmontar. Manda sobre la imagen guardada: es lo que se va a publicar.
+ */
+const desktopUrl = ref<string | null>(null);
+
+watch(desktop, (file) => {
+  if (desktopUrl.value) URL.revokeObjectURL(desktopUrl.value);
+  desktopUrl.value = file ? URL.createObjectURL(file) : null;
+});
+
+onBeforeUnmount(() => {
+  if (desktopUrl.value) URL.revokeObjectURL(desktopUrl.value);
+});
+
+const previewImage = computed(() => desktopUrl.value ?? currentDesktop.value);
 
 onMounted(async () => {
   const loadingStore = useLoadingStore();
@@ -79,6 +98,13 @@ onMounted(async () => {
         :invalid="!!errors.alt_mobile"
         :message-error="errors.alt_mobile"
       />
+
+      <FieldPreview hint="así se ve en el carrusel principal (escritorio)">
+        <BannerPreview
+          :image="previewImage"
+          :alt="fields.alt_desktop.value as string | null"
+        />
+      </FieldPreview>
     </template>
   </CrudForm>
 </template>
