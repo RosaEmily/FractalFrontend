@@ -32,9 +32,18 @@ const props = withDefaults(defineProps<GridUiTableProps<any>>(), {
 const rowsSelected = ref<NoInfer<any>[] | NoInfer<any>>([]);
 const data = ref(props.data ?? []);
 const isLoading = ref(false);
-const order = ref({
-  sortField: undefined,
-  sortOrder: 1,
+/*
+ * El orden arranca con lo que declare el listado (`sortField`/`sortOrder`), no
+ * en `undefined`: estos props existían en el tipo pero se ignoraban, así que
+ * ninguna pantalla podía fijar su orden inicial y la API devolvía el que saliera
+ * de la BD. Es lo que hacía ilegible la bitácora.
+ */
+const order = ref<{
+  sortField: string | undefined;
+  sortOrder: number;
+}>({
+  sortField: (props.sortField as string | undefined) ?? undefined,
+  sortOrder: props.sortOrder ?? 1,
 });
 
 const pagination = reactive({
@@ -165,7 +174,16 @@ defineExpose<GridUiTableExpose>({
       :selectionMode="selectionMode"
       :exportable="false"
     />
-    <GridUiColumn v-for="col in columns" :col="col" :key="col.field" />
+    <!--
+      La `key` incluye el índice: `field` no es único por sí solo (dos columnas
+      de acciones lo comparten) y una key repetida hace que Vue reutilice los
+      nodos equivocados al recargar, duplicando columnas en pantalla.
+    -->
+    <GridUiColumn
+      v-for="(col, index) in columns"
+      :col="col"
+      :key="`${String(col.field)}-${index}`"
+    />
 
     <!-- EMPTY STATE -->
     <template #empty>

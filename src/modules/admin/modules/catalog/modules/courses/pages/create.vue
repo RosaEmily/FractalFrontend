@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { ref } from "vue";
 import {
   InputTextCore,
   InputNumberCore,
@@ -8,6 +9,7 @@ import {
   MultiselectCore,
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 
 import courseService from "../services/course.service";
@@ -21,6 +23,14 @@ const initialValues = {
   currency_id: null,
   tags: [],
 };
+
+
+/*
+ * La imagen viaja como `File`: `BaseRepository` detecta el archivo y arma el
+ * multipart solo (con method spoofing en el update, porque PHP no parsea
+ * multipart/form-data en PUT).
+ */
+const image = ref<File | null>(null);
 
 const activeOnly = {
   filters: {
@@ -51,9 +61,17 @@ const formSchema = z.object({
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="courses.list"
-    :service="(body) => courseService.create(body)"
+    :service="(body) => courseService.create({ ...body, image_url: image })"
   >
     <template #default="{ fields, errors }">
+      <ImageField
+        label="Imagen"
+        hint="JPG, PNG o WEBP. Máximo 500 KB."
+        accept="image/jpeg,image/png,image/webp"
+        :max-kb="500"
+        @select="(file) => (image = file)"
+      />
+
       <InputTextCore
         v-model="fields.name.value"
         label="Nombre del curso"

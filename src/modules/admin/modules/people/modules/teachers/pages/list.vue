@@ -13,7 +13,11 @@ const columns: GridUiColumnProps<Teacher>[] = [
   {
     field: "full_name",
     header: "Nombre",
-    sortable: true,
+    /*
+     * Sin `sortable`: el nombre vive en `users`, no en esta tabla, y el
+     * `order` que enviaba la cabecera ("full_name") hacía fallar la
+     * consulta. Ordenar por nombre exige un join en la API.
+     */
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     // Avatar con iniciales dentro de la celda, como en el diseño.
@@ -25,6 +29,7 @@ const columns: GridUiColumnProps<Teacher>[] = [
     field: "documentLabel",
     header: "Documento",
     sortable: true,
+    sortField: "document_number",
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     type: "custom",
@@ -70,6 +75,11 @@ const columns: GridUiColumnProps<Teacher>[] = [
     Sin ruta de creación: la API expone teachers con `except: ['create']`;
     un instructor nace al registrar un usuario con rol TEACHER.
   -->
+  <!--
+    ⚠️ `keys.identifier` es obligatorio acá: la PK es `document_number`, no
+    `id`. Sin él, editar apuntaba a `/edit/undefined` y el toggle de estado
+    mandaba `[undefined]` al servidor.
+  -->
   <SectionList
     :columns="columns"
     :services="{
@@ -81,5 +91,6 @@ const columns: GridUiColumnProps<Teacher>[] = [
     :show-updated-at="false"
     title="Lista de instructores"
     module="people/teachers"
+    :keys="{ identifier: 'document_number', status: 'status' }"
   />
 </template>

@@ -13,6 +13,8 @@ const columns: GridUiColumnProps<User>[] = [
     field: "full_name",
     header: "Usuario",
     sortable: true,
+    // `full_name` se compone en el Resource; la columna real es `first_name`.
+    sortField: "first_name",
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     // El diseño usa una sola celda: avatar de iniciales + nombre + correo.

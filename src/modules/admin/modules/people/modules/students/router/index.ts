@@ -1,4 +1,5 @@
 import ListPage from "../pages/list.vue";
+import CreatePage from "../pages/create.vue";
 import UpdatePage from "../pages/update.vue";
 
 import type { RouteRecordRaw } from "vue-router";
@@ -6,8 +7,9 @@ import type { RouteRecordRaw } from "vue-router";
 const TitleBase = "Personas | Estudiantes |";
 
 /**
- * Sin ruta de creación: la API expone students con `except: ['create']`;
- * un estudiante nace al registrarse un usuario con rol STUDENT.
+ * El alta crea un USUARIO con rol STUDENT: el perfil de estudiante es 1:1 con
+ * `users`, así que sin usuario no habría correo ni acceso. El formulario llama
+ * a `security/users`, que crea ambos registros de una vez.
  */
 export const routesStudents: RouteRecordRaw[] = [
   {
@@ -21,8 +23,14 @@ export const routesStudents: RouteRecordRaw[] = [
         meta: { page: { base: { title: `${TitleBase} Lista` } } },
       },
       {
-        path: "update/:id",
-        name: "students.update",
+        path: "create",
+        name: "students.create",
+        component: CreatePage,
+        meta: { page: { base: { title: `${TitleBase} Crear` } } },
+      },
+      {
+        path: "edit/:id",
+        name: "students.edit",
         component: UpdatePage,
         meta: { page: { base: { title: `${TitleBase} Actualizar` } } },
       },

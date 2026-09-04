@@ -20,11 +20,19 @@ const readableDevice = (dto: SystemSessionDTO): string => {
   return "—";
 };
 
+/** La zona cruda de la API no es texto de interfaz. */
+const ZONE_LABEL: Record<string, string> = {
+  admin: "Panel",
+  classroom: "Aula",
+};
+
 export const SystemSessionAdapter = {
   one: (dto: SystemSessionDTO): SystemSession => ({
     id: dto.id,
     userName: dto.user_name ?? "—",
     userEmail: dto.user_email ?? "—",
+    roles: dto.user_roles ?? [],
+    zoneLabel: ZONE_LABEL[dto.zone ?? ""] ?? "Panel",
     device: readableDevice(dto),
     location: dto.geo_location ?? "—",
     ipAddress: dto.ip_address ?? "—",

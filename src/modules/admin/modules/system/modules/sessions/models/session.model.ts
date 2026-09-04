@@ -5,6 +5,9 @@ export interface SystemSession {
   id: number;
   userName: string;
   userEmail: string;
+  roles: string[];
+  /** "Panel" / "Aula", ya resuelto para la UI. */
+  zoneLabel: string;
   device: string;
   location: string;
   ipAddress: string;

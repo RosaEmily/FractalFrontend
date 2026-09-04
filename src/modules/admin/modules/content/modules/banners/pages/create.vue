@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { z } from "zod";
-import { ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
-import ImageField from "../../../components/image-field.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
+import FieldPreview from "../../../components/field-preview.vue";
+import BannerPreview from "../components/banner-preview.vue";
 import bannerService from "../services/banner.service";
 import type { BannerBodyDTO } from "../dto/banner.dto";
 
@@ -19,6 +21,25 @@ const formSchema = z.object({
   alt_desktop: z.string().max(255).nullable().optional(),
   alt_mobile: z.string().max(255).nullable().optional(),
 });
+
+/*
+ * La imagen elegida todavía no está en S3, así que la vista previa usa una URL
+ * local del archivo. Se libera al reemplazarla y al desmontar: cada
+ * `createObjectURL` retiene el archivo en memoria hasta que se revoca.
+ */
+const desktopUrl = ref<string | null>(null);
+
+watch(desktop, (file, previous) => {
+  if (desktopUrl.value) URL.revokeObjectURL(desktopUrl.value);
+  desktopUrl.value = file ? URL.createObjectURL(file) : null;
+  void previous;
+});
+
+onBeforeUnmount(() => {
+  if (desktopUrl.value) URL.revokeObjectURL(desktopUrl.value);
+});
+
+const previewImage = computed(() => desktopUrl.value);
 </script>
 
 <template>
@@ -54,6 +75,13 @@ const formSchema = z.object({
         :invalid="!!errors.alt_mobile"
         :message-error="errors.alt_mobile"
       />
+
+      <FieldPreview hint="así se ve en el carrusel principal (escritorio)">
+        <BannerPreview
+          :image="previewImage"
+          :alt="fields.alt_desktop.value as string | null"
+        />
+      </FieldPreview>
     </template>
   </CrudForm>
 </template>

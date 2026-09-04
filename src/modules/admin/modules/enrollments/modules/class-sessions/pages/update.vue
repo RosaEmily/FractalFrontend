@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { z } from "zod";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -8,6 +7,7 @@ import { InputTextCore, DatePicketCore } from "@/shared/components";
 import ScheduleSelect from "@/modules/admin/components/ui/schedule-select.vue";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import classSessionService from "../services/class-session.service";
+import { classSessionSchema } from "../utils/class-session-form";
 import type { ClassSessionBodyDTO } from "../dto/class-session.dto";
 
 const route = useRoute();
@@ -16,28 +16,18 @@ const identifier = ref<string>(String(route.params.id));
 const initialValues = ref<ClassSessionBodyDTO>({
   schedule_id: null,
   session_date: null,
+  start_time: null,
+  end_time: null,
   name: null,
   topic: null,
   meet_link: null,
 });
 
-const formSchema = z.object({
-  schedule_id: z.number({ message: "Selecciona el horario" }),
-  session_date: z.string({ message: "La fecha es obligatoria" }),
-  name: z
-    .string({ message: "El nombre es obligatorio" })
-    .min(3, { message: "Debe tener al menos 3 caracteres" })
-    .max(255, { message: "No puede tener más de 255 caracteres" }),
-  topic: z
-    .string({ message: "El tema es obligatorio" })
-    .max(255, { message: "No puede tener más de 255 caracteres" }),
-  meet_link: z
-    .string()
-    .url({ message: "Debe ser una URL válida" })
-    .max(255)
-    .nullable()
-    .optional(),
-});
+/** Contexto del horario guardado, para preseleccionar programa y curso. */
+const offerId = ref<number | null>(null);
+const offerCourseId = ref<number | null>(null);
+
+const formSchema = classSessionSchema;
 
 onMounted(async () => {
   const loadingStore = useLoadingStore();
@@ -46,10 +36,15 @@ onMounted(async () => {
   loadingStore.finish();
   if (!resp) return;
 
-  // `schedule_id` no vuelve en el Resource: el select queda para reasignar.
+  offerId.value = resp.offerId;
+  offerCourseId.value = resp.offerCourseId;
+
   initialValues.value = {
-    ...initialValues.value,
-    session_date: resp.sessionDate,
+    schedule_id: resp.scheduleId,
+    // La fecha cruda: el picker no parsea la formateada del listado.
+    session_date: resp.sessionDateRaw,
+    start_time: resp.startTime,
+    end_time: resp.endTime,
     name: resp.name,
     topic: resp.topic,
     meet_link: resp.meetLink,
@@ -69,6 +64,8 @@ onMounted(async () => {
     <template #default="{ fields, errors }">
       <ScheduleSelect
         v-model="fields.schedule_id.value"
+        :offer-id="offerId"
+        :offer-course-id="offerCourseId"
         :invalid="!!errors.schedule_id"
         :message-error="errors.schedule_id"
       />
@@ -89,6 +86,35 @@ onMounted(async () => {
           dayjs-format-value="YYYY-MM-DD"
           :invalid="!!errors.session_date"
           :message-error="errors.session_date"
+        />
+      </div>
+
+      <!--
+        Horas opcionales: si se dejan vacías, la clase hereda el rango del
+        horario semanal. El cronograma del aula omite del calendario las clases
+        sin hora, así que cargarlas acá es lo que las hace aparecer.
+      -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <DatePicketCore
+          v-model="fields.start_time.value"
+          label="Hora de inicio"
+          hint-label="Opcional · toma la del horario si se deja vacía."
+          time-only
+          hour-format="24"
+          dayjs-format-input="HH:mm:ss"
+          dayjs-format-value="HH:mm:ss"
+          :invalid="!!errors.start_time"
+          :message-error="errors.start_time"
+        />
+        <DatePicketCore
+          v-model="fields.end_time.value"
+          label="Hora de fin"
+          time-only
+          hour-format="24"
+          dayjs-format-input="HH:mm:ss"
+          dayjs-format-value="HH:mm:ss"
+          :invalid="!!errors.end_time"
+          :message-error="errors.end_time"
         />
       </div>
 

@@ -47,6 +47,7 @@ const columns: GridUiColumnProps<JobOffer>[] = [
     field: "postedAt",
     header: "Publicado",
     sortable: true,
+    sortField: "posted_at",
     showFilterMenu: false,
     type: "custom",
     render: (row: JobOffer) =>

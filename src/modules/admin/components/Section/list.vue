@@ -48,6 +48,21 @@ interface SectionList {
    * pasarela, no el panel): oculta el botón Crear.
    */
   showCreate?: boolean;
+  /**
+   * Oculta el lápiz de editar. Los listados de solo lectura (logs, sesiones,
+   * transacciones, matrículas) no tienen ruta `edit`: el botón navegaba a una
+   * URL inexistente.
+   */
+  showEdit?: boolean;
+  /**
+   * Orden inicial del listado, enviado a la API como `order=campo:dir`.
+   *
+   * Sin esto la API devuelve el orden que salga de la BD — inservible en los
+   * listados que se leen por fecha, como la bitácora.
+   */
+  sortField?: string;
+  /** `1` ascendente, `-1` descendente. */
+  sortOrder?: 1 | -1;
 }
 
 const props = withDefaults(defineProps<SectionList>(), {
@@ -56,6 +71,7 @@ const props = withDefaults(defineProps<SectionList>(), {
   showDelete: true,
   showUpdatedAt: true,
   showCreate: true,
+  showEdit: true,
 });
 const gripUiRefs = useTemplateRef<GridUiTableExpose>("gripUiRefs");
 
@@ -110,11 +126,22 @@ const statusColumn: GridUiColumnProps<T> = {
 };
 
 const rowActions: Action[] = [
-  {
-    type: "edit" as const,
-    redirect: `/admin/${props.module}/edit/{id}`,
-    columnKeyId: keys.value.identifier,
-  },
+  ...(props.showEdit
+    ? ([
+        {
+          type: "edit" as const,
+          /*
+           * El placeholder lleva la MISMA clave que identifica la fila: con
+           * `{id}` fijo, un recurso cuya PK es otra (instructores y estudiantes
+           * van por `document_number`) generaba el enlace literal `/edit/{id}`,
+           * porque `buildRedirectPath` solo reemplaza el parámetro que recibe.
+           */
+          redirect: `/admin/${props.module}/edit/{${keys.value.identifier}}`,
+          params: keys.value.identifier,
+          columnKeyId: keys.value.identifier,
+        },
+      ] as Action[])
+    : []),
   ...(props.showStatus && props.services.status
     ? ([
         {
@@ -138,15 +165,31 @@ const rowActions: Action[] = [
     : []),
 ];
 
+/*
+ * La página puede traer su propia columna de acciones (Sesiones pinta un botón
+ * "Revocar", que la API expone de a una y no encaja en el CRUD genérico). En
+ * ese caso NO se agrega la genérica: dos columnas con `field: "actions"` le dan
+ * a Vue la misma `key` en el `v-for` del grid, y al recargar el listado
+ * reutiliza los nodos mal y las acciones aparecen repetidas en pantalla.
+ *
+ * Y si no queda ninguna acción que mostrar (un listado de solo lectura), la
+ * columna tampoco se agrega: sería una cabecera "Acciones" siempre vacía.
+ */
+const hasOwnActionsColumn = props.columns.some((col) => col.field === "actions");
+
 const newColumns: GridUiColumnProps<T>[] = [
   ...props.columns,
   ...(props.showUpdatedAt ? [updatedAtColumn] : []),
   ...(props.showStatus ? [statusColumn] : []),
-  {
-    field: "actions",
-    header: "Acciones",
-    actions: rowActions,
-  },
+  ...(!hasOwnActionsColumn && rowActions.length
+    ? [
+        {
+          field: "actions",
+          header: "Acciones",
+          actions: rowActions,
+        } as GridUiColumnProps<T>,
+      ]
+    : []),
 ];
 
 /**
@@ -253,6 +296,8 @@ const actionsMassive = [
       ref="gripUiRefs"
       :reload="(params: unknown) => services.list(params)"
       :columns="newColumns"
+      :sort-field="sortField"
+      :sort-order="sortOrder"
       selection-mode="multiple"
       lazy
     >

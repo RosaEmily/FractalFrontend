@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import type { Transaction } from "../models/transaction.model";
 import type { TransactionDTO } from "../dto/transaction.dto";
 
@@ -6,6 +7,10 @@ export const TransactionAdapter = {
     id: dto.id,
     enrollmentId: dto.enrollment_id,
     paymentMethodName: dto.payment_method_name,
+    studentName: dto.student_name ?? null,
+    createdAtLabel: dto.created_at
+      ? dayjs(dto.created_at).format("DD/MM/YYYY HH:mm")
+      : "—",
     amountFormat: dto.amount_format,
     gatewayId: dto.gateway_transaction_id,
     status: dto.status,

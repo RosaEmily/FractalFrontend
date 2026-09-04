@@ -4,7 +4,7 @@ import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
-import ImageField from "../../../components/image-field.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import FieldPreview from "../../../components/field-preview.vue";
 import sponsorService from "../services/sponsor.service";
 import type { SponsorBodyDTO } from "../dto/sponsor.dto";

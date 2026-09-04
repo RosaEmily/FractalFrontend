@@ -26,6 +26,7 @@ const columns: GridUiColumnProps<ClassSession>[] = [
     field: "sessionDate",
     header: "Fecha",
     sortable: true,
+    sortField: "session_date",
     showFilterMenu: false,
     type: "custom",
     render: (row: ClassSession) =>
@@ -57,6 +58,11 @@ const columns: GridUiColumnProps<ClassSession>[] = [
 ];
 </script>
 <template>
+  <!--
+    ⚠️ `module` es el PATH real de la ruta, no la carpeta del módulo: el router
+    monta este grupo bajo `academic` (ver `modules/enrollments/router/index.ts`),
+    así que con "enrollments/..." los botones de crear y editar daban 404.
+  -->
   <SectionList
     :columns="columns"
     :services="{
@@ -67,6 +73,6 @@ const columns: GridUiColumnProps<ClassSession>[] = [
     }"
     :show-updated-at="false"
     title="Clases"
-    module="enrollments/class-sessions"
+    module="academic/class-sessions"
   />
 </template>

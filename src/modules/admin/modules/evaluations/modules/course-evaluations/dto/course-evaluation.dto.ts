@@ -5,6 +5,10 @@ export interface CourseEvaluationDTO {
   name: string;
   weight: string | number;
   max_score: string | number;
+  /** Resueltos por el Resource: el listado necesita el contexto de la fila. */
+  course_name: string | null;
+  offer_name: string | null;
+  evaluation_type_name: string | null;
   status: number;
   created_at: string;
   updated_at: string;

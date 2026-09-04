@@ -8,6 +8,7 @@ import {
   MultiselectCore,
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 
 import learningPathService, {
@@ -57,9 +58,19 @@ const formSchema = z.object({
     .min(1, { message: "Debe seleccionar al menos un curso" }),
 });
 
+/*
+ * La imagen viaja como `File`: `BaseRepository` detecta el archivo y arma el
+ * multipart solo.
+ */
+const image = ref<File | null>(null);
+
+/** Imagen ya guardada: el campo la muestra hasta que se elija otra. */
+const currentImage = ref<string | null>(null);
+
 const onSubmit = (body: Record<string, unknown>) =>
   learningPathService.update(identifier.value, {
     ...body,
+    image_url: image.value,
     courses: toCourseItems(body.courses as number[]),
   } as never);
 
@@ -76,6 +87,7 @@ onMounted(async () => {
     currency_id: resp.currencyId,
     courses: resp.courseIds ?? [],
   };
+  currentImage.value = resp.imageUrl;
 });
 </script>
 <template>
@@ -88,6 +100,15 @@ onMounted(async () => {
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
+      <ImageField
+        label="Imagen"
+        hint="JPG, PNG o WEBP. Máximo 500 KB."
+        accept="image/jpeg,image/png,image/webp"
+        :max-kb="500"
+        :current="currentImage"
+        @select="(file) => (image = file)"
+      />
+
       <InputTextCore
         v-model="fields.name.value"
         label="Nombre de la línea"

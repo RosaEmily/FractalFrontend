@@ -12,7 +12,12 @@ const columns: GridUiColumnProps<Enrollment>[] = [
   {
     field: "studentName",
     header: "Estudiante",
-    sortable: true,
+    /*
+     * Sin `sortable`: el nombre vive en `users`, no en `enrollments`, así que
+     * el `order` que enviaba esta cabecera (`studentName`) hacía fallar la
+     * consulta con "Unknown column". Ordenar por alumno exige un join en la
+     * API; hasta entonces, mejor sin cabecera que con una que rompe.
+     */
     showFilterMenu: true,
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     type: "custom",
@@ -30,6 +35,7 @@ const columns: GridUiColumnProps<Enrollment>[] = [
     field: "enrollmentDate",
     header: "Fecha",
     sortable: true,
+    sortField: "enrollment_date",
     showFilterMenu: false,
     type: "custom",
     render: (row: Enrollment) =>
@@ -64,6 +70,9 @@ const columns: GridUiColumnProps<Enrollment>[] = [
   <!--
     Solo lectura: `store` de la API está restringido a STUDENT porque
     matricula al usuario del token, y no expone update.
+
+    `module` es el PATH real de la ruta: el router monta este grupo bajo
+    `academic`, no `enrollments`.
   -->
   <SectionList
     :columns="columns"
@@ -71,8 +80,9 @@ const columns: GridUiColumnProps<Enrollment>[] = [
     :show-status="false"
     :show-delete="false"
     :show-create="false"
+    :show-edit="false"
     :show-updated-at="false"
     title="Lista de matrículas"
-    module="enrollments/enrollments"
+    module="academic/enrollments"
   />
 </template>
