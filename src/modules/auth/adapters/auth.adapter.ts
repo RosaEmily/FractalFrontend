@@ -3,8 +3,9 @@ import type { AuthResponseDTO } from "../dto/auth.dto";
 
 export const authAdapter = {
   one: (dto: AuthResponseDTO): AuthResponse => ({
-    token: dto.token,
     expires_at: dto.expires_at,
+    zone: dto.zone,
+    roles: dto.roles ?? [],
   }),
 
   many: (dtos: AuthResponseDTO[]): AuthResponse[] =>

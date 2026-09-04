@@ -12,15 +12,12 @@ import {
 import authService from "../services/auth.service";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import { safeRequest } from "@/shared/utils/request";
-import { clearSession } from "@/shared/utils/session";
-import { onMounted, ref } from "vue";
-import Cookies from "js-cookie";
+import { clearSession, roleNames, setSessionUser } from "@/shared/utils/session";
+import { ErrorCode } from "@/shared/constants/error-code";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { cookieOptions } from "@/shared/config/cookie.config";
-import {
-  COOKIE_NAME_SESSION,
-  COOKIE_NAME_EXPIRES,
-} from "@/shared/config/env.config";
+import { safeJsonStringify } from "@/shared/utils/safe-json";
+import meService from "@/modules/admin/services/auth.service";
 import {
   mdiShieldCheckOutline,
   mdiClipboardTextClockOutline,
@@ -29,7 +26,12 @@ import {
   mdiInformationOutline,
 } from "@mdi/js";
 import Logo from "@/assets/fractal.png";
-import { LOGIN_FEATURES, LOGIN_SUPPORT_EMAIL } from "../constants/login";
+import {
+  CLASSROOM_ACCESS_NOTE,
+  LOGIN_SUPPORT_EMAIL,
+  LOGIN_VARIANTS,
+  type LoginVariantKey,
+} from "../constants/login";
 
 const toastStore = useToastStore();
 const route = useRoute();
@@ -38,21 +40,38 @@ const router = useRouter();
 const loading = ref<boolean>(false);
 const messageError = ref<string | null>(null);
 
+/**
+ * Qué puerta es esta. La ruta lo declara en `meta.loginVariant`; sin el dato
+ * se asume el panel, que es la ruta histórica.
+ */
+const variant = computed(
+  () => LOGIN_VARIANTS[(route.meta.loginVariant as LoginVariantKey) ?? "admin"],
+);
+
 /*
- * Al llegar al login no debe quedar rastro de la sesión anterior: si se entró
- * por un token vencido, la cookie de usuario podría sobrevivir y el layout la
- * tomaría como válida sin volver a consultar `auth/me`.
+ * Al llegar al login no debe quedar rastro de la sesión anterior DE ESTA ZONA:
+ * si se entró por un token vencido, la cookie de perfil podría sobrevivir y el
+ * layout la tomaría como válida sin volver a consultar `auth/me`.
+ *
+ * Se limpia solo la de esta puerta: quien abre el login del panel puede tener
+ * el aula abierta en otra pestaña, y borrársela lo dejaría fuera de una sesión
+ * que el backend mantiene perfectamente viva.
  */
 onMounted(() => {
-  clearSession();
+  clearSession(variant.value.zone);
 });
 
-/** Iconos de las capacidades del panel, en el orden de LOGIN_FEATURES. */
+const isClassroom = computed(() => variant.value.stats !== undefined);
+
+/** Iconos de las capacidades del panel, en el orden de `features`. */
 const FEATURE_ICONS = [
   mdiShieldCheckOutline,
   mdiClipboardTextClockOutline,
   mdiDevices,
 ];
+
+/** Rol que entró por la puerta equivocada; corta el acceso y ofrece la otra. */
+const wrongDoor = ref(false);
 
 /*
  * El login NO valida la política de contraseñas (largo mínimo, etc.): sería
@@ -79,35 +98,106 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     loading.value = true;
     messageError.value = null;
+    wrongDoor.value = false;
+    /*
+     * La zona decide qué cookie emite el backend y qué roles admite. El rechazo
+     * por puerta equivocada lo resuelve la API con un 403: acá ya no se
+     * comprueba el rol después de tener sesión abierta.
+     */
     const { data, status, error } = await safeRequest(
-      () => {
-        return authService.login(values);
-      },
+      () => authService.login({ ...values, zone: variant.value.zone }),
       { showAlert: false },
     );
 
     if (!status && error) {
+      /*
+       * ⚠️ Dos errores distintos viajan como 403, y tratarlos igual confundía:
+       * quedarse sin cupo de sesiones mostraba el cartel de "puerta
+       * equivocada", que le dice al usuario que entre por la otra zona —
+       * justo lo que NO resuelve su problema.
+       */
+      if (error.code === ErrorCode.INSUFFICIENT_PERMISSIONS) {
+        wrongDoor.value = true;
+        return;
+      }
+
+      /*
+       * El cupo de sesiones es lo único que el usuario puede resolver por su
+       * cuenta, así que el mensaje dice cómo: el propio backend lo explica, y
+       * acá se agrega dónde hacerlo dentro de la app.
+       */
+      if (error.code === ErrorCode.MAX_SESSIONS_EXCEEDED) {
+        messageError.value = `${error.message} También puedes cerrarlas desde Mi cuenta → Sesiones activas.`;
+        return;
+      }
+
       messageError.value = error.message;
       return;
     }
+
     if (data) {
-      const { token, expires_at } = data;
-      Cookies.set(COOKIE_NAME_SESSION, token, {
-        expires: new Date(expires_at),
-        ...cookieOptions,
+      const { expires_at } = data;
+
+      /*
+       * El perfil se carga acá, antes de navegar: el guard del router lee los
+       * roles de esta cookie, así que si se dejara para el layout de destino
+       * la primera navegación correría sin roles y caería en 403.
+       */
+      const { data: user } = await safeRequest(() => meService.me(), {
+        showAlert: false,
       });
-      Cookies.set(COOKIE_NAME_EXPIRES, expires_at, {
-        expires: new Date(expires_at),
-        ...cookieOptions,
-      });
+
+      /*
+       * Sin perfil no se puede decidir el destino ni comprobar el rol, así que
+       * la sesión se descarta: dejar el token puesto llevaría al usuario a una
+       * zona donde cada petición respondería 401.
+       */
+      if (!user) {
+        clearSession(variant.value.zone);
+        messageError.value =
+          "No pudimos cargar tu perfil. Vuelve a intentarlo en unos segundos.";
+        return;
+      }
+
+      /*
+       * El perfil que llega tiene que corresponder a ESTA puerta. La API ya
+       * rechaza la zona equivocada al autenticar, así que esto solo se cumple
+       * si `auth/me` resolvió una sesión distinta de la recién creada.
+       *
+       * Pasó de verdad: mientras el backend elegía mal entre las dos cookies
+       * (ver `X-Fractal-Zone`), entrar al aula guardaba el perfil del ADMIN
+       * bajo la cookie del aula, y el guard rebotaba cada pantalla del alumno.
+       *
+       * Guardar un perfil ajeno deja al usuario encerrado, así que se descarta
+       * la sesión en vez de persistirla.
+       */
+      const userRoles = roleNames(user.roles);
+
+      if (!userRoles.some((role) => variant.value.roles.includes(role))) {
+        clearSession(variant.value.zone);
+        messageError.value =
+          "No pudimos confirmar tu acceso a esta zona. Vuelve a intentarlo.";
+        return;
+      }
+
+      /*
+       * El TOKEN no se guarda: viaja en una cookie HttpOnly que puso el
+       * backend y que este código no puede leer. Acá solo van el perfil y la
+       * caducidad, bajo el nombre de ESTA zona — así el panel y el aula pueden
+       * estar abiertos a la vez sin pisarse el perfil, igual que ya ocurre con
+       * las dos cookies de sesión del backend.
+       */
+      setSessionUser(variant.value.zone, safeJsonStringify(user), expires_at);
+
       toastStore.showToastSuccess({
         detail: "Se ha iniciado sesión correctamente.",
       });
+
       const redirect = route.query.redirect as string | undefined;
       if (redirect) {
         router.replace(redirect);
       } else {
-        router.replace({ name: "admin-home" });
+        router.replace({ name: variant.value.redirectTo });
       }
     }
   } catch (error) {
@@ -145,22 +235,21 @@ const onSubmit = handleSubmit(async (values) => {
 
         <div class="relative mt-auto max-w-120">
           <span class="font-mono text-adm-xs text-secondary-500 tracking-[0.08em]">
-            PANEL ADMINISTRATIVO · ACCESO RESTRINGIDO
+            {{ variant.eyebrow }}
           </span>
           <h1
             class="font-display text-5xl font-bold leading-none tracking-tight mt-3.5 mb-btn-x-sm text-secondary-900"
           >
-            Gestiona Fractal Studio con la información correcta.
+            {{ variant.headline }}
           </h1>
           <p class="text-[0.938rem] leading-relaxed text-secondary-500 mb-8">
-            Catálogo, cohortes, matrículas, notas y certificados en un solo
-            lugar. Acceso limitado al personal autorizado por el Centro Autodesk
-            ATC.
+            {{ variant.intro }}
           </p>
 
-          <ul class="flex flex-col gap-2.5">
+          <!-- El panel lista capacidades; el aula, las cifras de la academia -->
+          <ul v-if="variant.features" class="flex flex-col gap-2.5">
             <li
-              v-for="(feature, index) in LOGIN_FEATURES"
+              v-for="(feature, index) in variant.features"
               :key="feature"
               class="flex items-center gap-3 text-adm-base text-secondary-900"
             >
@@ -172,6 +261,21 @@ const onSubmit = handleSubmit(async (values) => {
               {{ feature }}
             </li>
           </ul>
+
+          <div v-else-if="variant.stats" class="flex gap-8">
+            <div v-for="stat in variant.stats" :key="stat.label">
+              <div
+                class="font-display text-3xl font-extrabold tracking-tight text-secondary-900"
+              >
+                {{ stat.value }}
+              </div>
+              <div
+                class="font-mono text-adm-xs text-secondary-400 tracking-[0.06em] uppercase mt-0.5"
+              >
+                {{ stat.label }}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div
@@ -195,11 +299,31 @@ const onSubmit = handleSubmit(async (values) => {
           <h2
             class="font-display text-[2rem] font-bold text-secondary-900 mt-2.5 mb-1.5 tracking-tight leading-none"
           >
-            Iniciar sesión
+            {{ variant.formTitle }}
           </h2>
           <p class="text-adm-md text-secondary-500 mb-7">
-            Ingresa con tus credenciales de administrador.
+            {{ variant.formIntro }}
           </p>
+
+          <!--
+            Puerta equivocada: la credencial es válida pero el rol es de la otra
+            zona. Se ofrece el enlace en vez de dejarlo en un 403 sin salida.
+          -->
+          <div
+            v-if="wrongDoor"
+            class="mb-5 px-3.5 py-3 bg-danger-soft border border-danger-DEFAULT/25 rounded-adm-sm"
+          >
+            <p class="text-adm-sm text-danger-DEFAULT leading-relaxed">
+              {{ variant.wrongDoorMessage }}
+            </p>
+            <RouterLink
+              :to="{ name: variant.wrongDoorLink.to }"
+              class="inline-flex items-center gap-1.5 mt-2 font-mono text-adm-xs text-danger-DEFAULT underline underline-offset-2"
+            >
+              {{ variant.wrongDoorLink.label }}
+              <HeroCore :path="mdiArrowRight" class="size-3" />
+            </RouterLink>
+          </div>
 
           <form class="space-y-4" @submit.prevent="onSubmit">
             <MessageCore
@@ -209,9 +333,13 @@ const onSubmit = handleSubmit(async (values) => {
             />
             <InputTextCore
               v-model="fields.email.value"
-              label="Correo institucional"
+              :label="isClassroom ? 'Correo electrónico' : 'Correo institucional'"
               required
-              placeholder="usuario@proyectofractal.com"
+              :placeholder="
+                isClassroom
+                  ? 'tucorreo@gmail.com'
+                  : 'usuario@proyectofractal.com'
+              "
               :invalid="!!errors.email"
               :message-error="errors.email"
             />
@@ -230,7 +358,7 @@ const onSubmit = handleSubmit(async (values) => {
             -->
             <ButtonCore
               type="submit"
-              label="Acceder al panel"
+              :label="isClassroom ? 'Entrar al aula' : 'Acceder al panel'"
               icon-pos="right"
               :loading="loading"
             >
@@ -257,10 +385,25 @@ const onSubmit = handleSubmit(async (values) => {
               class="size-3.5 shrink-0 mt-0.5 text-primary-500"
             />
             <p class="text-adm-sm text-primary-600 leading-relaxed">
-              ¿Problemas para acceder? Contacta a TI:
-              <strong>{{ LOGIN_SUPPORT_EMAIL }}</strong>
+              <template v-if="isClassroom">
+                {{ CLASSROOM_ACCESS_NOTE }}
+              </template>
+              <template v-else>
+                ¿Problemas para acceder? Contacta a TI:
+                <strong>{{ LOGIN_SUPPORT_EMAIL }}</strong>
+              </template>
             </p>
           </div>
+
+          <!-- El aula no tiene registro: la matrícula es la que abre la cuenta -->
+          <RouterLink
+            v-if="isClassroom"
+            :to="{ name: 'programs' }"
+            class="inline-flex items-center gap-1.5 mt-5 text-adm-sm text-primary-500 hover:opacity-70"
+          >
+            Ver programas y matricularme
+            <HeroCore :path="mdiArrowRight" class="size-3.5" />
+          </RouterLink>
         </div>
       </main>
     </div>
