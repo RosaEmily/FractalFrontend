@@ -194,5 +194,22 @@ defineExpose<GridUiTableExpose>({
   .p-datatable-column-header-content {
     justify-content: center;
   }
+
+  /* Cabecera en mono/uppercase — ver AdmTable en admin/components.jsx */
+  .p-datatable-column-title {
+    font-family: var(--font-mono);
+    font-size: var(--text-adm-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .p-datatable-tbody > tr {
+    transition: background 0.15s;
+  }
+
+  .p-datatable-tbody > tr:hover {
+    background: var(--color-admin-row-hover);
+  }
 }
 </style>

@@ -9,19 +9,16 @@ const props = defineProps<{ offers: Offer[]; skeleton: boolean }>()
 
 const placeholder = new URL('@/assets/course/placeholder.jpg', import.meta.url).href
 
-const FILTERS = ['Todos', 'Diplomados', 'Certificaciones', 'Especializaciones']
-const activeFilter = ref('Todos')
-
-const FILTER_TYPE_MAP: Record<string, string> = {
-  Diplomados:        'diploma',
-  Certificaciones:   'course',
-  Especializaciones: 'specialization',
-}
+const FILTERS = [
+  { label: 'Todos',      type: null },
+  { label: 'Cursos',     type: 'course' },
+  { label: 'Diplomados', type: 'learning_path' },
+]
+const activeFilter = ref<string | null>(null)
 
 const filteredOffers = computed(() => {
-  if (activeFilter.value === 'Todos') return props.offers.slice(0, 4)
-  const type = FILTER_TYPE_MAP[activeFilter.value]
-  return props.offers.filter(o => o.type === type).slice(0, 4)
+  if (!activeFilter.value) return props.offers.slice(0, 4)
+  return props.offers.filter(o => o.type === activeFilter.value).slice(0, 4)
 })
 
 const STATUS_LABEL: Record<string, string> = {
@@ -37,8 +34,8 @@ const STATUS_LABEL: Record<string, string> = {
     <div class="px-6 md:px-16">
       <LandingSectionHeader
         :index="3"
-        eyebrow="PROGRAMAS · TEMPORADA 2025"
-        subtitle="Diplomados, certificaciones y especializaciones que arrancan este trimestre. Todos respaldados por Autodesk."
+:eyebrow="`PROGRAMAS · TEMPORADA ${new Date().getFullYear()}`"
+        subtitle="Cursos y diplomados internacionales activos este año. Todos respaldados por Autodesk como Authorized Training Center."
       >
         <template #title>
           Últimos <span class="text-primary-500 italic">lanzamientos</span>.
@@ -54,16 +51,16 @@ const STATUS_LABEL: Record<string, string> = {
       <div class="flex flex-wrap gap-2 mt-10 mb-9">
         <button
           v-for="f in FILTERS"
-          :key="f"
-          @click="activeFilter = f"
+          :key="f.label"
+          @click="activeFilter = f.type"
           :class="[
             'px-4 py-2.5 font-body text-[0.844rem] font-medium rounded-full border transition-all duration-150',
-            activeFilter === f
+            activeFilter === f.type
               ? 'bg-secondary-900 text-white border-secondary-900'
               : 'bg-surface-paper text-secondary-900 border-line hover:border-secondary-900',
           ]"
         >
-          {{ f }}
+          {{ f.label }}
         </button>
       </div>
 

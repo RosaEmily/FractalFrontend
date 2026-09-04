@@ -9,6 +9,7 @@ import type {
   GridUiColumnProps,
   GridUiTableExpose,
 } from "@/shared/components/type";
+import type { Action } from "@/shared/components/ui/grid/column/type";
 import type { DataPaginationMeta } from "@/shared/interface/api-response";
 import { safeRequest } from "@/shared/utils/request";
 import { computed, useTemplateRef } from "vue";
@@ -25,8 +26,8 @@ interface SectionList {
   columns: GridUiColumnProps<T>[];
   title: string;
   services: {
-    status: (ids: (number | string)[], state?: 0 | 1) => Promise<null>;
-    delete: (ids: (number | string)[]) => Promise<null>;
+    status?: (ids: (number | string)[], state?: 0 | 1) => Promise<null>;
+    delete?: (ids: (number | string)[]) => Promise<null>;
     list: (...args: unknown[]) => Promise<DataPaginationMeta>;
   };
   module: string;
@@ -34,10 +35,27 @@ interface SectionList {
     identifier?: string;
     status?: string;
   };
+  /**
+   * Algunos recursos no exponen todas las operaciones (los de landing, por
+   * ejemplo, no tienen update-status ni destroy). Estas banderas ocultan la
+   * columna y la acción correspondientes en vez de mostrar botones que fallan.
+   */
+  showStatus?: boolean;
+  showDelete?: boolean;
+  showUpdatedAt?: boolean;
+  /**
+   * Algunos listados son de solo lectura (las transacciones las genera la
+   * pasarela, no el panel): oculta el botón Crear.
+   */
+  showCreate?: boolean;
 }
 
 const props = withDefaults(defineProps<SectionList>(), {
   keys: () => ({ identifier: "id", status: "status" }),
+  showStatus: true,
+  showDelete: true,
+  showUpdatedAt: true,
+  showCreate: true,
 });
 const gripUiRefs = useTemplateRef<GridUiTableExpose>("gripUiRefs");
 
@@ -49,9 +67,7 @@ const keys = computed(() => {
   };
 });
 
-const newColumns: GridUiColumnProps<T>[] = [
-  ...props.columns,
-  {
+const updatedAtColumn: GridUiColumnProps<T> = {
     field: "updated_at",
     header: "Fecha de actualización",
     type: "date",
@@ -69,8 +85,9 @@ const newColumns: GridUiColumnProps<T>[] = [
         hourFormat: "12",
       },
     },
-  },
-  {
+};
+
+const statusColumn: GridUiColumnProps<T> = {
     field: "status",
     header: "Estado",
     type: "state",
@@ -90,31 +107,55 @@ const newColumns: GridUiColumnProps<T>[] = [
         placeholder: "Ingrese estado",
       },
     },
+};
+
+const rowActions: Action[] = [
+  {
+    type: "edit" as const,
+    redirect: `/admin/${props.module}/edit/{id}`,
+    columnKeyId: keys.value.identifier,
   },
+  ...(props.showStatus && props.services.status
+    ? ([
+        {
+          type: "state" as const,
+          handler: (ids: (number | string)[], state?: 0 | 1) =>
+            props.services.status?.(ids, state ?? 1) ?? Promise.resolve(null),
+          columnKeyId: keys.value.identifier,
+          columnKey: keys.value.status,
+        },
+      ] as Action[])
+    : []),
+  ...(props.showDelete && props.services.delete
+    ? ([
+        {
+          type: "delete" as const,
+          handler: (ids: (number | string)[]) =>
+            props.services.delete?.(ids) ?? Promise.resolve(null),
+          columnKeyId: keys.value.identifier,
+        },
+      ] as Action[])
+    : []),
+];
+
+const newColumns: GridUiColumnProps<T>[] = [
+  ...props.columns,
+  ...(props.showUpdatedAt ? [updatedAtColumn] : []),
+  ...(props.showStatus ? [statusColumn] : []),
   {
     field: "actions",
     header: "Acciones",
-    actions: [
-      {
-        type: "edit",
-        redirect: `/admin/${props.module}/edit/{id}`,
-        columnKeyId: keys.value.identifier,
-      },
-      {
-        type: "state",
-        handler: (ids: (number | string)[], state?: 0 | 1) =>
-          props.services.status(ids, state ?? 1),
-        columnKeyId: keys.value.identifier,
-        columnKey: keys.value.status,
-      },
-      {
-        type: "delete",
-        handler: (ids: (number | string)[]) => props.services.delete(ids),
-        columnKeyId: keys.value.identifier,
-      },
-    ],
+    actions: rowActions,
   },
 ];
+
+/**
+ * Permite a la página recargar el listado tras una acción propia (por
+ * ejemplo revocar una sesión, que no pasa por los servicios del CRUD).
+ */
+defineExpose({
+  refresh: () => gripUiRefs.value?.refreshData(),
+});
 
 const getSelectedIds = () =>
   rowsSelect.value.map((item) => item[keys.value.identifier]);
@@ -155,7 +196,8 @@ const actionsMassive = [
     label: "Habilitar",
     command: () =>
       executeAction({
-        action: (ids: (number | string)[]) => props.services.status(ids),
+        action: (ids: (number | string)[]) =>
+          props.services.status?.(ids) ?? Promise.resolve(null),
         successToast: () =>
           toastStore.showToastSuccess({
             summary: "Actualización de estado",
@@ -167,7 +209,8 @@ const actionsMassive = [
     label: "Deshabilitar",
     command: () =>
       executeAction({
-        action: (ids: (number | string)[]) => props.services.status(ids, 0),
+        action: (ids: (number | string)[]) =>
+          props.services.status?.(ids, 0) ?? Promise.resolve(null),
         successToast: () =>
           toastStore.showToastError({
             summary: "Actualización de estado",
@@ -190,7 +233,8 @@ const actionsMassive = [
           "¿Estás seguro de que deseas eliminar los registros seleccionados?",
         accept: () =>
           executeAction({
-            action: (ids: (number | string)[]) => props.services.delete(ids),
+            action: (ids: (number | string)[]) =>
+              props.services.delete?.(ids) ?? Promise.resolve(null),
             successToast: () =>
               toastStore.showToastError({
                 summary: "Eliminación",
@@ -215,12 +259,16 @@ const actionsMassive = [
       <template #header>
         <ToolbarCore class="!p-0 !border-0">
           <template #start>
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="text-lg font-bold uppercase">{{ title }}</span>
+            <div class="flex flex-wrap items-baseline gap-3">
+              <span
+                class="font-display text-lg font-bold uppercase tracking-tight text-secondary-900"
+                >{{ title }}</span
+              >
             </div>
           </template>
           <template #end>
             <SplitButtonCore
+              v-if="showCreate"
               label="Crear"
               severity="contrast"
               @click="router.replace(`/admin/${props.module}/create`)"

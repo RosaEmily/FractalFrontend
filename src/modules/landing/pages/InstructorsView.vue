@@ -88,7 +88,7 @@ onMounted(async () => {
 
       <div class="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 flex-wrap">
         <div>
-          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">CLAUSTRO · DOCENTES 2025</p>
+          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">CLAUSTRO · DOCENTES {{ new Date().getFullYear() }}</p>
           <h1 class="font-display font-bold text-[clamp(48px,6vw,72px)] leading-[0.98] tracking-tight text-secondary-900">
             Instructores<span class="text-primary-500">.</span>
           </h1>

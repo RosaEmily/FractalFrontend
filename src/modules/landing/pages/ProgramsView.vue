@@ -14,6 +14,7 @@ const toastStore  = useToastStore()
 const PAGE_SIZE   = 9
 const currentPage = ref(1)
 const drawerOpen  = ref(false)
+const viewMode    = ref<'grid' | 'list'>('grid')
 
 const sortOptions = [
   { label: 'Más recientes',           value: 'recent'       },
@@ -93,7 +94,7 @@ onMounted(loadPrograms)
     <section class="bg-surface-page border-b border-line px-6 md:px-16 py-14">
       <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 flex-wrap">
         <div>
-          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">CATÁLOGO · 2025</p>
+          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">CATÁLOGO · {{ new Date().getFullYear() }}</p>
           <h1 class="font-display font-bold text-[clamp(48px,6vw,72px)] leading-[0.98] tracking-tight text-secondary-900">
             Programas<span class="text-primary-500">.</span>
           </h1>
@@ -178,10 +179,26 @@ onMounted(loadPrograms)
             </span>
             <!-- View toggle -->
             <div class="flex gap-1.5">
-              <button class="w-9 h-9 bg-secondary-900 text-white rounded-lg flex items-center justify-center">
+              <button
+                @click="viewMode = 'grid'"
+                :class="[
+                  'w-9 h-9 rounded-lg border flex items-center justify-center transition-colors',
+                  viewMode === 'grid'
+                    ? 'bg-secondary-900 text-white border-secondary-900'
+                    : 'bg-surface-paper text-secondary-900 border-line hover:bg-surface-cream',
+                ]"
+              >
                 <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" fill="currentColor"/><rect x="8" y="1" width="5" height="5" fill="currentColor"/><rect x="1" y="8" width="5" height="5" fill="currentColor"/><rect x="8" y="8" width="5" height="5" fill="currentColor"/></svg>
               </button>
-              <button class="w-9 h-9 bg-surface-paper text-secondary-900 border border-line rounded-lg flex items-center justify-center hover:bg-surface-cream transition-colors">
+              <button
+                @click="viewMode = 'list'"
+                :class="[
+                  'w-9 h-9 rounded-lg border flex items-center justify-center transition-colors',
+                  viewMode === 'list'
+                    ? 'bg-secondary-900 text-white border-secondary-900'
+                    : 'bg-surface-paper text-secondary-900 border-line hover:bg-surface-cream',
+                ]"
+              >
                 <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="2" width="12" height="2" fill="currentColor"/><rect x="1" y="6" width="12" height="2" fill="currentColor"/><rect x="1" y="10" width="12" height="2" fill="currentColor"/></svg>
               </button>
             </div>

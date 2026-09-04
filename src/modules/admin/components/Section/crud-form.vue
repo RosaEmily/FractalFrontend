@@ -71,19 +71,29 @@ watch(
 <template>
   <CardCore>
     <template #title>
-      {{ title }}
+      <span
+        class="font-display text-adm-xl font-bold tracking-tight text-secondary-900"
+      >
+        {{ title }}
+      </span>
     </template>
 
-    <form class="space-y-4" @submit.prevent="onSubmit">
+    <form @submit.prevent="onSubmit">
       <!-- FORM CONTENT -->
-      <slot :fields="fields" :errors="errors" />
+      <div class="space-y-4">
+        <slot :fields="fields" :errors="errors" />
+      </div>
 
       <!-- ACTIONS -->
-      <div class="flex gap-2 justify-end items-center">
+      <div
+        class="flex gap-2.5 justify-end items-center mt-7 -mx-6 -mb-6 px-7 py-4.5 border-t border-line-soft bg-admin-bg rounded-b-adm-lg"
+      >
         <ButtonCore
           as="RouterLink"
           :to="{ name: redirectOnCancel ?? props.redirect }"
           class="!w-auto"
+          severity="secondary"
+          outlined
           :label="cancelLabel"
         />
         <ButtonCore

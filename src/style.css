@@ -50,6 +50,7 @@
   --color-secondary-700: #342e25;
   --color-secondary-800: #2d2418;   /* deepWarm */
   --color-secondary-900: #1f1a14;   /* ink — texto principal */
+  --color-secondary-950: #171310;
 
   /* ── Superficies y fondos ────────────────────────────────── */
   --color-surface-page:  #faf6ee;   /* bg base */
@@ -58,10 +59,42 @@
   --color-surface-cream: #f4ebd9;   /* featured surfaces */
   --color-surface-sand:  #f7efe0;
 
+  /* ── Superficies del admin (ADM) ─────────────────────────── */
+  /* El admin reusa V3 pero con base más neutra: "admin UI
+     shouldn't feel warm marketing" (admin/system.jsx) */
+  --color-admin-bg:   #f5f0e5;   /* fondo de página del admin */
+  --color-admin-pane: #efe9db;   /* fondo del sidebar */
+
+  --color-admin-row-hover: #fff5ee;   /* hover de fila en tablas */
+
+  /* ── Estado de error / peligro (solo admin) ──────────────── */
+  --color-danger-DEFAULT: #d43a2f;   /* eliminar, logout, campos requeridos */
+  --color-danger-soft:    #fce3e1;
+
+  /* ── Bordes de control (checkbox, switch off) ────────────── */
+  --color-control-border: #c9c0ae;
+  --color-control-off:    #d7cfbe;
+
+  /* ── Escala tipográfica del admin ────────────────────────── */
+  /* Tamaños del diseño (admin/*.jsx), en rem para respetar el
+     zoom del navegador. Usar estas clases en vez de valores [..] */
+  --text-adm-xs:    0.625rem;    /* 10px  — rol en sidebar, chips mono */
+  --text-adm-sm:    0.75rem;     /* 12px  — meta, fechas */
+  --text-adm-base:  0.844rem;    /* 13.5px — cuerpo de tabla y navegación */
+  --text-adm-md:    0.875rem;    /* 14px  — inputs, botones */
+  --text-adm-lg:    1.125rem;    /* 18px  — título de listado */
+  --text-adm-xl:    1.375rem;    /* 22px  — título de formulario */
+  --text-adm-label: 0.656rem;    /* 10.5px — cabecera de tabla (mono) */
+
+  /* ── Espaciados con nombre ───────────────────────────────── */
+  --spacing-btn-x:    1.375rem;  /* padding horizontal de botón */
+  --spacing-btn-x-sm: 1.125rem;  /* idem, tamaño small */
+
   /* ── Tints del accent ────────────────────────────────────── */
   --color-accent-tint: #ffe3d3;
   --color-accent-soft: #fff1e8;
   --color-accent-dim:  rgba(233,78,27,0.12);
+  --color-accent-dim-soft: rgba(233,78,27,0.06);   /* hover de navegación */
 
   /* ── Colores semánticos secundarios ──────────────────────── */
   --color-amber-DEFAULT: #f5a623;
@@ -94,6 +127,13 @@
   --radius-xl:   28px;
   --radius-pill: 9999px;
 
+  /* ── Radios del admin ────────────────────────────────────── */
+  /* Más cerrados que los de V3: el backoffice es más sobrio */
+  --radius-adm-sm: 6px;
+  --radius-adm-md: 10px;
+  --radius-adm-lg: 14px;
+  --radius-adm-xl: 20px;
+
   /* ── Misc ────────────────────────────────────────────────── */
   --h-130: calc(var(--spacing) * 130);
 }
@@ -106,3 +146,33 @@
 .animate-marquee  { animation: marquee 24s linear infinite; }
 .animate-fadeup   { animation: fadeup .3s ease both; }
 .animate-pulse-dot{ animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Micro-interacciones del admin ─────────────────────────── */
+/* Definidas en el diseño: Fractal Admin V3.html */
+@keyframes adm-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.animate-adm-fade { animation: adm-fade .2s ease; }
+
+.adm-row { transition: background .15s; }
+.adm-row:hover { background: var(--color-admin-row-hover); }
+
+.adm-nav-item { transition: background .15s, color .15s, border-color .15s; }
+.adm-nav-item:hover:not(.is-active) { background: var(--color-accent-dim-soft); }
+
+.adm-icon-btn { transition: transform .12s, background .15s, color .15s; }
+.adm-icon-btn:hover { transform: scale(1.05); }
+
+/* ── Cursor en elementos interactivos ──────────────────────── */
+/* Tailwind 4 pone cursor:default en button; restauramos la mano */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}

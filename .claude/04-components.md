@@ -213,3 +213,29 @@ Auto-trim en blur del input:
 ```
 
 `autoLoad`: carga automáticamente al montar. `filter`: búsqueda interna.
+
+## Sistema visual — tokens y preset de PrimeVue
+
+El diseño (`Design/diseño fractal/`) define **dos capas**: `V3` (base compartida con la landing) y `ADM` (el admin redefine superficies y radios — *"admin UI shouldn't feel warm marketing"*).
+
+**Dónde van los tokens:** en el bloque `@theme` de `src/style.css`. Es Tailwind 4 — `tailwind.config.js` está vacío a propósito y debe quedarse así.
+
+| Token admin | Clase | Valor |
+|---|---|---|
+| fondo de página | `bg-admin-bg` | `#f5f0e5` |
+| fondo del sidebar | `bg-admin-pane` | `#efe9db` |
+| error / eliminar / logout | `text-danger-DEFAULT` | `#d43a2f` |
+| fondo de error | `bg-danger-soft` | `#fce3e1` |
+| radios del admin | `rounded-adm-{sm,md,lg,xl}` | `6/10/14/20px` |
+
+⚠️ Los tokens con sufijo `-DEFAULT` **exigen escribirlo en la clase**: `text-danger-DEFAULT` funciona, `text-danger` no genera CSS.
+
+Micro-interacciones disponibles (definidas en `style.css`): `.adm-row` (hover de fila), `.adm-nav-item` (hover de navegación), `.adm-icon-btn`, `.animate-adm-fade`.
+
+### El preset de PrimeVue manda sobre las clases
+
+`src/shared/constants/primevue.ts` exporta `FractalPreset` — `definePreset(Aura, {...})` con `primary` en el naranja `#e94e1b` y la escala `surface` en los grises cálidos de V3.
+
+Esto importa: antes se usaba **Aura sin personalizar**, cuyo primary esmeralda y superficies frías teñían todos los componentes (tablas, botones, inputs, modales) sin importar qué clases Tailwind se pusieran encima. **Para cualquier ajuste visual global, empezar por el preset**; las clases sueltas no alcanzan.
+
+Overrides por componente que ya viven ahí: botón tipo píldora, radio de `Card` y color de cabecera de `DataTable`.

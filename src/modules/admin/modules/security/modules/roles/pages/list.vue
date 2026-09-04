@@ -50,7 +50,7 @@ const columns: GridUiColumnProps<Role>[] = [
         roleService.status(ids, state ?? 1),
       delete: (ids: (number | string)[]) => roleService.delete(ids),
     }"
-    title="Lista de Roles"
+    title="Lista de roles"
     module="security/roles"
   />
 </template>
