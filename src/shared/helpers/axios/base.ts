@@ -1,6 +1,6 @@
 import { BusinessError } from "@/shared/errors/business.error";
 import { RequestError } from "@/shared/errors/request.error";
-import { handleSessionExpired } from "@/shared/utils/session";
+import { handleHttpError, handleSessionExpired } from "@/shared/utils/session";
 import { ErrorCode } from "@/shared/constants/error-code";
 import type { ApiResponse } from "@/shared/interface/api-response";
 import axios, {
@@ -66,6 +66,14 @@ export class ApiRequest {
           ) {
             handleSessionExpired();
           }
+
+          /*
+           * 🛑 Errores que la pantalla actual no puede resolver (429 y 5xx):
+           * van a la pantalla de estado completa. Un 422 o un 409 NO entran
+           * aquí: esos los muestra el propio formulario junto al campo que
+           * falló, y sacar al usuario de donde está sería peor.
+           */
+          handleHttpError(httpCode);
 
           // ⛔ Otros errores → flujo normal
           return Promise.reject(
