@@ -120,9 +120,15 @@ onMounted(async () => {
   loadingStore.finish();
   if (!resp) return;
 
-  const roleIds = roles.value
-    .filter((role) => resp.roles.includes(role.name))
-    .map((role) => role.id);
+  /*
+   * Los ids vienen resueltos por la API (`role_ids`); el cruce por nombre
+   * queda como respaldo para no depender de que el Resource los exponga.
+   */
+  const roleIds = resp.roleIds?.length
+    ? resp.roleIds
+    : roles.value
+        .filter((role) => resp.roles.includes(role.name))
+        .map((role) => role.id);
 
   selectedRoles.value = roleIds;
   currentPhoto.value = resp.photo_url ?? null;
@@ -133,6 +139,9 @@ onMounted(async () => {
     email: resp.email,
     // Vacía a propósito: la contraseña no se recupera, solo se reemplaza.
     password: null,
+    // El select necesita la clave cruda, no el `gender_name` formateado: sin
+    // esto el campo salía vacío y pedía elegir el género otra vez.
+    gender: resp.gender,
     roles: roleIds,
   };
 });
@@ -287,6 +296,12 @@ const formSchema = computed(() => {
           `selectedRoles` se actualiza aparte porque de él dependen los
           campos de perfil que se muestran.
         -->
+        <!--
+          ⚠️ Una sola fuente de opciones: con `:options` y `:service`+`auto-load`
+          a la vez, el componente carga por su cuenta e ignora las que ya trae
+          `onMounted`, y la doble carga pisaba el valor seleccionado (el campo
+          mostraba "null" en vez del rol del usuario).
+        -->
         <MultiselectCore
           v-model="fields.roles.value"
           label="Roles · define qué datos adicionales se piden"
@@ -294,8 +309,6 @@ const formSchema = computed(() => {
           option-label="name"
           option-value="id"
           placeholder="Selecciona los roles"
-          :service="loadRoles"
-          auto-load
           :invalid="!!errors.roles"
           :message-error="errors.roles"
           @update:model-value="onRolesChange"

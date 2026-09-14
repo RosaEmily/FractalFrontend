@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, provide } from "vue";
+import { ref, reactive, computed, onMounted, provide } from "vue";
 import DataTable, { type DataTableFilterMeta } from "primevue/datatable";
 import Column from "primevue/column";
 import Paginator, { type PageState } from "primevue/paginator";
 import GridUiColumn from "./column/index.vue";
+import TableSkeleton from "@/modules/admin/components/ui/table-skeleton.vue";
 
 import { type GridUiTableExpose, type GridUiTableProps, GridKey } from "./type";
 import { buildFiltersFromColumns, primeToApiFilters } from "./utils/format";
@@ -56,6 +57,18 @@ const pagination = reactive({
 const filters = ref<DataTableFilterMeta | undefined>(
   buildFiltersFromColumns(props.columns),
 );
+
+/*
+ * Anchos para el esqueleto: se derivan de las columnas reales para que las
+ * barras caigan bajo su columna. La de selección va fija porque la dibuja el
+ * propio DataTable y no está en `columns`.
+ */
+const skeletonColumns = computed<string[]>(() => [
+  ...(props.selectionMode ? ["36px"] : []),
+  ...props.columns.map((column) =>
+    column.field === "actions" ? "150px" : "1fr",
+  ),
+]);
 
 const prevState = ref({
   order: { ...order.value },
@@ -185,9 +198,19 @@ defineExpose<GridUiTableExpose>({
       :key="`${String(col.field)}-${index}`"
     />
 
-    <!-- EMPTY STATE -->
+    <!--
+      EMPTY STATE
+
+      PrimeVue usa este slot también MIENTRAS carga, así que sin distinguir los
+      dos casos la tabla decía "No se encontraron registros" antes de que la
+      respuesta llegara — afirmando que no hay datos sin saberlo todavía.
+
+      Durante la carga se muestra el esqueleto: la forma de lo que va a llegar,
+      para que el ojo sepa dónde mirar y la tabla no salte de alto al llenarse.
+    -->
     <template #empty>
-      <div class="flex items-center justify-center">
+      <TableSkeleton v-if="isLoading" :columns="skeletonColumns" />
+      <div v-else class="flex items-center justify-center">
         No se encontraron registros.
       </div>
     </template>

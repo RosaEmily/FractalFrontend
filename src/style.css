@@ -158,6 +158,31 @@
 @keyframes adm-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .animate-adm-fade { animation: adm-fade .2s ease; }
 
+/*
+ * Esqueleto de carga del admin: un brillo que recorre la barra de izquierda a
+ * derecha. El degradado y la duración salen del diseño (`AdmSkeletonBar`).
+ *
+ * Va en CSS y no en clases de Tailwind porque necesita `background-size: 200%`
+ * y una animación sobre `background-position`, que no tienen utilidad directa.
+ */
+@keyframes adm-skeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.adm-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-admin-bg) 25%,
+    var(--color-line-soft) 50%,
+    var(--color-admin-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: adm-skeleton 1.3s ease-in-out infinite;
+}
+
+/* Respeta a quien pidió menos movimiento: el bloque se ve, pero no recorre. */
+@media (prefers-reduced-motion: reduce) {
+  .adm-skeleton { animation: none; }
+}
+
 .adm-row { transition: background .15s; }
 .adm-row:hover { background: var(--color-admin-row-hover); }
 

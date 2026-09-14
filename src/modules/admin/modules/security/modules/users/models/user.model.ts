@@ -9,6 +9,9 @@ export interface User {
   full_name: string;
   photo_url: string | null;
   gender_name: string | null;
+  /** Crudos para el formulario de edición. */
+  gender: string | null;
+  roleIds: number[];
   roles: string[];
   status: number;
   updated_at: string;

@@ -5,10 +5,14 @@ export interface UserDTO {
   last_name: string;
   photo_url: string | null;
   gender_name: string | null;
+  /** Valor crudo ('m'|'f'|'o'): `gender_name` es solo para mostrar. */
+  gender: string | null;
   status: number;
   created_at: string;
   updated_at: string;
   roles: string[];
+  /** Ids para el multiselect del formulario; `roles` son los nombres. */
+  role_ids: number[];
   teacher: Record<string, unknown> | null;
   student: Record<string, unknown> | null;
 }
