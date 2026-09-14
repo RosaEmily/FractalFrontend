@@ -24,3 +24,11 @@ export interface StudentEvaluationBodyDTO {
   feedback: string | null;
   evaluated_at: string | null;
 }
+
+/**
+ * Alta masiva de notas: upsert por `(enrollment_course_id, course_evaluation_id)`.
+ *
+ * ⚠️ `score` viaja nullable a propósito: una celda vacía guarda `null` (no tiene
+ * nota), mientras que un 0 significa que el alumno rindió y sacó cero.
+ */
+export type StudentEvaluationBulkBodyDTO = StudentEvaluationBodyDTO[];

@@ -22,7 +22,11 @@ const columns: GridUiColumnProps<CourseEvaluation>[] = [
     filter: { value: null, matchMode: FilterMatchMode.CONTAINS },
     type: "custom",
     render: (row: CourseEvaluation) =>
-      h("span", { class: "text-adm-base font-bold text-secondary-900" }, row.name),
+      h(
+        "span",
+        { class: "text-adm-base font-bold text-secondary-900" },
+        row.name,
+      ),
   },
   {
     field: "courseName",
@@ -38,8 +42,38 @@ const columns: GridUiColumnProps<CourseEvaluation>[] = [
       }),
   },
   {
-    field: "evaluationTypeName",
+    /*
+     * Tipo del PROGRAMA (Curso / Línea), no de la evaluación. El diseño tiene
+     * las dos columnas: esta es "Tipo" y la siguiente "Eval.".
+     */
+    field: "offerTypeLabel",
     header: "Tipo",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: CourseEvaluation) =>
+      row.offerTypeLabel
+        ? h(StatusPill, {
+            label: row.offerTypeLabel,
+            tone: row.offerType === "learning_path" ? "info" : "neutral",
+            dot: false,
+          })
+        : h("span", { class: "text-secondary-400" }, "—"),
+  },
+  {
+    field: "teacherName",
+    header: "Docente",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: CourseEvaluation) =>
+      h(
+        "span",
+        { class: "text-adm-sm text-secondary-500" },
+        row.teacherName ?? "—",
+      ),
+  },
+  {
+    field: "evaluationTypeName",
+    header: "Eval.",
     showFilterMenu: false,
     type: "custom",
     render: (row: CourseEvaluation) =>

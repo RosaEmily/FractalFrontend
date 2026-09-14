@@ -28,3 +28,26 @@ export interface ClassSessionBodyDTO {
   topic: string | null;
   meet_link: string | null;
 }
+
+/**
+ * Alta por lote: una clase por curso del programa.
+ *
+ * ⚠️ Va contra `actions/bulk-store`, que SOLO AGREGA. El otro endpoint
+ * parecido (`offers/actions/sessions/{offer}`) sincroniza y borra las clases
+ * del horario que no vengan en el payload — no usarlo desde acá.
+ */
+export interface ClassSessionBulkBodyDTO {
+  sessions: ClassSessionBodyDTO[];
+}
+
+/** Una fila omitida por el servidor, con el motivo para mostrarlo en pantalla. */
+export interface ClassSessionBulkSkippedDTO {
+  schedule_id: number;
+  session_date: string;
+  reason: string;
+}
+
+export interface ClassSessionBulkResultDTO {
+  created: number;
+  skipped: ClassSessionBulkSkippedDTO[];
+}

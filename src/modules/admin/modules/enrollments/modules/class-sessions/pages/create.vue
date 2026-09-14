@@ -2,6 +2,8 @@
 import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ModeToggle from "@/modules/admin/components/ui/mode-toggle.vue";
+import CreateBulk from "./create-bulk.vue";
 import { InputTextCore, DatePicketCore } from "@/shared/components";
 import ScheduleSelect from "@/modules/admin/components/ui/schedule-select.vue";
 import classSessionService from "../services/class-session.service";
@@ -19,10 +21,25 @@ const initialValues = ref<ClassSessionBodyDTO>({
 });
 
 const formSchema = classSessionSchema;
+
+/*
+ * Individual / Masivo comparten la ruta `create`: son dos formularios distintos,
+ * no dos estados del mismo, igual que en el diseño. Sin ruta propia, volver del
+ * masivo no recarga ni pierde lo tipeado en el individual.
+ */
+const MODE_OPTIONS = [
+  { value: "individual", label: "Una clase" },
+  { value: "bulk", label: "Generar varias" },
+];
+
+const mode = ref<string>("individual");
 </script>
 
 <template>
+  <CreateBulk v-if="mode === 'bulk'" v-model:mode="mode" />
+
   <CrudForm
+    v-else
     title="Programar clase"
     :schema="formSchema"
     :initialValues="initialValues"
@@ -30,6 +47,8 @@ const formSchema = classSessionSchema;
     :service="(body) => classSessionService.create(body)"
   >
     <template #default="{ fields, errors }">
+      <ModeToggle v-model="mode" :options="MODE_OPTIONS" />
+
       <ScheduleSelect
         v-model="fields.schedule_id.value"
         :invalid="!!errors.schedule_id"

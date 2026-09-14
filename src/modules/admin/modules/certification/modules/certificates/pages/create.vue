@@ -3,7 +3,9 @@ import { z } from "zod";
 import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
-import { InputTextCore, SelectCore, DatePicketCore } from "@/shared/components";
+import ModeToggle from "@/modules/admin/components/ui/mode-toggle.vue";
+import CreateBulk from "./create-bulk.vue";
+import { SelectCore, DatePicketCore } from "@/shared/components";
 import EnrollmentCourseSelect from "@/modules/admin/components/ui/enrollment-course-select.vue";
 import certificateService from "../services/certificate.service";
 import templateService from "../../templates/services/template.service";
@@ -12,25 +14,31 @@ import type { CertificateBodyDTO } from "../dto/certificate.dto";
 const initialValues = ref<CertificateBodyDTO>({
   enrollment_course_id: null,
   certificate_template_id: null,
-  code: null,
   issued_date: null,
 });
+
+/* Individual / Masivo comparten la ruta `create`: son formularios distintos. */
+const MODE_OPTIONS = [
+  { value: "individual", label: "Un estudiante" },
+  { value: "bulk", label: "Varios estudiantes" },
+];
+
+const mode = ref<string>("individual");
 
 const formSchema = z.object({
   enrollment_course_id: z.number({
     message: "Selecciona el curso de la matrícula",
   }),
   certificate_template_id: z.number({ message: "Selecciona la plantilla" }),
-  code: z
-    .string({ message: "El código es obligatorio" })
-    .min(4, { message: "Debe tener al menos 4 caracteres" })
-    .max(255, { message: "No puede tener más de 255 caracteres" }),
   issued_date: z.string().nullable().optional(),
 });
 </script>
 
 <template>
+  <CreateBulk v-if="mode === 'bulk'" v-model:mode="mode" />
+
   <CrudForm
+    v-else
     title="Emitir certificado"
     :schema="formSchema"
     :initialValues="initialValues"
@@ -38,6 +46,8 @@ const formSchema = z.object({
     :service="(body) => certificateService.create(body)"
   >
     <template #default="{ fields, errors }">
+      <ModeToggle v-model="mode" :options="MODE_OPTIONS" />
+
       <EnrollmentCourseSelect
         v-model="fields.enrollment_course_id.value"
         :invalid="!!errors.enrollment_course_id"
@@ -57,15 +67,10 @@ const formSchema = z.object({
         :message-error="errors.certificate_template_id"
       />
 
+      <!--
+        Sin campo Código: lo genera el servidor al emitir. Ver el DTO.
+      -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InputTextCore
-          v-model="fields.code.value"
-          label="Código"
-          required
-          hint-label="Identificador único y verificable."
-          :invalid="!!errors.code"
-          :message-error="errors.code"
-        />
         <DatePicketCore
           v-model="fields.issued_date.value"
           label="Fecha de emisión"

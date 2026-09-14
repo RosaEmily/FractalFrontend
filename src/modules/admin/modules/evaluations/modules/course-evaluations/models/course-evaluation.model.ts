@@ -14,6 +14,10 @@ export interface CourseEvaluation {
   courseName: string | null;
   offerName: string | null;
   evaluationTypeName: string | null;
+  teacherName: string | null;
+  offerType: "course" | "learning_path" | null;
+  /** "Línea" / "Curso" — lo que se pinta en la píldora. */
+  offerTypeLabel: string | null;
   status: number;
   updated_at: string;
 }

@@ -192,6 +192,263 @@
 .adm-icon-btn { transition: transform .12s, background .15s, color .15s; }
 .adm-icon-btn:hover { transform: scale(1.05); }
 
+/* ── Paginación del admin (AdmPagination del diseño) ─────────────
+   Tres bloques: contador · navegación · filas por página. El `<select>`
+   nativo lleva su flecha como data-URI porque `appearance:none` quita la del
+   navegador y aquí no se usa el Select de PrimeVue (es un control pequeño,
+   sin filtro ni carga remota). */
+.adm-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-line-soft);
+}
+
+.adm-pagination__count {
+  font-size: 12.5px;
+  color: var(--color-secondary-400);
+}
+
+.adm-pagination__nav {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.adm-pagination__gap {
+  width: 30px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-secondary-400);
+}
+
+.adm-pg-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-adm-sm);
+  background: var(--color-admin-bg);
+  border: 1px solid var(--color-line-soft);
+  color: var(--color-secondary-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.adm-pg-btn:hover:not(:disabled):not(.is-current) {
+  border-color: var(--color-line);
+  color: var(--color-secondary-900);
+}
+.adm-pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.adm-pg-btn--num {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+/* La página actual: naranja sólido, sin borde. */
+.adm-pg-btn--num.is-current {
+  background: var(--color-primary-500);
+  border-color: transparent;
+  color: #fff;
+}
+
+.adm-pagination__rows {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* El selector de filas es un `SelectCore` (PrimeVue); acá solo se le da la
+   forma de píldora compacta que pide el diseño. La flecha, el panel y los
+   estados los aporta el propio componente. */
+/* ⚠️ `SelectCore` envuelve al Select en un <div>, así que la clase cae en el
+   wrapper: el `.p-select` hay que alcanzarlo como descendiente. */
+.adm-pagination__select .p-select {
+  border-radius: var(--radius-pill);
+  min-width: 5rem;
+}
+.adm-pagination__select .p-select-label {
+  padding-block: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Ítem del menú "Crear" (AdmMenuItem del diseño) ──────────────
+   Cada acción lleva su icono en un cuadrito de color según el tono: verde
+   habilitar, ámbar deshabilitar, rojo eliminar. Va en CSS y no en clases
+   Tailwind porque el tono se interpola en runtime
+   (`adm-menu-item--${tone}`) y el escáner de Tailwind no detecta nombres
+   construidos así. */
+.adm-menu-item {
+  width: 100%;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-adm-sm);
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--color-secondary-900);
+}
+
+.adm-menu-item__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-adm-sm);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-menu-item--default .adm-menu-item__icon {
+  background: var(--color-admin-bg);
+  color: var(--color-secondary-500);
+}
+.adm-menu-item--ok .adm-menu-item__icon {
+  background: var(--color-success-soft);
+  color: var(--color-success-DEFAULT);
+}
+.adm-menu-item--warn .adm-menu-item__icon {
+  background: var(--color-amber-soft);
+  color: var(--color-amber-DEFAULT);
+}
+.adm-menu-item--danger .adm-menu-item__icon {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-DEFAULT);
+}
+/* El diseño pinta también el texto de Eliminar en rojo. */
+.adm-menu-item--danger { color: var(--color-danger-DEFAULT); }
+
+.adm-menu-item--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Cabecera "N SELECCIONADOS" del menú. */
+.adm-menu-header {
+  display: block;
+  padding: 6px 10px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-secondary-400);
+}
+
+/* ── Barra flotante de acciones masivas (AdmBulkBar del diseño) ──
+   Va en CSS y no en utilidades de Tailwind porque el diseño la define con un
+   gradiente, una sombra de tres capas y colores sobre fondo oscuro que no
+   existen como tokens del tema claro. */
+.adm-bulk-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  /* Por debajo del mask de los diálogos (1101) para no taparlos. */
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, #24201a, #1b1712);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.32),
+    0 3px 10px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+}
+
+.adm-bulk-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-500);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.adm-bulk-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-right: 6px;
+}
+
+.adm-bulk-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.adm-bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  margin: 0 1px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.adm-bulk-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+.adm-bulk-btn--danger {
+  background: rgba(212, 58, 47, 0.14);
+  color: #ff8478;
+}
+.adm-bulk-btn--danger:hover { background: rgba(212, 58, 47, 0.24); }
+
+.adm-bulk-close {
+  width: 30px;
+  height: 30px;
+  margin-left: 4px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+.adm-bulk-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Entrada/salida: el diseño usa `adm-fade .18s`. */
+.adm-bulk-enter-active,
+.adm-bulk-leave-active { transition: opacity .18s ease, transform .18s ease; }
+.adm-bulk-enter-from,
+.adm-bulk-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-bulk-enter-active,
+  .adm-bulk-leave-active { transition: none; }
+}
+
 /* ── Cursor en elementos interactivos ──────────────────────── */
 /* Tailwind 4 pone cursor:default en button; restauramos la mano */
 @layer base {
@@ -248,4 +505,38 @@
 @media (prefers-reduced-motion: reduce) {
   .aula-shimmer { animation: none; }
   .aula-fade { animation: none; }
+}
+
+/*
+ * Conmutador Individual / Masivo (`AdmModeToggle` del diseño).
+ *
+ * Va en CSS y no en clases Tailwind porque la píldora activa combina fondo
+ * papel + sombra sobre el fondo del admin, y el conjunto se repite en los 4
+ * formularios de alta masiva.
+ */
+.adm-mode-toggle {
+  display: inline-flex;
+  padding: 3px;
+  margin-bottom: 1.375rem;
+  background: var(--color-admin-bg);
+  border: 1px solid var(--color-control-border);
+  border-radius: 9999px;
+}
+
+.adm-mode-toggle__btn {
+  padding: 0.5rem 1.125rem;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-secondary-400);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.adm-mode-toggle__btn.is-active {
+  background: var(--color-surface-paper);
+  color: var(--color-secondary-900);
+  box-shadow: 0 1px 2px rgb(31 26 20 / 0.08); /* shadowSm del diseño */
 }

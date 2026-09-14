@@ -3,7 +3,13 @@ import { z } from "zod";
 import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
-import { InputTextCore, InputNumberCore, SelectCore } from "@/shared/components";
+import ModeToggle from "@/modules/admin/components/ui/mode-toggle.vue";
+import CreateBulk from "./create-bulk.vue";
+import {
+  InputTextCore,
+  InputNumberCore,
+  SelectCore,
+} from "@/shared/components";
 import OfferCourseSelect from "@/modules/admin/components/ui/offer-course-select.vue";
 import {
   WEIGHT_LIMIT,
@@ -20,6 +26,14 @@ const initialValues = ref<CourseEvaluationBodyDTO>({
   weight: null,
   max_score: null,
 });
+
+/* Individual / Masivo comparten la ruta `create`: son formularios distintos. */
+const MODE_OPTIONS = [
+  { value: "individual", label: "Un curso" },
+  { value: "bulk", label: "Varios cursos" },
+];
+
+const mode = ref<string>("individual");
 
 const formSchema = z.object({
   offer_course_id: z.number({ message: "Selecciona el curso del programa" }),
@@ -40,7 +54,10 @@ const formSchema = z.object({
 </script>
 
 <template>
+  <CreateBulk v-if="mode === 'bulk'" v-model:mode="mode" />
+
   <CrudForm
+    v-else
     title="Crear evaluación"
     :schema="formSchema"
     :initialValues="initialValues"
@@ -48,6 +65,8 @@ const formSchema = z.object({
     :service="(body) => courseEvaluationService.create(body)"
   >
     <template #default="{ fields, errors }">
+      <ModeToggle v-model="mode" :options="MODE_OPTIONS" />
+
       <OfferCourseSelect
         v-model="fields.offer_course_id.value"
         :invalid="!!errors.offer_course_id"
