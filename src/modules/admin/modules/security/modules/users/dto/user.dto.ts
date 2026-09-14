@@ -7,6 +7,8 @@ export interface UserDTO {
   gender_name: string | null;
   /** Valor crudo ('m'|'f'|'o'): `gender_name` es solo para mostrar. */
   gender: string | null;
+  /** Sesiones simultáneas permitidas (1-4). */
+  max_sessions: number | null;
   status: number;
   created_at: string;
   updated_at: string;
@@ -27,6 +29,7 @@ export interface UserBodyDTO {
   email: string | null;
   password: string | null;
   gender: string | null;
+  max_sessions: number | null;
   roles: number[];
 
   // Comunes a las fichas de docente y alumno

@@ -11,6 +11,7 @@ export const userAdapter = {
     photo_url: dto.photo_url,
     gender_name: dto.gender_name,
     gender: dto.gender ?? null,
+    max_sessions: dto.max_sessions ?? null,
     roles: dto.roles ?? [],
     roleIds: dto.role_ids ?? [],
     status: dto.status,
