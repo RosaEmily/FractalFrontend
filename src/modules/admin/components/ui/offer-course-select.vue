@@ -19,7 +19,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<{ (e: "update:modelValue", value: number | null): void }>();
+const emit = defineEmits<{
+  (e: "update:modelValue", value: number | null): void;
+}>();
 
 interface CourseOption {
   id: number;

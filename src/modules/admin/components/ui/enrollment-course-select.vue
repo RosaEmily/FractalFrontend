@@ -18,7 +18,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<{ (e: "update:modelValue", value: number | null): void }>();
+const emit = defineEmits<{
+  (e: "update:modelValue", value: number | null): void;
+}>();
 
 interface CourseOption {
   id: number;
@@ -75,7 +77,9 @@ const onEnrollmentChange = () => {
       option-label="name"
       option-value="id"
       :placeholder="
-        selectedEnrollment ? 'Selecciona un curso' : 'Elige una matrícula primero'
+        selectedEnrollment
+          ? 'Selecciona un curso'
+          : 'Elige una matrícula primero'
       "
       :invalid="props.invalid"
       :message-error="props.messageError"

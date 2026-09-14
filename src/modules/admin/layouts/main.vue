@@ -120,6 +120,7 @@ onMounted(async () => {
         <div ref="menuRef" class="cursor-pointer" @click="openMenu = !openMenu">
           <AvatarCore
             :text="userStore.photo ?? userStore.fullName"
+            :fallback-text="userStore.fullName"
             shape="circle"
           />
         </div>
@@ -134,6 +135,7 @@ onMounted(async () => {
             >
               <AvatarCore
                 :text="userStore.photo ?? userStore.fullName"
+                :fallback-text="userStore.fullName"
                 shape="circle"
               />
               <div class="min-w-0 flex-1">
@@ -201,6 +203,7 @@ onMounted(async () => {
       <template #left>
         <NavVertical
           :avatar="userStore.photo ?? userStore.fullName"
+          :avatar-fallback="userStore.fullName"
           :full-name="userStore.fullName"
           :role="userStore.role"
         />

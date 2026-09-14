@@ -9,14 +9,24 @@ dayjs.locale("es");
 
 import type { DateArrayInput } from "./type";
 
+/**
+ * Formato de dayjs → formato de `dateFormat` de PrimeVue.
+ *
+ * ⚠️ El `dateFormat` de PrimeVue solo entiende tokens de FECHA (`d`, `m`, `y`);
+ * la hora la añade él por su cuenta según `showTime` y `hourFormat`. Si se le
+ * cuela un `HH:mm` lo imprime literal y el input queda como
+ * `05/09/2026 HH:09 14:03` — el `09` es el mes filtrándose en el hueco de la
+ * hora. Por eso la parte horaria se recorta aquí.
+ */
 export const dayjsToPrime = (format: string = "YYYY-MM-DD") => {
   return format
+    .replace(/[HhmsAa:.]+\s*$/g, "")
+    .trim()
     .replace(/YYYY/g, "yy")
+    // `YY` (año corto) también existe en dayjs; PrimeVue lo escribe `y`.
+    .replace(/YY/g, "y")
     .replace(/MM/g, "mm")
-    .replace(/DD/g, "dd")
-    .replace(/HH/g, "HH")
-    .replace(/mm/g, "mm")
-    .replace(/ss/g, "ss");
+    .replace(/DD/g, "dd");
 };
 
 export const serializeDate = (

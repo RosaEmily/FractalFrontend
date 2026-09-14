@@ -27,8 +27,13 @@ const props = computed(() => {
     showOnFocus: true,
     showOtherMonths: true,
     dateFormat: dayjsToPrime(dayjsFormatInput),
-    showTime: /H|m|s/.test(dayjsFormatValue),
-    showSeconds: /s/.test(dayjsFormatValue),
+    /*
+     * El reloj se deduce del formato de VALOR, pero la prop explícita manda:
+     * una columna `dateTime` obliga a guardar la hora aunque al usuario no se
+     * le pida elegirla (un rango de matrícula se define por días).
+     */
+    showTime: propsInit.showTime ?? /H|m|s/.test(dayjsFormatValue),
+    showSeconds: propsInit.showSeconds ?? /s/.test(dayjsFormatValue),
   };
 });
 
