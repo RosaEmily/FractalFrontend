@@ -76,6 +76,12 @@ const goTo = async (notification: NotificationDTO) => {
   );
 };
 
+/** Abre la página completa de avisos y cierra el panel. */
+const goToAll = () => {
+  open.value = false;
+  router.push({ name: "classroom-notifications" });
+};
+
 onMounted(load);
 </script>
 
@@ -184,6 +190,18 @@ onMounted(load);
             No tienes avisos por ahora.
           </p>
         </div>
+
+        <!--
+          Pie del panel: el panel solo muestra los últimos avisos, la página
+          completa tiene los tabs Todas / Sin leer.
+        -->
+        <button
+          type="button"
+          class="w-full cursor-pointer border-t border-line bg-surface-cream py-3.5 text-center text-adm-sm font-semibold text-primary-600"
+          @click="goToAll"
+        >
+          Ver todas las notificaciones
+        </button>
       </div>
     </transition>
   </div>
