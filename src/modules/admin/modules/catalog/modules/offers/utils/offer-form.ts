@@ -45,11 +45,39 @@ export const suggestPrefix = (
 
   if (!initials) return "";
 
-  const year = startDate
-    ? new Date(`${startDate.slice(0, 10)}T00:00:00`).getFullYear()
-    : null;
+  /*
+   * Sin fecha todavía se usa el año en curso.
+   *
+   * El prefijo está ARRIBA de "Matrícula — inicio" en el formulario, así que al
+   * elegir la línea o escribir el nombre la fecha aún está vacía: el código
+   * nacía como `CL22`, sin año, y solo se completaba si después se tocaba la
+   * fecha. Un código a medias es peor que uno con un año que luego se corrige
+   * solo — al elegir la fecha se recalcula con el año real.
+   */
+  const year = extractYear(startDate) ?? new Date().getFullYear();
 
-  return year && !Number.isNaN(year) ? `${initials}-${year}` : initials;
+  return `${initials}-${year}`;
+};
+
+/**
+ * Año de la fecha de inicio de matrícula.
+ *
+ * ⚠️ Acepta los dos formatos que puede traer el campo: el de valor
+ * (`YYYY-MM-DD HH:mm:ss`) y el que ve el usuario (`DD/MM/YYYY`). Antes solo
+ * cortaba los 10 primeros caracteres y los pasaba a `new Date()`, así que con
+ * `01/03/2026` daba `Invalid Date` **en silencio** y el prefijo salía sin año.
+ */
+const extractYear = (value?: string | null): number | null => {
+  if (!value?.trim()) return null;
+
+  const iso = value.match(/^(\d{4})-\d{2}-\d{2}/);
+  if (iso) return Number(iso[1]);
+
+  const dmy = value.match(/^\d{2}\/\d{2}\/(\d{4})/);
+  if (dmy) return Number(dmy[1]);
+
+  const parsed = new Date(value).getFullYear();
+  return Number.isNaN(parsed) ? null : parsed;
 };
 
 /** Fila vacía de horario. */

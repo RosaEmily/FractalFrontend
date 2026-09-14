@@ -47,6 +47,41 @@ const courseItems = ref<OfferCourseItem[]>([]);
 const image = ref<File | null>(null);
 
 /*
+ * Imagen heredada de la línea de carrera o del curso elegido.
+ *
+ * Es la URL que ya está en S3, no un archivo: si el admin no sube una propia,
+ * se reenvía tal cual y el programa reusa la misma imagen en vez de duplicar
+ * el archivo. `OfferController` solo sube cuando recibe un `UploadedFile`, así
+ * que un string se guarda directo.
+ */
+const inheritedImage = ref<string | null>(null);
+
+/*
+ * Matrícula como RANGO (`selectionMode="range"` de PrimeVue).
+ *
+ * El diseño lo trata como un solo campo (`AdmDateRange`) y elegir ambas fechas
+ * en el mismo calendario **elimina por construcción** el error de poner un fin
+ * anterior al inicio: el picker no deja marcarlo.
+ *
+ * La API sigue recibiendo `enrollment_start_date` y `enrollment_end_date` por
+ * separado, así que el rango se parte al sincronizar.
+ */
+const enrollmentRange = ref<(string | null)[] | null>(null);
+
+/*
+ * Horas de apertura y cierre de la matrícula.
+ *
+ * Van aparte del rango porque PrimeVue usa **un solo reloj para todo el
+ * rango**: elegir la hora ahí dejaría inicio y fin con el mismo valor. Se
+ * autollenan con el día completo (`00:00:00` – `23:59:59`), que es lo que
+ * quiere decir "del 5 al 11": desde que abre el día 5 hasta que acaba el 11.
+ * Ambas quedan editables por si la matrícula abre o cierra a una hora concreta.
+ */
+const enrollmentStartTime = ref<string>("00:00:00");
+const enrollmentEndTime = ref<string>("23:59:59");
+
+
+/*
  * El prefijo se sugiere desde el nombre, pero el admin puede fijarlo a mano.
  * Con el check activo se resincroniza en cada cambio de nombre o de fecha;
  * al desmarcarlo, lo que haya escrito manda y no se vuelve a tocar.
@@ -54,7 +89,47 @@ const image = ref<File | null>(null);
 const autoPrefix = ref(true);
 
 /** Problemas de la tabla de cursos, calculados al enviar. */
-const courseProblems = ref<string[]>([]);
+/*
+ * Problemas de los cursos y horarios, EN VIVO.
+ *
+ * Antes solo se calculaban en el submit: había que llenar el formulario entero
+ * para enterarse de que una hora de fin era anterior a la de inicio. Como
+ * `computed`, la lista se rehace en cuanto cambia cualquier fila
+ * ([[fractalfrontend-evitar-watch]]: computed antes que watch).
+ *
+ * `touchedCourses` evita gritar antes de tiempo: los avisos aparecen cuando ya
+ * se tocó algo, no sobre el formulario recién abierto.
+ */
+const touchedCourses = ref(false);
+
+const courseProblems = computed<string[]>(() =>
+  touchedCourses.value
+    ? validateCourseItems(courseItems.value, enrollmentRange.value?.[0] ?? null)
+    : [],
+);
+
+/*
+ * Ventana del calendario de matrícula: 60 días hacia atrás y 60 hacia
+ * adelante.
+ *
+ * Hacia atrás, para registrar una cohorte cuya matrícula ya abrió; hacia
+ * adelante, para programar las próximas. Fuera de esa ventana casi siempre es
+ * un error de tipeo en el año, y el picker lo impide en vez de dejar guardar
+ * una fecha absurda.
+ *
+ * Se calculan una vez al montar: el formulario no vive abierto días enteros.
+ */
+const ENROLLMENT_WINDOW_DAYS = 60;
+
+const shiftDays = (days: number): Date => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const enrollmentMinDate = shiftDays(-ENROLLMENT_WINDOW_DAYS);
+const enrollmentMaxDate = shiftDays(ENROLLMENT_WINDOW_DAYS);
 
 /** Curso elegido cuando el programa es de un solo curso. */
 const singleCourseId = ref<number | null>(null);
@@ -102,6 +177,36 @@ const syncPrefix = (name: unknown, startDate: unknown, fields: Fields) => {
     startDate as string | null,
   );
 };
+/** Junta el día del rango con su hora: `2026-09-05` + `08:00:00`. */
+const withTime = (day: string | null | undefined, time: string): string | null =>
+  day ? `${day.slice(0, 10)} ${time}` : null;
+
+/**
+ * Escribe en los dos campos que espera la API a partir del rango y las horas.
+ *
+ * Se llama tanto al elegir las fechas como al cambiar cualquiera de las horas:
+ * el valor final es siempre día + hora.
+ */
+const syncEnrollmentRange = (fields: Fields, value?: unknown) => {
+  if (value !== undefined) {
+    enrollmentRange.value = Array.isArray(value)
+      ? (value as (string | null)[])
+      : null;
+  }
+
+  const range = enrollmentRange.value ?? [];
+  fields.enrollment_start_date!.value = withTime(
+    range[0],
+    enrollmentStartTime.value,
+  );
+  fields.enrollment_end_date!.value = withTime(
+    range[1],
+    enrollmentEndTime.value,
+  );
+
+  // El prefijo lleva el año de inicio de matrícula.
+  syncPrefix(fields.name!.value, range[0] ?? null, fields);
+};
 
 /**
  * Cambio de tipo: limpia lo que pertenecía al tipo anterior.
@@ -113,9 +218,12 @@ const onTypeChange = (type: unknown, fields: Fields) => {
   selectedType.value = type as string | null;
 
   courseItems.value = [];
-  courseProblems.value = [];
+  // Cambiar de tipo vacía la tabla: los avisos vuelven a callarse.
+  touchedCourses.value = false;
   singleCourseId.value = null;
   fields.learning_path_id!.value = null;
+  inheritedImage.value = null;
+  image.value = null;
 };
 
 const applyLearningPath = (pathId: unknown, fields: Fields) => {
@@ -125,6 +233,8 @@ const applyLearningPath = (pathId: unknown, fields: Fields) => {
   fields.name!.value = path.name;
   fields.price!.value = path.priceRaw;
   fields.currency_id!.value = path.currencyId;
+
+  inheritedImage.value = path.imageUrl ?? null;
 
   courseItems.value = path.courseItems.map((course) =>
     buildCourseItem(course.courseId, course.name),
@@ -141,6 +251,8 @@ const applySingleCourse = (courseId: unknown, fields: Fields) => {
   fields.name!.value = course.name;
   fields.price!.value = course.priceRaw;
   fields.currency_id!.value = course.currencyId;
+
+  inheritedImage.value = course.imageUrl ?? null;
 
   courseItems.value = [buildCourseItem(course.id, course.name)];
 
@@ -207,18 +319,22 @@ const onSubmit = (body: Record<string, unknown>) => {
    * los problemas: con varios cursos y horarios, avisar de uno por intento es
    * tiempo perdido.
    */
-  courseProblems.value = validateCourseItems(
+  // Al enviar se revalida contra la fecha real del body y se fuerza que los
+  // avisos sean visibles aunque no se haya tocado la tabla.
+  touchedCourses.value = true;
+  const problems = validateCourseItems(
     courseItems.value,
     body.enrollment_start_date as string | null,
   );
 
-  if (courseProblems.value.length) {
-    return Promise.reject(new Error(courseProblems.value[0]));
+  if (problems.length) {
+    return Promise.reject(new Error(problems[0]));
   }
 
   return offerService.create({
     ...body,
-    image_url: image.value,
+    // El archivo propio manda; si no hay, viaja la URL heredada.
+    image_url: image.value ?? inheritedImage.value,
     courses: toCourseItems(courseItems.value),
   } as never);
 };
@@ -320,13 +436,22 @@ onMounted(async () => {
           :messages-info="['Código corto interno.']"
         />
         <!--
-          Con el check activo el campo queda bloqueado y sigue al nombre; al
+          Con el check activo el campo queda bloqueado y se arma solo; al
           desmarcarlo se habilita y lo que el admin escriba manda.
+
+          ⚠️ El prefijo depende del nombre Y del año de matrícula, así que se
+          recalcula desde los dos campos: escribir el nombre antes de poner la
+          fecha —el orden natural del formulario— dejaba el prefijo sin año y
+          nada lo volvía a tocar.
         -->
         <ToggleCheck
           class="mt-2"
           label="Generar automáticamente"
-          :hint="autoPrefix ? 'Sigue al nombre del programa' : 'Lo defines tú'"
+          :hint="
+            autoPrefix
+              ? 'Siglas del nombre + año de matrícula'
+              : 'Lo defines tú'
+          "
           :on="autoPrefix"
           @toggle="
             autoPrefix = $event;
@@ -335,26 +460,52 @@ onMounted(async () => {
         />
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <!--
+        Matrícula como un solo campo de RANGO: el picker no deja elegir un fin
+        anterior al inicio, así que ese error deja de existir en vez de tener
+        que validarse. Se parte en los dos campos que espera la API.
+      -->
+      <div class="grid gap-4 md:grid-cols-[1.6fr_1fr_1fr]">
         <DatePicketCore
-          v-model="fields.enrollment_start_date.value"
-          label="Matrícula — inicio"
+          v-model="enrollmentRange"
+          label="Matrícula"
           required
-          dayjs-format-value="YYYY-MM-DD HH:mm:ss"
-          dayjs-format-input="DD/MM/YYYY HH:mm"
-          :invalid="!!errors.enrollment_start_date"
-          :message-error="errors.enrollment_start_date"
-          @update:model-value="syncPrefix(fields.name.value, $event, fields)"
+          hint-label="Hasta 60 días antes o después de hoy."
+          selection-mode="range"
+          :number-of-months="2"
+          :min-date="enrollmentMinDate"
+          :max-date="enrollmentMaxDate"
+          dayjs-format-value="YYYY-MM-DD"
+          dayjs-format-input="DD/MM/YYYY"
+          :show-time="false"
+          :invalid="!!errors.enrollment_start_date || !!errors.enrollment_end_date"
+          :message-error="errors.enrollment_start_date || errors.enrollment_end_date"
+          @update:model-value="syncEnrollmentRange(fields, $event)"
+        />
+        <!--
+          Las horas van aparte: el rango de PrimeVue usa UN solo reloj para los
+          dos extremos, así que ahí no se pueden fijar por separado. Vienen con
+          el día completo y se editan solo si hace falta.
+        -->
+        <DatePicketCore
+          v-model="enrollmentStartTime"
+          label="Hora de apertura"
+          hint-label="Por defecto, al inicio del día."
+          time-only
+          hour-format="24"
+          dayjs-format-value="HH:mm:ss"
+          dayjs-format-input="HH:mm"
+          @update:model-value="syncEnrollmentRange(fields)"
         />
         <DatePicketCore
-          v-model="fields.enrollment_end_date.value"
-          label="Matrícula — fin"
-          required
-          dayjs-format-value="YYYY-MM-DD HH:mm:ss"
-          dayjs-format-input="DD/MM/YYYY HH:mm"
-          :min-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
-          :invalid="!!errors.enrollment_end_date"
-          :message-error="errors.enrollment_end_date"
+          v-model="enrollmentEndTime"
+          label="Hora de cierre"
+          hint-label="Por defecto, al final del día."
+          time-only
+          hour-format="24"
+          dayjs-format-value="HH:mm:ss"
+          dayjs-format-input="HH:mm"
+          @update:model-value="syncEnrollmentRange(fields)"
         />
       </div>
 
@@ -367,12 +518,13 @@ onMounted(async () => {
           :invalid="!!errors.min_students"
           :message-error="errors.min_students"
         />
+        <!-- `:min` atado al cupo mínimo: el valor inválido deja de poder escribirse. -->
         <InputNumberCore
           v-model="fields.max_students.value"
           label="Cupo máximo"
           required
           hint-label="No puede ser menor al mínimo"
-          :min="1"
+          :min="Number(fields.min_students.value) || 1"
           :invalid="!!errors.max_students"
           :message-error="errors.max_students"
         />
@@ -405,10 +557,16 @@ onMounted(async () => {
 
       <ImageField
         label="Imagen"
-        hint="JPG, PNG o WEBP. Máximo 500 KB."
+        :current="inheritedImage"
+        :hint="
+          inheritedImage && !image
+            ? 'Se reusará la imagen del origen. Sube una si quieres cambiarla.'
+            : 'JPG, PNG o WEBP. Máximo 500 KB.'
+        "
         accept="image/jpeg,image/png,image/webp"
         :max-kb="500"
         @select="(file) => (image = file)"
+        @clear="image = null"
       />
 
       <div>
@@ -434,6 +592,7 @@ onMounted(async () => {
 
         <OfferCoursesField
           v-model="courseItems"
+          @update:model-value="touchedCourses = true"
           :courses="courses"
           :teachers="teachers"
           :lock-courses="true"
