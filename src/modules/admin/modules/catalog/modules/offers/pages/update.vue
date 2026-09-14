@@ -20,7 +20,13 @@ import learningPathService from "../../learning-paths/services/learning-path.ser
 import currencyService from "../../currencies/services/currency.service";
 import { OFFER_TYPE_OPTIONS } from "../constants/offer.constant";
 import { safeRequest } from "@/shared/utils/request";
-import { validateCourseItems } from "../utils/offer-form";
+import {
+  dayOf,
+  enrollmentStartAsDate,
+  timeOf,
+  validateCourseItems,
+  withTime,
+} from "../utils/offer-form";
 
 import type { Course } from "../../courses/models/course.model";
 import type { Teacher } from "../../teachers/models/teacher.model";
@@ -46,11 +52,40 @@ const currentImage = ref<string | null>(null);
 /** Problemas de la tabla de cursos, calculados al enviar. */
 const courseProblems = ref<string[]>([]);
 
-/** El picker necesita un `Date`; el formulario guarda el string de la API. */
-const enrollmentStartAsDate = (value: unknown): Date | undefined => {
-  if (!value || typeof value !== "string") return undefined;
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? undefined : date;
+/*
+ * Matrícula como UN campo de rango, igual que al crear: el picker no deja
+ * marcar un fin anterior al inicio, así que ese error deja de existir en vez de
+ * tener que validarse. Se parte en los dos campos que espera la API.
+ */
+const enrollmentRange = ref<(string | null)[] | null>(null);
+
+/*
+ * Las horas van aparte: el rango de PrimeVue usa UN solo reloj para los dos
+ * extremos, así que ahí no se pueden fijar por separado. Al editar se precargan
+ * con las que ya tiene el programa, no con el día completo.
+ */
+const enrollmentStartTime = ref<string>("00:00:00");
+const enrollmentEndTime = ref<string>("23:59:59");
+
+type Fields = Record<string, { value: unknown } | undefined>;
+
+/** Escribe los dos campos de la API a partir del rango y las horas. */
+const syncEnrollmentRange = (fields: Fields, value?: unknown) => {
+  if (value !== undefined) {
+    enrollmentRange.value = Array.isArray(value)
+      ? (value as (string | null)[])
+      : null;
+  }
+
+  const range = enrollmentRange.value ?? [];
+  fields.enrollment_start_date!.value = withTime(
+    range[0],
+    enrollmentStartTime.value,
+  );
+  fields.enrollment_end_date!.value = withTime(
+    range[1],
+    enrollmentEndTime.value,
+  );
 };
 
 const route = useRoute();
@@ -110,13 +145,10 @@ const formSchema = z
     message: "La fecha de fin debe ser posterior a la de inicio",
     path: ["enrollment_end_date"],
   })
-  .refine(
-    (data) => data.type !== "learning_path" || !!data.learning_path_id,
-    {
-      message: "Debe seleccionar la línea de carrera",
-      path: ["learning_path_id"],
-    },
-  );
+  .refine((data) => data.type !== "learning_path" || !!data.learning_path_id, {
+    message: "Debe seleccionar la línea de carrera",
+    path: ["learning_path_id"],
+  });
 
 const onSubmit = (body: Record<string, unknown>) => {
   /*
@@ -169,6 +201,19 @@ onMounted(async () => {
   };
   courseItems.value = offer.courseItems ?? [];
   currentImage.value = offer.imageUrl;
+
+  /*
+   * El rango y las horas se derivan de lo guardado: el picker trabaja con los
+   * días y los dos relojes con la hora real del programa, no con el día
+   * completo. Sin esto, abrir a editar y guardar sin tocar nada moverÍa la
+   * matrícula a 00:00 / 23:59.
+   */
+  enrollmentRange.value = [
+    dayOf(offer.enrollmentStartDate),
+    dayOf(offer.enrollmentEndDate),
+  ];
+  enrollmentStartTime.value = timeOf(offer.enrollmentStartDate, "00:00:00");
+  enrollmentEndTime.value = timeOf(offer.enrollmentEndDate, "23:59:59");
 });
 </script>
 <template>
@@ -231,25 +276,49 @@ onMounted(async () => {
         :messages-info="['Código corto interno.']"
       />
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <!--
+        Mismo campo que al crear: un rango + las dos horas aparte.
+        ⚠️ Sin `:min-date`/`:max-date` de ±60 días, a diferencia del alta: un
+        programa ya creado puede tener la matrícula fuera de esa ventana y
+        acotarla impediría editarlo.
+      -->
+      <div class="grid gap-4 md:grid-cols-[1.6fr_1fr_1fr]">
         <DatePicketCore
-          v-model="fields.enrollment_start_date.value"
-          label="Matrícula — inicio"
+          v-model="enrollmentRange"
+          label="Matrícula"
           required
-          dayjs-format-value="YYYY-MM-DD HH:mm:ss"
-          dayjs-format-input="DD/MM/YYYY HH:mm"
-          :invalid="!!errors.enrollment_start_date"
-          :message-error="errors.enrollment_start_date"
+          selection-mode="range"
+          :number-of-months="2"
+          dayjs-format-value="YYYY-MM-DD"
+          dayjs-format-input="DD/MM/YYYY"
+          :show-time="false"
+          :invalid="
+            !!errors.enrollment_start_date || !!errors.enrollment_end_date
+          "
+          :message-error="
+            errors.enrollment_start_date || errors.enrollment_end_date
+          "
+          @update:model-value="syncEnrollmentRange(fields, $event)"
         />
         <DatePicketCore
-          v-model="fields.enrollment_end_date.value"
-          label="Matrícula — fin"
-          required
-          dayjs-format-value="YYYY-MM-DD HH:mm:ss"
-          dayjs-format-input="DD/MM/YYYY HH:mm"
-          :min-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
-          :invalid="!!errors.enrollment_end_date"
-          :message-error="errors.enrollment_end_date"
+          v-model="enrollmentStartTime"
+          label="Hora de apertura"
+          hint-label="Por defecto, al inicio del día."
+          time-only
+          hour-format="24"
+          dayjs-format-value="HH:mm:ss"
+          dayjs-format-input="HH:mm"
+          @update:model-value="syncEnrollmentRange(fields)"
+        />
+        <DatePicketCore
+          v-model="enrollmentEndTime"
+          label="Hora de cierre"
+          hint-label="Por defecto, al final del día."
+          time-only
+          hour-format="24"
+          dayjs-format-value="HH:mm:ss"
+          dayjs-format-input="HH:mm"
+          @update:model-value="syncEnrollmentRange(fields)"
         />
       </div>
 
@@ -331,7 +400,9 @@ onMounted(async () => {
         -->
         <OfferCoursesField
           v-model="courseItems"
-          :enrollment-start-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
+          :enrollment-start-date="
+            enrollmentStartAsDate(fields.enrollment_start_date.value)
+          "
           :courses="courses"
           :teachers="teachers"
         />

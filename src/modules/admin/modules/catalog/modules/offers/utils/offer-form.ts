@@ -12,8 +12,22 @@ import type { OfferCourseItem, OfferSchedule } from "../models/offer.model";
  * no MYGB.
  */
 const STOP_WORDS = new Set([
-  "de", "del", "la", "las", "el", "los", "y", "e", "en", "para", "con", "a",
-  "al", "por", "un", "una",
+  "de",
+  "del",
+  "la",
+  "las",
+  "el",
+  "los",
+  "y",
+  "e",
+  "en",
+  "para",
+  "con",
+  "a",
+  "al",
+  "por",
+  "un",
+  "una",
 ]);
 
 /**
@@ -153,7 +167,9 @@ export const validateCourseItems = (
       enrollmentStart &&
       item.startDate < enrollmentStart.slice(0, 10)
     ) {
-      problems.push(`${label}: no puede iniciar antes de que abra la matrícula.`);
+      problems.push(
+        `${label}: no puede iniciar antes de que abra la matrícula.`,
+      );
     }
 
     if (item.meetLink && !/^https?:\/\/\S+$/i.test(item.meetLink)) {
@@ -191,4 +207,37 @@ export const validateCourseItems = (
   });
 
   return problems;
+};
+
+/**
+ * Une un día (`YYYY-MM-DD…`) con una hora (`HH:mm:ss`) en el formato que espera
+ * la API. Devuelve null si no hay día: media fecha no sirve.
+ */
+export const withTime = (
+  day: string | null | undefined,
+  time: string,
+): string | null => (day ? `${day.slice(0, 10)} ${time}` : null);
+
+/** Hora (`HH:mm:ss`) de una fecha guardada; el default si no la trae. */
+export const timeOf = (
+  value: string | null | undefined,
+  fallback: string,
+): string => {
+  if (!value || typeof value !== "string") return fallback;
+  const time = value.slice(11, 19);
+  return /^\d{2}:\d{2}:\d{2}$/.test(time) ? time : fallback;
+};
+
+/** Día (`YYYY-MM-DD`) de una fecha guardada, para armar el rango del picker. */
+export const dayOf = (value: string | null | undefined): string | null =>
+  value && typeof value === "string" ? value.slice(0, 10) : null;
+
+/**
+ * Fecha de inicio de matrícula como `Date`, que es lo que necesita el picker de
+ * los horarios del curso. El formulario guarda el string de la API.
+ */
+export const enrollmentStartAsDate = (value: unknown): Date | undefined => {
+  if (!value || typeof value !== "string") return undefined;
+  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
 };

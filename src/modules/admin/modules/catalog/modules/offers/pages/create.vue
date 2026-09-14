@@ -23,7 +23,9 @@ import { safeRequest } from "@/shared/utils/request";
 import {
   buildCourseItem,
   suggestPrefix,
+  enrollmentStartAsDate,
   validateCourseItems,
+  withTime,
 } from "../utils/offer-form";
 
 import type { Course } from "../../courses/models/course.model";
@@ -80,7 +82,6 @@ const enrollmentRange = ref<(string | null)[] | null>(null);
 const enrollmentStartTime = ref<string>("00:00:00");
 const enrollmentEndTime = ref<string>("23:59:59");
 
-
 /*
  * El prefijo se sugiere desde el nombre, pero el admin puede fijarlo a mano.
  * Con el check activo se resincroniza en cada cambio de nombre o de fecha;
@@ -135,12 +136,6 @@ const enrollmentMaxDate = shiftDays(ENROLLMENT_WINDOW_DAYS);
 const singleCourseId = ref<number | null>(null);
 
 /** El picker necesita un `Date`; el formulario guarda el string de la API. */
-const enrollmentStartAsDate = (value: unknown): Date | undefined => {
-  if (!value || typeof value !== "string") return undefined;
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
-
 const initialValues = {
   name: null,
   prefix: null,
@@ -178,9 +173,6 @@ const syncPrefix = (name: unknown, startDate: unknown, fields: Fields) => {
   );
 };
 /** Junta el día del rango con su hora: `2026-09-05` + `08:00:00`. */
-const withTime = (day: string | null | undefined, time: string): string | null =>
-  day ? `${day.slice(0, 10)} ${time}` : null;
-
 /**
  * Escribe en los dos campos que espera la API a partir del rango y las horas.
  *
@@ -304,13 +296,10 @@ const formSchema = z
     message: "La fecha de fin debe ser posterior a la de inicio",
     path: ["enrollment_end_date"],
   })
-  .refine(
-    (data) => data.type !== "learning_path" || !!data.learning_path_id,
-    {
-      message: "Debe seleccionar la línea de carrera",
-      path: ["learning_path_id"],
-    },
-  );
+  .refine((data) => data.type !== "learning_path" || !!data.learning_path_id, {
+    message: "Debe seleccionar la línea de carrera",
+    path: ["learning_path_id"],
+  });
 
 const onSubmit = (body: Record<string, unknown>) => {
   /*
@@ -345,7 +334,9 @@ onMounted(async () => {
   const [coursesResp, teachersResp, pathsResp] = await Promise.all([
     safeRequest(() => courseService.all(activeOnly), { showAlert: false }),
     safeRequest(() => teacherService.all(activeOnly), { showAlert: false }),
-    safeRequest(() => learningPathService.all(activeOnly), { showAlert: false }),
+    safeRequest(() => learningPathService.all(activeOnly), {
+      showAlert: false,
+    }),
   ]);
   if (coursesResp.status) courses.value = coursesResp.data ?? [];
   if (teachersResp.status) teachers.value = teachersResp.data ?? [];
@@ -422,7 +413,9 @@ onMounted(async () => {
         :invalid="!!errors.name"
         :message-error="errors.name"
         :messages-info="['Incluye la cohorte, ej: · Cohorte 2026-I']"
-        @update:model-value="syncPrefix($event, fields.enrollment_start_date.value, fields)"
+        @update:model-value="
+          syncPrefix($event, fields.enrollment_start_date.value, fields)
+        "
       />
 
       <div>
@@ -455,7 +448,12 @@ onMounted(async () => {
           :on="autoPrefix"
           @toggle="
             autoPrefix = $event;
-            $event && syncPrefix(fields.name.value, fields.enrollment_start_date.value, fields);
+            $event &&
+              syncPrefix(
+                fields.name.value,
+                fields.enrollment_start_date.value,
+                fields,
+              );
           "
         />
       </div>
@@ -478,8 +476,12 @@ onMounted(async () => {
           dayjs-format-value="YYYY-MM-DD"
           dayjs-format-input="DD/MM/YYYY"
           :show-time="false"
-          :invalid="!!errors.enrollment_start_date || !!errors.enrollment_end_date"
-          :message-error="errors.enrollment_start_date || errors.enrollment_end_date"
+          :invalid="
+            !!errors.enrollment_start_date || !!errors.enrollment_end_date
+          "
+          :message-error="
+            errors.enrollment_start_date || errors.enrollment_end_date
+          "
           @update:model-value="syncEnrollmentRange(fields, $event)"
         />
         <!--
@@ -596,7 +598,9 @@ onMounted(async () => {
           :courses="courses"
           :teachers="teachers"
           :lock-courses="true"
-          :enrollment-start-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
+          :enrollment-start-date="
+            enrollmentStartAsDate(fields.enrollment_start_date.value)
+          "
         />
       </div>
     </template>
