@@ -6,7 +6,6 @@ import { useRoute } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import templateService from "../services/template.service";
 import type { CertificateTemplateBodyDTO } from "../dto/template.dto";
 
@@ -36,11 +35,11 @@ const formSchema = z.object({
     .max(255, { message: "No puede tener más de 255 caracteres" }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await templateService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -58,6 +57,8 @@ onMounted(async () => {
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="certificateTemplates.list"
+    :loading-data="loadingData"
+    :skeleton-fields="4"
     submit-label="Actualizar"
     :service="
       (body) =>

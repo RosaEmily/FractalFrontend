@@ -9,7 +9,6 @@ import {
   TextAreaCore,
   DatePicketCore,
 } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import jobOfferService from "../services/job-offer.service";
 import type { JobOfferBodyDTO } from "../dto/job-offer.dto";
 
@@ -48,13 +47,17 @@ const formSchema = z.object({
   posted_at: z.string().nullable().optional(),
 });
 
-onMounted(async () => {
-  if (!route.params.id) return;
+const loadingData = ref<boolean>(true);
 
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
+onMounted(async () => {
+  // Sin id no hay nada que cargar: apagar el esqueleto o quedaría girando.
+  if (!route.params.id) {
+    loadingData.value = false;
+    return;
+  }
+
   const resp = await jobOfferService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -78,6 +81,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="jobOffers.list"
     :service="(body) => jobOfferService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="8"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

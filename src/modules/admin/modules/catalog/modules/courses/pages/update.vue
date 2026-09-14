@@ -17,7 +17,6 @@ import tagService from "../../tags/services/tag.service";
 
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import type { CourseBodyDTO } from "../dto/course.dto";
 
 const route = useRoute();
@@ -65,11 +64,11 @@ const formSchema = z.object({
   tags: z.array(z.number()).optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await courseService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
   initialValues.value = {
     name: resp.name,
@@ -88,6 +87,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="courses.list"
     :service="(body) => courseService.update(identifier, { ...body, image_url: image })"
+    :loading-data="loadingData"
+    :skeleton-fields="5"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

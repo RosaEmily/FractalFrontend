@@ -19,7 +19,6 @@ import currencyService from "../../currencies/services/currency.service";
 
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 
 const route = useRoute();
 
@@ -74,11 +73,11 @@ const onSubmit = (body: Record<string, unknown>) =>
     courses: toCourseItems(body.courses as number[]),
   } as never);
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await learningPathService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
   initialValues.value = {
     name: resp.name,
@@ -97,6 +96,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="learningPaths.list"
     :service="onSubmit"
+    :loading-data="loadingData"
+    :skeleton-fields="5"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

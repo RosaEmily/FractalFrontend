@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, InputNumberCore, SelectCore } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import { DECIMAL_PLACES_LIMIT } from "@/modules/admin/constants/numeric-limits";
 import CurrencyHint from "../components/currency-hint.vue";
 import currencyService from "../services/currency.service";
@@ -77,9 +76,9 @@ const applyCountry = (
   });
 };
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
 
   // `exclude` evita que la moneda en edición desaparezca del catálogo.
   const [current, list] = await Promise.all([
@@ -87,7 +86,7 @@ onMounted(async () => {
     currencyService.countries(identifier.value),
   ]);
   countries.value = list;
-  loadingStore.finish();
+  loadingData.value = false;
 
   if (!current) return;
 
@@ -119,6 +118,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="currencies.list"
     :service="(body) => currencyService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="3"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

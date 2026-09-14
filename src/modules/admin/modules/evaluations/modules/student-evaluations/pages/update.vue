@@ -12,7 +12,6 @@ import {
 } from "@/shared/components";
 import EnrollmentCourseSelect from "@/modules/admin/components/ui/enrollment-course-select.vue";
 import { SCORE_LIMIT } from "@/modules/admin/constants/numeric-limits";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import studentEvaluationService from "../services/student-evaluation.service";
 import courseEvaluationService from "../../course-evaluations/services/course-evaluation.service";
 import type { StudentEvaluationBodyDTO } from "../dto/student-evaluation.dto";
@@ -43,11 +42,11 @@ const formSchema = z.object({
   evaluated_at: z.string().nullable().optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await studentEvaluationService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -67,6 +66,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="studentEvaluations.list"
     :service="(body) => studentEvaluationService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="4"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

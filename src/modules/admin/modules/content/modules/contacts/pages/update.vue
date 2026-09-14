@@ -10,7 +10,6 @@ import {
   ToggleCore,
   LabelCore,
 } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import FieldPreview from "../../../components/field-preview.vue";
 import ContactPreview from "../components/contact-preview.vue";
 import contactService from "../services/contact.service";
@@ -42,11 +41,11 @@ const formSchema = z.object({
   isFavorite: z.boolean(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await contactService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -65,6 +64,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="contacts.list"
     :service="(body) => contactService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="3"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
