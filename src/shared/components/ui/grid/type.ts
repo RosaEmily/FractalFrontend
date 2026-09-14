@@ -99,12 +99,16 @@ export interface GridUiTableProps<T> {
 
 export interface GridUiTableProvider {
   setLoading: (value: boolean) => void;
-  refreshData: () => Promise<void>;
+  /** `force` salta el guard que solo compara orden y filtros. */
+  refreshData: (init?: boolean, force?: boolean) => Promise<void>;
 }
 
 export const GridKey: InjectionKey<GridUiTableProvider> = Symbol("Grid");
 
 export interface GridUiTableExpose {
-  refreshData: () => Promise<void>;
+  /** `force` salta el guard que solo compara orden y filtros. */
+  refreshData: (init?: boolean, force?: boolean) => Promise<void>;
   rowsSelected: NoInfer<any>[] | NoInfer<any>;
+  /** Limpia la selección sin recargar. */
+  clearSelection: () => void;
 }
