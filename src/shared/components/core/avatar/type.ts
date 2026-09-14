@@ -11,5 +11,11 @@ export interface AvatarCoreProps {
   pt?: AvatarProps["pt"];
   ptOptions?: AvatarProps["ptOptions"];
   unstyled?: AvatarProps["unstyled"];
+  /** Foto (URL) o nombre. Si es URL se muestra como imagen. */
   text?: string;
+  /**
+   * De dónde salen las iniciales cuando `text` es una URL que no carga.
+   * Sin esto se calcularían sobre la propia URL (una "H" de `https`).
+   */
+  fallbackText?: string;
 }
