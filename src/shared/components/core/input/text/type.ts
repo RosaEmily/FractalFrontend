@@ -15,6 +15,8 @@ export interface InputTextCoreProps {
   pt?: InputTextProps["pt"];
   ptOptions?: InputTextProps["ptOptions"];
   unstyled?: InputTextProps["unstyled"];
+  /** Tope duro de caracteres: el navegador impide teclear de más. */
+  maxlength?: number;
   messageError?: string | null;
   /** Marca visual de campo obligatorio en el label. */
   required?: boolean;

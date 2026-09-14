@@ -6,7 +6,7 @@ import { useRouter } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
-import { lettersSpaces, numbersOnly } from "@/shared/utils/zod/shortcuts";
+import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
 import {
   InputTextCore,
   InputPasswordCore,
@@ -20,6 +20,14 @@ import {
   ACADEMIC_DEGREE_OPTIONS,
 } from "@/modules/admin/constants/options";
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
+import {
+  getDocumentRule,
+  PHONE_PE,
+} from "@/modules/admin/constants/documents";
+import {
+  documentNumberSchema,
+  phoneSchema,
+} from "@/modules/admin/utils/document-schema";
 
 import { useToastStore } from "@/shared/stores/useToastStore";
 import userService from "@/modules/admin/modules/security/modules/users/services/user.service";
@@ -41,6 +49,13 @@ const toast = useToastStore();
 const roleId = ref<number | null>(null);
 const photo = ref<File | null>(null);
 
+/*
+ * El tipo de documento elegido. Se sigue aparte de `CrudForm` porque de él
+ * dependen la longitud válida, la máscara y el texto de ayuda del número.
+ */
+const documentType = ref<string | null>(null);
+const documentRule = computed(() => getDocumentRule(documentType.value));
+
 const initialValues = ref<UserBodyDTO>({
   first_name: null,
   last_name: null,
@@ -49,6 +64,8 @@ const initialValues = ref<UserBodyDTO>({
   email: null,
   password: null,
   gender: null,
+  // El alta de docente no lo expone; la API aplica el default de la columna.
+  max_sessions: 1,
   document_type: null,
   document_number: null,
   phone: null,
@@ -85,7 +102,8 @@ onMounted(async () => {
   }
 });
 
-const formSchema = z.object({
+const formSchema = computed(() =>
+  z.object({
   first_name: withRefinements(
     z
       .string({ message: "El nombre es obligatorio" })
@@ -109,14 +127,8 @@ const formSchema = z.object({
     .min(6, { message: "Debe tener al menos 6 caracteres" }),
   gender: z.enum(["m", "f", "o"], { message: "Debes seleccionar un género" }),
   document_type: z.string({ message: "El tipo de documento es obligatorio" }),
-  document_number: withRefinements(
-    z
-      .string({ message: "El número de documento es obligatorio" })
-      .min(6, { message: "Debe tener al menos 6 caracteres" })
-      .max(50),
-    numbersOnly,
-  ),
-  phone: z.string({ message: "El teléfono es obligatorio" }).max(20),
+  document_number: documentNumberSchema(documentType.value),
+  phone: phoneSchema(),
   specialty: z
     .string({ message: "La especialidad es obligatoria" })
     .max(255),
@@ -127,10 +139,11 @@ const formSchema = z.object({
     .max(EXPERIENCE_YEARS_LIMIT.max, {
       message: `No puede superar ${EXPERIENCE_YEARS_LIMIT.max} años`,
     }),
-  academic_degree: z.string({ message: "El grado académico es obligatorio" }),
+  academic_degree: z.string({ message: "El título académico es obligatorio" }),
   other_academic_degree: z.string().max(100).nullable().optional(),
-  description: z.string().nullable().optional(),
-});
+    description: z.string().nullable().optional(),
+  }),
+);
 
 /** Manda el rol y la foto junto al resto: `BaseRepository` arma el multipart. */
 const onSubmit = (body: Record<string, unknown>) =>
@@ -208,12 +221,20 @@ const onSubmit = (body: Record<string, unknown>) =>
         <InputTextCore
           v-model="fields.phone.value"
           label="Teléfono"
+          :hint-label="PHONE_PE.hint"
+          :maxlength="PHONE_PE.length"
           :invalid="!!errors.phone"
           :message-error="errors.phone"
+          v-keyfilter.numbersOnly
         />
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!--
+          El tipo se replica en `documentType` porque de él dependen la
+          longitud válida, el tope de caracteres y el texto de ayuda del
+          número; `CrudForm` guarda los campos en su propio estado.
+        -->
         <SelectCore
           v-model="fields.document_type.value"
           label="Tipo de documento"
@@ -223,13 +244,16 @@ const onSubmit = (body: Record<string, unknown>) =>
           placeholder="Selecciona un tipo"
           :invalid="!!errors.document_type"
           :message-error="errors.document_type"
+          @update:model-value="documentType = ($event as string) ?? null"
         />
         <InputTextCore
           v-model="fields.document_number.value"
           label="Número de documento"
+          :hint-label="documentRule.hint"
+          :maxlength="documentRule.length ?? documentRule.max"
           :invalid="!!errors.document_number"
           :message-error="errors.document_number"
-          v-keyfilter.numbersOnly
+          v-keyfilter="documentRule.numericOnly ? /^\d+$/ : /^[A-Za-z0-9]+$/"
         />
       </div>
 
@@ -253,19 +277,19 @@ const onSubmit = (body: Record<string, unknown>) =>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectCore
           v-model="fields.academic_degree.value"
-          label="Grado académico"
+          label="Título académico"
           :options="ACADEMIC_DEGREE_OPTIONS"
           option-label="label"
           option-value="value"
-          placeholder="Selecciona un grado"
+          placeholder="Selecciona un título"
           :invalid="!!errors.academic_degree"
           :message-error="errors.academic_degree"
         />
-        <!-- La API lo exige solo cuando el grado es "other". -->
+        <!-- La API lo exige solo cuando el título es "other". -->
         <InputTextCore
           v-if="fields.academic_degree.value === 'other'"
           v-model="fields.other_academic_degree.value"
-          label="Especifica el grado"
+          label="Especifica el título"
           :invalid="!!errors.other_academic_degree"
           :message-error="errors.other_academic_degree"
         />
