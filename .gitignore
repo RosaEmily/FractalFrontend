@@ -1,5 +1,12 @@
 # Logs
-logs
+# ⚠️ Anclado a la raíz: sin la barra, `logs` ignora CUALQUIER carpeta con ese
+# nombre a cualquier profundidad — se tragaba
+# `src/modules/admin/modules/system/modules/logs/` (el módulo de Bitácora).
+# Efecto doble: git nunca lo versionó, y Tailwind v4 (que respeta .gitignore al
+# escanear) no generaba las clases que solo usa ese módulo, así que el `<pre>`
+# del stack trace se quedaba sin `max-h-*` ni `overflow-auto` y desbordaba el
+# modal.
+/logs
 *.log
 npm-debug.log*
 yarn-debug.log*
