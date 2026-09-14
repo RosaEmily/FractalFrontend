@@ -14,11 +14,14 @@ const userStore = useUserStore();
 withDefaults(
   defineProps<{
     avatar?: string;
+    /** Nombre para las iniciales si `avatar` es una URL que no carga. */
+    avatarFallback?: string;
     fullName?: string;
     role?: string;
   }>(),
   {
     avatar: "",
+    avatarFallback: "",
     fullName: "",
     role: "",
   },
@@ -71,6 +74,23 @@ const menu = computed<MenuItem[]>(() => {
   return filterByRoles(MENU, roles);
 });
 
+/**
+ * Grupos que el usuario abrió a mano, por `id`.
+ *
+ * Vive acá y no en `item.show` porque `MENU` es una constante de módulo (no
+ * reactiva) y `filterByRoles` devuelve copias: mutar el ítem no re-renderizaba
+ * y el estado se perdía al reevaluarse `menu`.
+ *
+ * Un `Set` en un `ref` no es reactivo por mutación: hay que reasignarlo.
+ */
+const openGroups = ref<Set<string | number>>(new Set());
+
+const toggleGroup = (id: string | number) => {
+  const next = new Set(openGroups.value);
+  next.has(id) ? next.delete(id) : next.add(id);
+  openGroups.value = next;
+};
+
 const toggleLabel = computed(() =>
   isCollapsed.value ? "Expandir menú" : "Colapsar menú",
 );
@@ -96,7 +116,12 @@ const onRedirect = (item: MenuItem) => {
       class="mb-4.5 bg-surface-paper rounded-adm-md border border-line flex items-center gap-3"
       :class="isCollapsed ? 'mx-3 p-2 justify-center' : 'mx-4 p-3'"
     >
-      <AvatarCore size="large" :text="avatar" shape="circle" />
+      <AvatarCore
+        size="large"
+        :text="avatar"
+        :fallback-text="avatarFallback || fullName"
+        shape="circle"
+      />
       <div v-if="!isCollapsed" class="min-w-0 flex-1">
         <div
           class="font-display text-adm-base font-bold text-secondary-900 tracking-tight truncate"
@@ -115,7 +140,9 @@ const onRedirect = (item: MenuItem) => {
       <ListNavVertical
         :menu="menu"
         :isCollapsed="isCollapsed"
+        :open-groups="openGroups"
         @menu-click="onRedirect"
+        @toggle-group="toggleGroup"
       />
     </nav>
 

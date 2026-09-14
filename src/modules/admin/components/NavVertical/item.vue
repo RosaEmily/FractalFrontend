@@ -19,6 +19,8 @@ const props = withDefaults(
   defineProps<{
     item: MenuItem;
     isCollapsed?: boolean;
+    /** Ids de los grupos abiertos. El estado vive en el nav, no en el ítem. */
+    openGroups: Set<string | number>;
   }>(),
   {
     isCollapsed: false,
@@ -27,6 +29,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: "menu-click", item: MenuItem): void;
+  (e: "toggle-group", id: string | number): void;
 }>();
 
 const getRouteName = (route?: RouteLocationRaw | null): string | null => {
@@ -74,12 +77,19 @@ const hasActiveChild = (items?: MenuItem[]): boolean => {
   });
 };
 
+/**
+ * El grupo está abierto si el usuario lo abrió, o si contiene la ruta actual.
+ *
+ * ⚠️ El estado NO puede vivir en `item.show`: los ítems vienen de la constante
+ * `MENU` (no reactiva) y además el filtro por roles del nav devuelve COPIAS
+ * (`{ ...item, children }`), así que mutar el ítem no re-renderizaba nada y el
+ * valor se perdía en cuanto el computed del menú se reevaluaba. Ese era el bug
+ * de "hago clic y el menú no despliega".
+ */
 const show = computed(() => {
-  const { item } = props;
+  const { item, openGroups } = props;
   if (!item.children?.length) return false;
-  if (item.show !== undefined) {
-    return item.show;
-  }
+  if (openGroups.has(item.id)) return true;
   return hasActiveChild(item.children);
 });
 
@@ -90,12 +100,8 @@ const hasChildren = computed(() => {
 const menuClick = () => {
   const { item, isCollapsed } = props;
   if (item.children?.length) {
-    if (!isCollapsed) {
-      if (item.show === undefined) {
-        item.show = show.value;
-      }
-      item.show = !item.show;
-    }
+    // Colapsado los hijos se muestran siempre: no hay nada que alternar.
+    if (!isCollapsed) emit("toggle-group", item.id);
   } else {
     emit("menu-click", item);
   }
@@ -182,6 +188,8 @@ const menuClick = () => {
     :class="isCollapsed ? 'flex flex-col gap-1' : 'ml-4 pl-3 border-l border-line'"
     :menu="item.children ?? []"
     :is-collapsed="isCollapsed"
+    :open-groups="openGroups"
     @menu-click="emit('menu-click', $event)"
+    @toggle-group="emit('toggle-group', $event)"
   />
 </template>
