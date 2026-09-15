@@ -9,6 +9,14 @@ export interface OfferCourse {
   image_alt: string;
   tags: string[];
   teacher: string;
+  /** Datos del docente que guarda `teachers`; null si el curso no lo tiene. */
+  teacher_detail: {
+    specialty: string | null;
+    experience_years: number | null;
+    description: string | null;
+    academic_degree_name: string | null;
+    photo_url: string | null;
+  } | null;
   start_date: string;
   end_date: string;
   schedules: { day: string; start_time: string; end_time: string }[];
