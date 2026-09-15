@@ -142,6 +142,34 @@ export const hasSession = (zone: AppZone): boolean =>
   Boolean(Cookies.get(userCookie(zone)));
 
 /**
+ * Duración por defecto del perfil cuando se reconstruye sin saber la caducidad
+ * real. `auth/me` no devuelve `expires_at` — solo el login lo hace.
+ *
+ * 5 h es `API_TOKEN_EXPIRE_MINUTES` (300). Si la sesión real muere antes, la
+ * API responde 401 y el interceptor limpia: esta cookie es una señal, no la
+ * autoridad.
+ */
+const DEFAULT_SESSION_HOURS = 5;
+
+/**
+ * Rehace la cookie de perfil a partir de un `auth/me`, cuando el token sigue
+ * vivo pero el perfil se perdió.
+ *
+ * ⚠️ Pasa de verdad: la sesión son DOS cookies —la HttpOnly del backend y esta,
+ * que escribe el JS— y el login las crea en dos pasos. Si el segundo falla (o
+ * se borra solo esta a mano), queda un token válido que el guard no puede ver,
+ * y el usuario rebota al login para siempre aunque esté autenticado.
+ */
+export const restoreSessionUser = (zone: AppZone, user: unknown): void => {
+  const expires = getSessionExpires(zone);
+  const expiresAt = expires
+    ? new Date(expires)
+    : new Date(Date.now() + DEFAULT_SESSION_HOURS * 60 * 60 * 1000);
+
+  setSessionUser(zone, JSON.stringify(user), expiresAt);
+};
+
+/**
  * Cierra la sesión cuando la API responde 401 (token inválido o expirado) y
  * manda al login conservando la ruta actual para volver tras reingresar.
  *

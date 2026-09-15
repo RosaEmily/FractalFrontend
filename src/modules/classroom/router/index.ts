@@ -86,6 +86,20 @@ export const routesClassroom: RouteRecordRaw[] = [
         },
       },
       {
+        /*
+         * Página completa de avisos: el "Ver todas" del panel de la campana.
+         * Solo STUDENT — `/me/notifications` es `authorize:STUDENT` y no hay
+         * endpoint equivalente para docente ni coordinación.
+         */
+        path: "notificaciones",
+        name: "classroom-notifications",
+        component: () => import("../pages/student/notifications.vue"),
+        meta: {
+          roles: ["STUDENT"],
+          page: { base: { title: "Notificaciones" } },
+        },
+      },
+      {
         path: "certificados",
         name: "classroom-certificates",
         component: () => import("../pages/student/certificates.vue"),

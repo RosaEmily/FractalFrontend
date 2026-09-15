@@ -6,10 +6,12 @@ import {
   clearSession,
   getSessionUserRaw,
   hasSession,
+  restoreSessionUser,
   roleNames,
   zoneFromPath,
   type AppZone,
 } from "@/shared/utils/session";
+import meService from "@/modules/admin/services/auth.service";
 
 import { routesLanding } from "@/modules/landing/router";
 import { routesAuth } from "@/modules/auth/router";
@@ -62,7 +64,47 @@ const getUserRoles = (zone: AppZone): string[] => {
   return roleNames(user.roles);
 };
 
-router.beforeEach((to, _, next) => {
+/**
+ * Zonas cuyo perfil ya se intentó recuperar en esta carga de página.
+ *
+ * Evita que una sesión realmente muerta dispare un `auth/me` por cada
+ * navegación: si el primer intento falla, se deja de preguntar.
+ */
+const recoveryTried = new Set<AppZone>();
+
+/**
+ * Rescata la sesión cuando falta la cookie de PERFIL pero puede quedar token.
+ *
+ * La sesión son dos cookies: la HttpOnly que emite el backend (invisible para
+ * el JS) y la de perfil que escribe el login. Si la segunda se pierde —el login
+ * falló entre un paso y otro, se borró a mano, caducó antes— el guard concluía
+ * "no hay sesión" y mandaba al login **aunque el token siguiera vivo**. El
+ * usuario quedaba encerrado: entraba, volvía al login, y otra vez.
+ *
+ * Ahora se le pregunta a la API una vez. Si el token sirve, se rehace el perfil
+ * y la navegación continúa; si no, `auth/me` responde 401 y se sigue al login,
+ * que es el comportamiento correcto.
+ *
+ * ⚠️ Se intenta UNA sola vez por zona y carga de página: sin ese tope, un
+ * usuario sin sesión dispararía una petición en cada navegación.
+ */
+const tryRecoverSession = async (zone: AppZone): Promise<boolean> => {
+  if (recoveryTried.has(zone)) return false;
+  recoveryTried.add(zone);
+
+  try {
+    const user = await meService.me();
+    if (!user) return false;
+
+    restoreSessionUser(zone, user);
+    return true;
+  } catch {
+    // 401/403/red caída: no hay sesión que rescatar, sigue el flujo normal.
+    return false;
+  }
+};
+
+router.beforeEach(async (to, _, next) => {
   // Page
   if (to.meta.page) {
     applyPageMeta(to.meta.page);
@@ -85,7 +127,16 @@ router.beforeEach((to, _, next) => {
    * de esa zona como señal, y la API responde 401 si la sesión real no vale —
    * el interceptor se encarga de esa redirección.
    */
-  const isAuthenticated = hasSession(zone);
+  let isAuthenticated = hasSession(zone);
+
+  /*
+   * Sin perfil pero con ruta protegida: puede ser una sesión a medias, no una
+   * ausencia de sesión. Se comprueba contra la API antes de rebotar.
+   */
+  if (!isAuthenticated && (to.meta.auth || to.meta.guestOnly)) {
+    isAuthenticated = await tryRecoverSession(zone);
+  }
+
   const userRoles = getUserRoles(zone);
 
   /*
@@ -134,6 +185,11 @@ router.beforeEach((to, _, next) => {
     const hasAccess = userRoles.some((role) => allowedRoles.includes(role));
 
     if (!hasAccess) {
+      /*
+       * El perfil no sirve para esta zona: al descartarlo hay que permitir un
+       * nuevo intento de rescate, o el siguiente login quedaría sin red.
+       */
+      recoveryTried.delete(zone);
       clearSession(zone);
 
       return next({

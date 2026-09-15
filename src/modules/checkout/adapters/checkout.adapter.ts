@@ -33,22 +33,39 @@ export const CartItemAdapter = {
     // Igual que el detalle del programa: la forma la da el nº de cursos, no
     // el campo `type`.
     const isPath = courseCount > 1;
+    const months = offer.duration_months ?? 0;
 
     return {
       offerId: offer.id,
       name: offer.name,
       prefix: offer.prefix,
       imageUrl: offer.image_url,
-      // La API serializa los decimales como string ("77.90").
-      price: Number(offer.price),
+      /*
+       * ⚠️ `price_raw`, NO `price`: el listado público devuelve `price` ya
+       * FORMATEADO (`"$ 199.99"`), y `Number()` sobre eso da NaN — el carrito
+       * entero mostraba `S/ NaN`. `price_raw` trae el decimal crudo, que la API
+       * serializa como string.
+       */
+      price: Number(offer.price_raw ?? 0),
       isPath,
       kind: isPath ? "Línea de carrera" : "Curso individual",
-      meta: isPath
-        ? `${courseCount} cursos · ${offer.duration_months} meses`
-        : `${offer.duration_months} meses · ${offer.courses?.[0]?.schedules?.length ?? 0} días/sem`,
+      /*
+       * La duración se deriva de las fechas de los cursos, así que un programa
+       * sin fechas cargadas no la tiene. Se omite en vez de escribir "0 meses",
+       * que afirma algo falso.
+       */
+      meta: [
+        isPath ? `${courseCount} cursos` : null,
+        months ? `${months} ${months === 1 ? "mes" : "meses"}` : null,
+        isPath
+          ? null
+          : `${offer.courses?.[0]?.schedules?.length ?? 0} días/sem`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       courseCount,
-      durationMonths: offer.duration_months,
-      currencyId: (offer as unknown as { currency_id?: number }).currency_id ?? 1,
+      durationMonths: months,
+      currencyId: offer.currency_id ?? 1,
     };
   },
 };

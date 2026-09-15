@@ -20,9 +20,36 @@ export interface CertificateDTO {
   updated_at: string;
 }
 
+/**
+ * ⚠️ Sin `code`: lo genera el SERVIDOR con una secuencia continua
+ * (`FRAC-{año}-{#####}`) y es de solo lectura. Mandarlo no hace nada — el
+ * Request de la API lo descarta.
+ */
 export interface CertificateBodyDTO {
   enrollment_course_id: number | null;
   certificate_template_id: number | null;
-  code: string | null;
   issued_date: string | null;
+}
+
+/** Un curso de la emisión masiva: plantilla y fecha propias por curso. */
+export interface CertificateBulkItemDTO {
+  certificate_template_id: number;
+  issued_date: string | null;
+  enrollment_course_ids: number[];
+}
+
+export interface CertificateBulkBodyDTO {
+  items: CertificateBulkItemDTO[];
+}
+
+/** Motivo por el que un alumno quedó fuera del lote. */
+export interface CertificateBulkSkippedDTO {
+  enrollment_course_id: number;
+  reason: string;
+}
+
+export interface CertificateBulkResultDTO {
+  issued: number;
+  skipped: CertificateBulkSkippedDTO[];
+  codes: string[];
 }

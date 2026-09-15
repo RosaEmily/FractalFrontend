@@ -3,6 +3,7 @@ import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
 import CartItemRow from "../components/CartItemRow.vue";
+import CartUpsell from "../components/CartUpsell.vue";
 import CheckoutSummary from "../components/CheckoutSummary.vue";
 import CheckoutLayout from "../layouts/main.vue";
 import { useCartStore } from "../stores/useCartStore";
@@ -15,8 +16,13 @@ const router = useRouter();
  * `localStorage`, así que puede traer un programa cuyo cupo se llenó hace días.
  * Enterarse al final del flujo sería peor.
  */
-onMounted(() => {
-  if (!cart.isEmpty) cart.validate();
+onMounted(async () => {
+  if (cart.isEmpty) return;
+
+  // Antes de validar, recuperar los ítems cuyo precio guardado quedó inservible
+  // (ver `refreshStaleItems`): si no, el resumen muestra S/ 0.00.
+  await cart.refreshStaleItems();
+  await cart.validate();
 });
 
 const goNext = () => router.push({ name: "checkout-auth" });
@@ -26,10 +32,24 @@ const goNext = () => router.push({ name: "checkout-auth" });
   <CheckoutLayout step="cart">
     <!-- ── Carrito vacío ─────────────────────────────────────────────── -->
     <div v-if="cart.isEmpty" class="mx-auto max-w-md py-10 text-center">
-      <div class="mx-auto grid size-16 place-items-center rounded-pill bg-surface-cream">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="text-secondary-400" aria-hidden="true">
-          <path d="M3 4h2.2l2.1 10.4a1.6 1.6 0 0 0 1.6 1.3h7.8a1.6 1.6 0 0 0 1.6-1.25L20 8H6.2"
-            stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      <div
+        class="mx-auto grid size-16 place-items-center rounded-pill bg-surface-cream"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          class="text-secondary-400"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 4h2.2l2.1 10.4a1.6 1.6 0 0 0 1.6 1.3h7.8a1.6 1.6 0 0 0 1.6-1.25L20 8H6.2"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
           <circle cx="9.5" cy="19" r="1.4" fill="currentColor" />
           <circle cx="17" cy="19" r="1.4" fill="currentColor" />
         </svg>
@@ -53,10 +73,14 @@ const goNext = () => router.push({ name: "checkout-auth" });
     <!-- ── Carrito con ítems (layout A: lista + resumen lateral) ─────── -->
     <div v-else class="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
       <section>
-        <p class="font-mono text-[0.688rem] tracking-[0.08em] text-secondary-400 uppercase">
+        <p
+          class="font-mono text-[0.688rem] tracking-[0.08em] text-secondary-400 uppercase"
+        >
           Paso 1 de 4
         </p>
-        <h1 class="mt-1.5 font-display text-3xl font-bold tracking-tight text-secondary-900">
+        <h1
+          class="mt-1.5 font-display text-3xl font-bold tracking-tight text-secondary-900"
+        >
           Tu carrito
         </h1>
         <p class="mt-2 text-[0.906rem] text-secondary-500">
@@ -82,6 +106,9 @@ const goNext = () => router.push({ name: "checkout-auth" });
             @remove="cart.remove"
           />
         </div>
+
+        <!-- Recomendaciones: solo se dibuja si hay algo que recomendar. -->
+        <CartUpsell />
       </section>
 
       <aside class="lg:sticky lg:top-28">

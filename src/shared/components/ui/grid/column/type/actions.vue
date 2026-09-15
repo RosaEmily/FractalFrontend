@@ -114,7 +114,9 @@ const onClick = async (action: Action) => {
             summary: "Eliminación",
             detail: "El registro fue eliminado correctamente.",
           });
-          gridKey?.refreshData();
+          // Forzado: la fila ya no existe en el servidor, pero orden y filtros
+          // siguen iguales y el guard interno bloquearía el refetch.
+          gridKey?.refreshData(false, true);
         }
       },
     });
@@ -124,7 +126,12 @@ const onClick = async (action: Action) => {
 };
 </script>
 <template>
-  <div class="flex gap-2 items-center">
+  <!--
+    `justify-center` + `w-full`: las acciones van CENTRADAS en su columna
+    (pedido de Sandro, sep 2026 — el diseño usaba `flex-end`). Sin el `w-full`
+    el div se encoge al contenido y la justificación no tiene efecto.
+  -->
+  <div class="flex w-full gap-2 items-center justify-center">
     <template v-for="(rawAction, index) in col.actions" :key="index">
       <ButtonCore
         v-if="rawAction.type == 'delete' || rawAction.type == 'button'"

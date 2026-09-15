@@ -3,6 +3,8 @@ import { z } from "zod";
 import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ModeToggle from "@/modules/admin/components/ui/mode-toggle.vue";
+import CreateBulk from "./create-bulk.vue";
 import {
   InputNumberCore,
   SelectCore,
@@ -23,6 +25,14 @@ const initialValues = ref<StudentEvaluationBodyDTO>({
   evaluated_at: null,
 });
 
+/* Individual / Masivo comparten la ruta `create`: son formularios distintos. */
+const MODE_OPTIONS = [
+  { value: "individual", label: "Un estudiante" },
+  { value: "bulk", label: "Varios cursos" },
+];
+
+const mode = ref<string>("individual");
+
 const formSchema = z.object({
   enrollment_course_id: z.number({
     message: "Selecciona el curso de la matrícula",
@@ -40,7 +50,10 @@ const formSchema = z.object({
 </script>
 
 <template>
+  <CreateBulk v-if="mode === 'bulk'" v-model:mode="mode" />
+
   <CrudForm
+    v-else
     title="Registrar nota"
     :schema="formSchema"
     :initialValues="initialValues"
@@ -48,6 +61,8 @@ const formSchema = z.object({
     :service="(body) => studentEvaluationService.create(body)"
   >
     <template #default="{ fields, errors }">
+      <ModeToggle v-model="mode" :options="MODE_OPTIONS" />
+
       <EnrollmentCourseSelect
         v-model="fields.enrollment_course_id.value"
         :invalid="!!errors.enrollment_course_id"

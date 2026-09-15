@@ -1,4 +1,6 @@
 import { z } from "zod";
+import dayjs from "dayjs";
+import { DAY_OF_WEEK_OPTIONS } from "@/modules/admin/modules/catalog/modules/offers/constants/offer.constant";
 
 /**
  * Reglas del formulario de Clases.
@@ -61,3 +63,26 @@ export const classSessionSchema = z
       path: ["end_time"],
     },
   );
+
+/**
+ * Próxima fecha (incluido hoy) que cae en ese día de la semana, en `YYYY-MM-DD`.
+ *
+ * La usa el alta masiva para proponer la primera clase de cada horario.
+ *
+ * ⚠️ `dayOfWeek` llega de la API en INGLÉS (`monday`…`sunday`, varchar en la
+ * BD). El índice sale de `DAY_OF_WEEK_OPTIONS`, que es el mismo orden que
+ * espera la API; `dayjs().day()` usa 0 = domingo, de ahí el `% 7`.
+ */
+export const nextDateForDay = (dayOfWeek: string): string => {
+  const index = DAY_OF_WEEK_OPTIONS.findIndex((d) => d.value === dayOfWeek);
+
+  // Día desconocido: se propone hoy antes que una fecha inventada.
+  if (index < 0) return dayjs().format("YYYY-MM-DD");
+
+  // DAY_OF_WEEK_OPTIONS arranca en lunes (0) y dayjs en domingo (0).
+  const target = (index + 1) % 7;
+  const today = dayjs();
+  const diff = (target - today.day() + 7) % 7;
+
+  return today.add(diff, "day").format("YYYY-MM-DD");
+};

@@ -12,7 +12,11 @@ import {
 import authService from "../services/auth.service";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import { safeRequest } from "@/shared/utils/request";
-import { clearSession, roleNames, setSessionUser } from "@/shared/utils/session";
+import {
+  clearSession,
+  roleNames,
+  setSessionUser,
+} from "@/shared/utils/session";
 import { ErrorCode } from "@/shared/constants/error-code";
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -94,6 +98,23 @@ const { fields, handleSubmit, errors } = useFormFields<{
   schema: loginSchema,
 });
 
+/**
+ * Descarta una sesión que se creó pero no se pudo completar.
+ *
+ * ⚠️ `clearSession()` solo borra las cookies VISIBLES; la de sesión es HttpOnly
+ * y la controla el backend. Si el login autentica pero falla después (no llega
+ * el perfil, el rol no corresponde), borrar solo las visibles deja un token
+ * vivo que el guard no puede ver: el usuario queda con media sesión y rebota al
+ * login una y otra vez sin entender por qué.
+ *
+ * El logout lo cierra de verdad. Si esa llamada falla, al menos las visibles se
+ * limpian igual.
+ */
+const discardSession = async () => {
+  await safeRequest(() => meService.logout(), { showAlert: false });
+  clearSession(variant.value.zone);
+};
+
 const onSubmit = handleSubmit(async (values) => {
   try {
     loading.value = true;
@@ -153,7 +174,7 @@ const onSubmit = handleSubmit(async (values) => {
        * zona donde cada petición respondería 401.
        */
       if (!user) {
-        clearSession(variant.value.zone);
+        await discardSession();
         messageError.value =
           "No pudimos cargar tu perfil. Vuelve a intentarlo en unos segundos.";
         return;
@@ -174,7 +195,7 @@ const onSubmit = handleSubmit(async (values) => {
       const userRoles = roleNames(user.roles);
 
       if (!userRoles.some((role) => variant.value.roles.includes(role))) {
-        clearSession(variant.value.zone);
+        await discardSession();
         messageError.value =
           "No pudimos confirmar tu acceso a esta zona. Vuelve a intentarlo.";
         return;
@@ -227,14 +248,18 @@ const onSubmit = handleSubmit(async (values) => {
         class="hidden lg:flex relative overflow-hidden bg-admin-pane border-r border-line px-14 pt-14 pb-10 flex-col"
       >
         <!-- retícula tipo plano, marca de la casa -->
-        <div class="pointer-events-none absolute inset-0 opacity-50 login-grid" />
+        <div
+          class="pointer-events-none absolute inset-0 opacity-50 login-grid"
+        />
 
         <div class="relative">
           <ImageCore image-class="h-10" :src="Logo" />
         </div>
 
         <div class="relative mt-auto max-w-120">
-          <span class="font-mono text-adm-xs text-secondary-500 tracking-[0.08em]">
+          <span
+            class="font-mono text-adm-xs text-secondary-500 tracking-[0.08em]"
+          >
             {{ variant.eyebrow }}
           </span>
           <h1
@@ -293,7 +318,9 @@ const onSubmit = handleSubmit(async (values) => {
           <!-- El logo solo aquí cuando no hay panel de marca -->
           <ImageCore image-class="h-9 mb-8 lg:hidden" :src="Logo" />
 
-          <span class="font-mono text-adm-xs text-secondary-400 tracking-widest">
+          <span
+            class="font-mono text-adm-xs text-secondary-400 tracking-widest"
+          >
             FORMULARIO DE ACCESO
           </span>
           <h2
@@ -333,7 +360,9 @@ const onSubmit = handleSubmit(async (values) => {
             />
             <InputTextCore
               v-model="fields.email.value"
-              :label="isClassroom ? 'Correo electrónico' : 'Correo institucional'"
+              :label="
+                isClassroom ? 'Correo electrónico' : 'Correo institucional'
+              "
               required
               :placeholder="
                 isClassroom
@@ -414,8 +443,15 @@ const onSubmit = handleSubmit(async (values) => {
 /* Retícula del panel de marca: patrón puntual, no reutilizable como token. */
 .login-grid {
   background-image:
-    linear-gradient(color-mix(in srgb, var(--color-secondary-900) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-secondary-900) 5%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      color-mix(in srgb, var(--color-secondary-900) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-secondary-900) 5%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 2rem 2rem;
 }
 </style>

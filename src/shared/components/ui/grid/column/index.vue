@@ -43,19 +43,19 @@ const col = computed(() => ({
     :key="col.field"
     :field="String(col.field)"
     :header-class="`uppercase ${
-      col.field === 'actions' ? '!text-right' : '!text-left'
+      col.field === 'actions' ? '!text-center' : '!text-left'
     } ${col.headerClass || ''}`"
   >
     <template #body="{ data }">
       <!--
-        El diseño alinea el contenido a la izquierda salvo la columna de
-        acciones; `col.class` permite ajustarlo por columna.
+        El contenido va a la izquierda salvo la columna de acciones, que se
+        centra junto a su cabecera; `col.class` permite ajustarlo por columna.
       -->
       <div
         class="flex items-center"
         :class="[
           col.field === 'actions'
-            ? 'justify-end text-right'
+            ? 'justify-center text-center'
             : 'justify-start text-left',
           col.class,
         ]"

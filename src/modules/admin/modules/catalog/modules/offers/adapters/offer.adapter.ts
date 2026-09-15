@@ -1,3 +1,4 @@
+import { dayOf } from "../utils/offer-form";
 import type {
   Offer,
   OfferCourseItem,
@@ -23,8 +24,14 @@ export const OfferAdapter = {
         courseId: item.course_id,
         name: item.name,
         teacherId: item.teacher_id,
-        startDate: item.start_date,
-        endDate: item.end_date,
+        /*
+         * ⚠️ La API devuelve `YYYY-MM-DD HH:mm:ss` y el picker está declarado
+         * con `dayjs-format-value="YYYY-MM-DD"`. Con la hora pegada el valor no
+         * casa con el formato y el campo salía VACÍO al editar: el programa
+         * tenía fechas guardadas y la pantalla no las mostraba.
+         */
+        startDate: dayOf(item.start_date),
+        endDate: dayOf(item.end_date),
         meetLink: item.meet_link,
         schedules: (item.schedules ?? []).map(
           (schedule): OfferSchedule => ({

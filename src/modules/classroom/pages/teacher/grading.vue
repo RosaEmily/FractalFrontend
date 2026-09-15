@@ -35,7 +35,11 @@ const edits = ref<Record<string, number | null>>({});
 const cellKey = (studentId: number, evaluationId: number) =>
   `${studentId}:${evaluationId}`;
 
-const hasChanges = computed(() => Object.keys(edits.value).length > 0);
+const hasChanges = computed(
+  () =>
+    Object.keys(edits.value).length > 0 ||
+    Object.keys(feedbackEdits.value).length > 0,
+);
 
 /** Celdas sin nota donde la evaluación ya existe: lo que falta por registrar. */
 const missing = computed(() =>
@@ -92,6 +96,31 @@ const onEdit = (studentId: number, evaluationId: number, value: string) => {
     trimmed === "" ? null : Number(trimmed);
 };
 
+/*
+ * Comentario por nota, aparte de la nota misma.
+ *
+ * ⚠️ Va en su propio registro y NO en `edits`: una celda puede tener comentario
+ * sin tocar la nota (corregir una devolución) y al revés. Mezclarlos haría que
+ * escribir un comentario mandara `score: null` y borrara la nota.
+ */
+const feedbackEdits = ref<Record<string, string>>({});
+
+const feedbackOf = (studentIndex: number, evaluationId: number): string => {
+  const key = cellKey(
+    data.value?.students[studentIndex]?.enrollment_course_id ?? 0,
+    evaluationId,
+  );
+  return (
+    feedbackEdits.value[key] ??
+    scoreOf(studentIndex, evaluationId)?.feedback ??
+    ""
+  );
+};
+
+const onFeedback = (studentId: number, evaluationId: number, value: string) => {
+  feedbackEdits.value[cellKey(studentId, evaluationId)] = value;
+};
+
 const save = async () => {
   if (!selectedCourse.value || !hasChanges.value) return;
 
@@ -99,12 +128,30 @@ const save = async () => {
   const { data: ok } = await safeRequest(() =>
     teacherService.saveGrades(
       selectedCourse.value as number,
-      Object.entries(edits.value).map(([key, score]) => {
+      /*
+       * Se envía la unión de celdas con nota tocada y celdas con comentario
+       * tocado: cualquiera de las dos cosas es un cambio que guardar.
+       */
+      [
+        ...new Set([
+          ...Object.keys(edits.value),
+          ...Object.keys(feedbackEdits.value),
+        ]),
+      ].map((key) => {
         const [studentId, evaluationId] = key.split(":").map(Number);
+        const current = data.value?.students
+          .find((s) => s.enrollment_course_id === studentId)
+          ?.scores.find((x) => x.course_evaluation_id === evaluationId);
+
         return {
           enrollment_course_id: studentId as number,
           course_evaluation_id: evaluationId as number,
-          score,
+          // Si solo se tocó el comentario, se conserva la nota guardada.
+          score:
+            key in edits.value
+              ? (edits.value[key] ?? null)
+              : (current?.score ?? null),
+          feedback: feedbackEdits.value[key]?.trim() || null,
         };
       }),
     ),
@@ -113,6 +160,7 @@ const save = async () => {
 
   if (ok) {
     toastStore.showToastSuccess({ detail: "Notas guardadas." });
+    feedbackEdits.value = {};
     await load(selectedCourse.value);
   }
 };
@@ -193,14 +241,22 @@ onMounted(async () => {
           mientras queden celdas vacías.
         </AulaNotice>
 
-        <AulaCard v-if="data.students.length && data.evaluations.length" pad="sm">
+        <AulaCard
+          v-if="data.students.length && data.evaluations.length"
+          pad="sm"
+        >
           <div class="overflow-x-auto">
-            <table class="w-full text-adm-base" :style="{ minWidth: `${28 + data.evaluations.length * 8}rem` }">
+            <table
+              class="w-full text-adm-base"
+              :style="{ minWidth: `${28 + data.evaluations.length * 8}rem` }"
+            >
               <thead>
                 <tr
                   class="font-mono text-adm-xs text-secondary-400 uppercase tracking-[0.06em]"
                 >
-                  <th class="text-left px-2 py-2 font-medium sticky left-0 bg-surface-paper">
+                  <th
+                    class="text-left px-2 py-2 font-medium sticky left-0 bg-surface-paper"
+                  >
                     Alumno
                   </th>
                   <th
@@ -226,7 +282,9 @@ onMounted(async () => {
                     class="px-2 py-2.5 text-secondary-900 sticky left-0 bg-surface-paper"
                   >
                     {{ student.full_name }}
-                    <span class="block font-mono text-adm-xs text-secondary-400">
+                    <span
+                      class="block font-mono text-adm-xs text-secondary-400"
+                    >
                       {{ student.document_number }}
                     </span>
                   </td>
@@ -259,12 +317,41 @@ onMounted(async () => {
                         )
                       "
                     />
+
+                    <!--
+                      Comentario de la nota. El alumno ya lo lee en el detalle
+                      de su curso (`feedback`), pero hasta ahora no había dónde
+                      escribirlo desde el aula.
+                    -->
+                    <input
+                      type="text"
+                      :value="feedbackOf(index, evaluation.id)"
+                      placeholder="Comentario"
+                      maxlength="1000"
+                      class="mt-1 w-16 rounded-adm-sm border border-line px-1.5 py-0.5 text-center text-adm-xs text-secondary-500 focus:w-36 focus:text-left"
+                      :class="
+                        feedbackEdits[
+                          cellKey(student.enrollment_course_id, evaluation.id)
+                        ] !== undefined
+                          ? 'border-primary-500 bg-accent-soft'
+                          : ''
+                      "
+                      @input="
+                        onFeedback(
+                          student.enrollment_course_id,
+                          evaluation.id,
+                          ($event.target as HTMLInputElement).value,
+                        )
+                      "
+                    />
                   </td>
                   <td class="px-2 py-2.5">
                     <span class="font-display font-bold text-secondary-900">
                       {{ formatScore(student.accumulated) }}
                     </span>
-                    <span class="block font-mono text-adm-xs text-secondary-400">
+                    <span
+                      class="block font-mono text-adm-xs text-secondary-400"
+                    >
                       {{ student.evaluated_weight }}% registrado
                     </span>
                   </td>
