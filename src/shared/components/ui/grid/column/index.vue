@@ -14,6 +14,22 @@ import { computed } from "vue";
 
 const props = withDefaults(defineProps<{ col: GridUiColumnProps<T> }>(), {});
 
+/**
+ * Las clases van literales, no interpoladas: Tailwind escanea el código
+ * fuente y no detecta nombres construidos en runtime.
+ */
+const FIT_CLASS = {
+  contain: "object-contain",
+  cover: "object-cover",
+} as const;
+
+const imageClass = computed(() => {
+  const image = props.col.image;
+  const fit = FIT_CLASS[image?.fit ?? "contain"];
+  const size = image?.class ?? "h-10 w-auto max-w-40";
+  return `${fit} rounded ${size}`;
+});
+
 const col = computed(() => ({
   ...props.col,
   showAddButton: false,
@@ -26,12 +42,23 @@ const col = computed(() => ({
     v-bind="col"
     :key="col.field"
     :field="String(col.field)"
-    :header-class="`uppercase !text-center ${col.headerClass || ''}`"
+    :header-class="`uppercase ${
+      col.field === 'actions' ? '!text-right' : '!text-left'
+    } ${col.headerClass || ''}`"
   >
     <template #body="{ data }">
+      <!--
+        El diseño alinea el contenido a la izquierda salvo la columna de
+        acciones; `col.class` permite ajustarlo por columna.
+      -->
       <div
-        class="flex items-center justify-center text-center"
-        :class="col.class"
+        class="flex items-center"
+        :class="[
+          col.field === 'actions'
+            ? 'justify-end text-right'
+            : 'justify-start text-left',
+          col.class,
+        ]"
       >
         <slot name="cell" :row="data" :col="col" :value="data[col.field]">
           <template v-if="col.field == 'actions' && col.actions?.length">
@@ -39,14 +66,25 @@ const col = computed(() => ({
           </template>
           <template v-else>
             <!-- Imagen -->
+            <!--
+              ImageCore expone `src` e `imageClass`; `img`/`baseClasses` no
+              son props suyas y v-bind las descartaba, dejando la celda vacía.
+              Por defecto se usa object-contain con alto fijo y ancho libre:
+              `cover` en un cuadrado recorta los banners panorámicos.
+            -->
             <ImageCore
-              v-if="col.type === 'image'"
-              class="flex items-center justify-center"
-              :img="{
-                src: String(data[col.field] ?? ''),
-              }"
-              base-classes="object-cover rounded size-10 object-cover"
+              v-if="col.type === 'image' && data[col.field]"
+              :src="String(data[col.field])"
+              :image-class="imageClass"
+              preview
             />
+
+            <span
+              v-else-if="col.type === 'image'"
+              class="text-secondary-400"
+            >
+              —
+            </span>
 
             <!-- Status -->
             <template v-else-if="col.type === 'state'">
@@ -79,6 +117,9 @@ const col = computed(() => ({
               :display-separator="col.displaySeparator"
               :key-separator="col.keySeparator"
               :key-to-render="col.keyToRender"
+              :max-visible="col.maxVisible"
+              :tone="col.chipTone"
+              :numbered="col.chipNumbered"
             />
 
             <!-- Generales (text, number, currency, date, datetime) -->

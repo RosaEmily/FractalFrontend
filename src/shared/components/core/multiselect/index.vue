@@ -13,8 +13,21 @@ const model = defineModel<string | null>({
   default: null,
 });
 
-const optionsData = ref<unknown[]>(propsInit.options || []);
+/** Solo se usa cuando el componente carga las opciones por su cuenta. */
+const serviceOptions = ref<unknown[]>([]);
 const loading = ref<boolean>(false);
+
+const usesService = computed(
+  () => Boolean(propsInit.autoLoad && propsInit.service),
+);
+
+/**
+ * Igual que en SelectCore: las opciones del padre llegan de una petición
+ * asíncrona, así que se leen por computed en vez de copiarlas a un ref.
+ */
+const optionsData = computed<unknown[]>(() =>
+  usesService.value ? serviceOptions.value : (propsInit.options ?? []),
+);
 
 const props = computed(() => ({
   ...propsInit,
@@ -24,12 +37,12 @@ const props = computed(() => ({
 }));
 
 onMounted(async () => {
-  if (propsInit.autoLoad && propsInit.service) {
+  if (usesService.value) {
     loading.value = true;
-    optionsData.value = [];
+    serviceOptions.value = [];
     try {
-      const data = await propsInit.service();
-      optionsData.value = data;
+      const data = await propsInit.service!();
+      serviceOptions.value = data ?? [];
     } catch (error) {
       console.error("Error cargando opciones del servicio:", error);
     } finally {
@@ -40,7 +53,13 @@ onMounted(async () => {
 </script>
 <template>
   <div>
-    <LabelCore v-if="props.label" :text="props.label" :html-for="props.name" />
+    <LabelCore
+      v-if="props.label"
+      :text="props.label"
+      :html-for="props.name"
+      :required="props.required"
+      :hint="props.hintLabel"
+    />
     <MultiSelect class="w-full" v-bind="props" v-model="model" />
     <MessageCore
       v-if="messageError"

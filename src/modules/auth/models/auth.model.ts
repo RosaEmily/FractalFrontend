@@ -1,4 +1,6 @@
 export interface AuthResponse {
-  token: string;
   expires_at: string;
+  /** Zona confirmada por el backend. */
+  zone: string;
+  roles: string[];
 }

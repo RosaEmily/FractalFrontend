@@ -8,7 +8,7 @@ import type {
 
 export async function safeRequest<T>(
   action: () => Promise<T>,
-  options: SafeRequestOptions = {}
+  options: SafeRequestOptions = {},
 ): Promise<SafeRequest<T>> {
   const { showAlert = true } = options;
   try {
@@ -33,7 +33,7 @@ export async function safeRequest<T>(
         alertStore.showGlobalError();
       }
     }
-    console.error("Error:", error);
+    console.error("Error:", e);
     return { status: false, error, data: null };
   }
 }

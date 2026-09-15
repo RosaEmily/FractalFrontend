@@ -15,5 +15,9 @@ export interface TextareaCoreProps {
   ptOptions?: TextareaProps["ptOptions"];
   unstyled?: TextareaProps["unstyled"];
   messageError?: string | null;
+  /** Marca visual de campo obligatorio en el label. */
+  required?: boolean;
+  /** Aclaración corta junto al label (el diseño la llama hint). */
+  hintLabel?: string | null;
   messagesInfo?: string | string[] | null;
 }

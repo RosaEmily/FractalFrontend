@@ -57,6 +57,8 @@ const internalModel = computed<Date | (Date | null)[] | null>({
       v-if="props.label"
       :text="props.label"
       :html-for="props.name || props.inputId"
+      :required="props.required"
+      :hint="props.hintLabel"
     />
     <DatePicker class="w-full" v-bind="props" v-model="internalModel" />
     <MessageCore

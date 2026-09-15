@@ -31,7 +31,7 @@ const columns: GridUiColumnProps<Permission>[] = [
         permissionService.status(ids, state ?? 1),
       delete: (ids: (number | string)[]) => permissionService.delete(ids),
     }"
-    title="Lista de Permisos"
+    title="Lista de permisos"
     module="security/permissions"
   />
 </template>

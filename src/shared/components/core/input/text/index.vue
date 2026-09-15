@@ -22,7 +22,13 @@ const messages = computed(() => {
 </script>
 <template>
   <div>
-    <LabelCore v-if="props.label" :text="props.label" :html-for="props.name" />
+    <LabelCore
+      v-if="props.label"
+      :text="props.label"
+      :html-for="props.name"
+      :required="props.required"
+      :hint="props.hintLabel"
+    />
     <InputText v-trim class="w-full" v-bind="props" v-model="model" />
     <MessageCore
       v-for="(msg, index) in messages"

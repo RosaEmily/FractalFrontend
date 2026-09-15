@@ -95,6 +95,25 @@ export interface GridUiColumnProps<T> {
   keyToRender?: string;
   keySeparator?: string;
   displaySeparator?: string;
+  /** Columnas tipo array: chips visibles antes de agrupar el resto en "+N". */
+  maxVisible?: number;
+  /**
+   * Estilo de los chips de array. `accent` (naranja) para los cursos de una
+   * línea; `neutral` (gris con borde) para etiquetas, como en el diseño.
+   */
+  chipTone?: "accent" | "neutral";
+  /** Numera los chips (1. 2. 3.) cuando el orden es parte del dato. */
+  chipNumbered?: boolean;
+  /**
+   * Columnas tipo image. Por defecto la imagen se ajusta completa (contain)
+   * dentro de una altura fija; `cover` recorta y solo conviene en avatares
+   * o logos cuadrados.
+   */
+  image?: {
+    fit?: "contain" | "cover";
+    /** Clases de tamaño del <img>, ej. "h-10 w-auto max-w-32". */
+    class?: string;
+  };
   actions?: Action[];
   filter?: Filter;
   filterConfig?: FilterConfig;
