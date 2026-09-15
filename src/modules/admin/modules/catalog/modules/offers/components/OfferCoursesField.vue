@@ -20,6 +20,22 @@ import type { Teacher } from "../../teachers/models/teacher.model";
 
 const model = defineModel<OfferCourseItem[]>({ default: () => [] });
 
+/**
+ * El picker de rango trabaja con una tupla; el modelo guarda las dos fechas por
+ * separado, que es lo que espera la API (`start_date` / `end_date`).
+ *
+ * Se devuelve `null` cuando no hay inicio: una tupla `[null, null]` deja el
+ * campo con el texto de rango a medio escribir en vez del placeholder.
+ */
+const rangeOf = (item: OfferCourseItem): (string | null)[] | null =>
+  item.startDate ? [item.startDate, item.endDate ?? null] : null;
+
+const setRange = (item: OfferCourseItem, value: unknown) => {
+  const range = Array.isArray(value) ? (value as (string | null)[]) : [];
+  item.startDate = range[0] ?? null;
+  item.endDate = range[1] ?? null;
+};
+
 withDefaults(
   defineProps<{
     courses: Course[];
@@ -102,8 +118,7 @@ const removeSchedule = (courseIndex: number, scheduleIndex: number) => {
       <!-- Curso + docente + fechas -->
       <div class="border-b border-line bg-admin-bg px-4 py-3">
         <div class="flex items-start gap-3">
-          <span
-            class="mt-2.5 font-mono text-adm-sm text-secondary-400 shrink-0"
+          <span class="mt-2.5 font-mono text-adm-sm text-secondary-400 shrink-0"
             >{{ courseIndex + 1 }}.</span
           >
           <div class="grid flex-1 gap-3 md:grid-cols-2">
@@ -128,21 +143,28 @@ const removeSchedule = (courseIndex: number, scheduleIndex: number) => {
               filter-placeholder="Buscar docente…"
               :options="teachers"
             />
-            <!-- El curso no puede empezar antes de que abra la matrícula:
-                 nadie podría haberse inscrito todavía. -->
-            <DatePicketCore
-              v-model="item.startDate"
-              label="Fecha de inicio"
-              dayjs-format-value="YYYY-MM-DD"
-              :min-date="enrollmentStartDate"
-              :max-date="item.endDate ? new Date(`${item.endDate}T00:00:00`) : undefined"
-            />
-            <DatePicketCore
-              v-model="item.endDate"
-              label="Fecha de fin"
-              dayjs-format-value="YYYY-MM-DD"
-              :min-date="item.startDate ? new Date(`${item.startDate}T00:00:00`) : enrollmentStartDate"
-            />
+            <!--
+              Dictado como UN campo de rango, igual que la matrícula del
+              programa: el picker no deja marcar un fin anterior al inicio, así
+              que ese error deja de existir en vez de tener que validarse.
+
+              El curso no puede empezar antes de que abra la matrícula: nadie
+              podría haberse inscrito todavía.
+            -->
+            <div class="md:col-span-2">
+              <DatePicketCore
+                :model-value="rangeOf(item)"
+                label="Dictado del curso"
+                hint-label="Del inicio al fin de clases."
+                selection-mode="range"
+                :number-of-months="2"
+                dayjs-format-value="YYYY-MM-DD"
+                dayjs-format-input="DD/MM/YYYY"
+                :show-time="false"
+                :min-date="enrollmentStartDate"
+                @update:model-value="setRange(item, $event)"
+              />
+            </div>
             <div class="md:col-span-2">
               <InputTextCore
                 v-model="item.meetLink"
