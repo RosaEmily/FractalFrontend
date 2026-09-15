@@ -8,6 +8,7 @@ import {
   MultiselectCore,
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 
 import courseService from "../services/course.service";
@@ -36,6 +37,16 @@ const activeOnly = {
     status: { value: 1, matchMode: FilterMatchMode.EQUALS },
   },
 };
+
+
+/*
+ * La imagen viaja como `File`: `BaseRepository` detecta el archivo y arma el
+ * multipart solo (con method spoofing en el update, porque PHP no parsea
+ * multipart/form-data en PUT).
+ */
+const image = ref<File | null>(null);
+/** Imagen ya guardada: el campo la muestra hasta que se elija otra. */
+const currentImage = ref<string | null>(null);
 
 const formSchema = z.object({
   name: z
@@ -67,6 +78,7 @@ onMounted(async () => {
     currency_id: resp.currencyId,
     tags: resp.tagIds ?? [],
   };
+  currentImage.value = resp.imageUrl;
 });
 </script>
 <template>
@@ -75,10 +87,19 @@ onMounted(async () => {
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="courses.list"
-    :service="(body) => courseService.update(identifier, body)"
+    :service="(body) => courseService.update(identifier, { ...body, image_url: image })"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
+      <ImageField
+        label="Imagen"
+        hint="JPG, PNG o WEBP. Máximo 500 KB."
+        accept="image/jpeg,image/png,image/webp"
+        :max-kb="500"
+        :current="currentImage"
+        @select="(file) => (image = file)"
+      />
+
       <InputTextCore
         v-model="fields.name.value"
         label="Nombre del curso"

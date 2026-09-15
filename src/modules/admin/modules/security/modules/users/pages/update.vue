@@ -4,6 +4,12 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import {
+  AGE_LIMIT,
+  birthDateMax,
+  birthDateMin,
+  isValidBirthDate,
+} from "@/modules/admin/constants/age-limits";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
 import {
@@ -25,6 +31,8 @@ import {
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
 
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
+
 import userService from "../services/user.service";
 import type { UserBodyDTO } from "../dto/user.dto";
 import roleService from "../../roles/services/role.service";
@@ -54,6 +62,26 @@ const roleNames = computed(() =>
 
 const isTeacher = computed(() => roleNames.value.includes("TEACHER"));
 const isStudent = computed(() => roleNames.value.includes("STUDENT"));
+
+/*
+ * La foto va fuera del esquema: es un `File`, no un valor de formulario.
+ * `currentPhoto` guarda la que ya está en S3 para mostrarla como vista previa;
+ * si no se elige otra, no se envía nada y el servidor la conserva.
+ */
+const photo = ref<File | null>(null);
+const currentPhoto = ref<string | null>(null);
+
+const initials = computed(() => {
+  const first = (initialValues.value.first_name ?? "") as string;
+  const last = (initialValues.value.last_name ?? "") as string;
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+});
+
+const onSubmit = (body: Record<string, unknown>) =>
+  userService.update(identifier.value, {
+    ...body,
+    ...(photo.value ? { photo_url: photo.value } : {}),
+  } as never);
 
 const initialValues = ref<UserBodyDTO>({
   first_name: null,
@@ -97,11 +125,13 @@ onMounted(async () => {
     .map((role) => role.id);
 
   selectedRoles.value = roleIds;
+  currentPhoto.value = resp.photo_url ?? null;
   initialValues.value = {
     ...initialValues.value,
     first_name: resp.first_name,
     last_name: resp.last_name,
     email: resp.email,
+    // Vacía a propósito: la contraseña no se recupera, solo se reemplaza.
     password: null,
     roles: roleIds,
   };
@@ -172,9 +202,13 @@ const formSchema = computed(() => {
       message: "El nivel educativo es obligatorio",
     });
     base.career = z.string({ message: "La carrera es obligatoria" });
-    base.birth_date = z.string({
-      message: "La fecha de nacimiento es obligatoria",
-    });
+    // El calendario ya bloquea las fechas fuera de rango, pero el input
+    // acepta texto: sin esta regla se podría teclear una edad inválida.
+    base.birth_date = z
+      .string({ message: "La fecha de nacimiento es obligatoria" })
+      .refine(isValidBirthDate, {
+        message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
+      });
     base.address = z.string({ message: "La dirección es obligatoria" });
   }
 
@@ -188,7 +222,7 @@ const formSchema = computed(() => {
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="users.list"
-    :service="(body) => userService.update(identifier, body)"
+    :service="onSubmit"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
@@ -224,6 +258,18 @@ const formSchema = computed(() => {
           :message-error="errors.password"
         />
       </div>
+
+      <ImageField
+        label="Foto de perfil"
+        variant="avatar"
+        :current="currentPhoto"
+        :fallback-text="initials"
+        :max-kb="500"
+        accept="image/jpeg,image/png"
+        hint="JPG o PNG, hasta 500 KB. Si no eliges una, se conserva la actual."
+        @select="photo = $event"
+        @clear="photo = null"
+      />
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectCore
@@ -365,6 +411,9 @@ const formSchema = computed(() => {
             v-model="fields.birth_date.value"
             label="Fecha de nacimiento"
             dayjs-format-value="YYYY-MM-DD"
+            :min-date="birthDateMin()"
+            :max-date="birthDateMax()"
+            :hint-label="`Entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`"
             :invalid="!!errors.birth_date"
             :message-error="errors.birth_date"
           />

@@ -9,6 +9,8 @@ export const teacherAdapter = {
     documentLabel: [dto.document_type, dto.document_number]
       .filter(Boolean)
       .join(" "),
+    // La foto y el correo viven en `users`; el formulario los edita por ahí.
+    user_id: dto.user_id ?? null,
     full_name: `${dto.first_name ?? ""} ${dto.last_name ?? ""}`.trim(),
     first_name: dto.first_name,
     last_name: dto.last_name,

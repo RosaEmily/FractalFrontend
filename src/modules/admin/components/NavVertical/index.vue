@@ -5,9 +5,11 @@ import { computed, ref } from "vue";
 import { mdiChevronLeft, mdiChevronRight } from "@mdi/js";
 import { MENU } from "../../constants/menu";
 import { useRouter } from "vue-router";
+import { useUserStore } from "../../stores/useUserStore";
 import type { MenuItem } from "../../interface/nav-vertical";
 
 const router = useRouter();
+const userStore = useUserStore();
 
 withDefaults(
   defineProps<{
@@ -29,7 +31,45 @@ const isCollapsed = ref<boolean>(
   localStorage.getItem(STORAGE_KEY) === "true",
 );
 
-const menu = ref<MenuItem[]>(MENU);
+/**
+ * Menú filtrado por rol (`ADM_NAV_ACCESS` del diseño).
+ *
+ * Cada ítem ya declaraba `roles`, pero nadie lo leía: el menú se pintaba entero
+ * para todos, así que un COORDINATOR o un MANAGER veían opciones que la API
+ * les responde con 403.
+ *
+ * Un grupo desaparece si ninguno de sus hijos sobrevive al filtro — un grupo
+ * vacío es peor que ninguno.
+ *
+ * ⚠️ La seguridad real la dan el guard de rutas y la API; esto es UX: no
+ * ofrecer lo que no se puede usar.
+ */
+const allowed = (item: MenuItem, roles: string[]): boolean =>
+  !item.roles?.length || item.roles.some((role) => roles.includes(role));
+
+const filterByRoles = (items: MenuItem[], roles: string[]): MenuItem[] =>
+  items.reduce<MenuItem[]>((acc, item) => {
+    if (!allowed(item, roles)) return acc;
+
+    if (!item.children?.length) {
+      acc.push(item);
+      return acc;
+    }
+
+    const children = filterByRoles(item.children, roles);
+    if (children.length) acc.push({ ...item, children });
+
+    return acc;
+  }, []);
+
+const menu = computed<MenuItem[]>(() => {
+  const roles = userStore.roles;
+  // Sin perfil cargado todavía no se filtra: el layout monta el nav antes de
+  // que llegue `auth/me`, y esconder todo provocaría un parpadeo del menú.
+  if (!roles.length) return MENU;
+
+  return filterByRoles(MENU, roles);
+});
 
 const toggleLabel = computed(() =>
   isCollapsed.value ? "Expandir menú" : "Colapsar menú",

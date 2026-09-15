@@ -7,6 +7,7 @@ export interface InputTextCoreProps {
   placeholder?: InputTextProps["placeholder"];
   size?: InputTextProps["size"];
   invalid?: InputTextProps["invalid"];
+  disabled?: InputTextProps["disabled"];
   variant?: InputTextProps["variant"];
   fluid?: InputTextProps["fluid"];
   formControl?: InputTextProps["formControl"];

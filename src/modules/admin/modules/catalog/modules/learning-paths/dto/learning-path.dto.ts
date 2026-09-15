@@ -26,6 +26,8 @@ export interface LearningPathDTO {
 export interface LearningPathCourseBodyDTO {
   course_id: number;
   order: number;
+  /** Archivo nuevo; si no se elige, se conserva la imagen guardada. */
+  image_url?: File | null;
 }
 
 export interface LearningPathBodyDTO {

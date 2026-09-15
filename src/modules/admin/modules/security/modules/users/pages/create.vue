@@ -3,6 +3,12 @@ import { z } from "zod";
 import { computed, ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import {
+  AGE_LIMIT,
+  birthDateMax,
+  birthDateMin,
+  isValidBirthDate,
+} from "@/modules/admin/constants/age-limits";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
 import {
@@ -22,6 +28,8 @@ import {
   EDUCATION_LEVEL_OPTIONS,
 } from "@/modules/admin/constants/options";
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
+
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 
 import userService from "../services/user.service";
 import type { UserBodyDTO } from "../dto/user.dto";
@@ -49,6 +57,30 @@ const roleNames = computed(() =>
 
 const isTeacher = computed(() => roleNames.value.includes("TEACHER"));
 const isStudent = computed(() => roleNames.value.includes("STUDENT"));
+
+/*
+ * La foto va fuera del esquema de Zod: es un `File`, no un valor de formulario,
+ * y `CrudForm` tipa sus campos como string. Se adjunta al body en el submit —
+ * `BaseRepository` detecta el archivo y arma el multipart.
+ */
+const photo = ref<File | null>(null);
+
+/**
+ * Adjunta la foto al body. Se hace acá y no en el template para que quede
+ * explícito que `photo` es un ref y que el archivo solo viaja si se eligió uno.
+ */
+const onSubmit = (body: Record<string, unknown>) =>
+  userService.create({
+    ...body,
+    ...(photo.value ? { photo_url: photo.value } : {}),
+  } as never);
+
+/** Iniciales para el hueco del avatar mientras no hay foto elegida. */
+const initials = computed(() => {
+  const first = (initialValues.value.first_name ?? "") as string;
+  const last = (initialValues.value.last_name ?? "") as string;
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+});
 
 const initialValues = ref<UserBodyDTO>({
   first_name: null,
@@ -142,9 +174,13 @@ const formSchema = computed(() => {
       message: "El nivel educativo es obligatorio",
     });
     base.career = z.string({ message: "La carrera es obligatoria" });
-    base.birth_date = z.string({
-      message: "La fecha de nacimiento es obligatoria",
-    });
+    // El calendario ya bloquea las fechas fuera de rango, pero el input
+    // acepta texto: sin esta regla se podría teclear una edad inválida.
+    base.birth_date = z
+      .string({ message: "La fecha de nacimiento es obligatoria" })
+      .refine(isValidBirthDate, {
+        message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
+      });
     base.address = z.string({ message: "La dirección es obligatoria" });
   }
 
@@ -158,7 +194,7 @@ const formSchema = computed(() => {
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="users.list"
-    :service="(body) => userService.create(body)"
+    :service="onSubmit"
   >
     <template #default="{ fields, errors }">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -192,6 +228,17 @@ const formSchema = computed(() => {
           :message-error="errors.password"
         />
       </div>
+
+      <ImageField
+        label="Foto de perfil"
+        variant="avatar"
+        :fallback-text="initials"
+        :max-kb="500"
+        accept="image/jpeg,image/png"
+        hint="JPG o PNG, hasta 500 KB. Opcional."
+        @select="photo = $event"
+        @clear="photo = null"
+      />
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectCore
@@ -333,6 +380,9 @@ const formSchema = computed(() => {
             v-model="fields.birth_date.value"
             label="Fecha de nacimiento"
             dayjs-format-value="YYYY-MM-DD"
+            :min-date="birthDateMin()"
+            :max-date="birthDateMax()"
+            :hint-label="`Entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`"
             :invalid="!!errors.birth_date"
             :message-error="errors.birth_date"
           />

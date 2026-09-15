@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { LabelCore } from "@/shared/components";
 import { useToastStore } from "@/shared/stores/useToastStore";
 
@@ -11,14 +11,34 @@ interface Props {
   /** URL de la imagen ya guardada, al editar. */
   current?: string | null;
   accept?: string;
+  /**
+   * `avatar` muestra la vista previa en círculo y en pequeño: es para fotos de
+   * persona, donde una imagen ancha no dice nada. `wide` es el default, para
+   * banners y logos.
+   */
+  variant?: "wide" | "avatar";
+  /** Iniciales del nombre, para el hueco del avatar cuando no hay foto. */
+  fallbackText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxKb: 800,
   accept: "image/jpeg,image/png,image/webp,image/svg+xml",
+  variant: "wide",
 });
 
-const emit = defineEmits<{ (e: "select", file: File): void }>();
+const emit = defineEmits<{
+  (e: "select", file: File): void;
+  (e: "clear"): void;
+}>();
+
+const isAvatar = computed(() => props.variant === "avatar");
+
+/** Quita la selección para volver a la imagen guardada (o al hueco vacío). */
+const onClear = () => {
+  preview.value = null;
+  emit("clear");
+};
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const preview = ref<string | null>(null);
@@ -67,24 +87,53 @@ const onDrop = (event: DragEvent) => {
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
     >
+      <!-- Foto de persona: círculo, y con iniciales cuando aún no hay imagen. -->
+      <template v-if="isAvatar">
+        <img
+          v-if="preview || current"
+          :src="preview ?? current ?? ''"
+          alt=""
+          class="size-23 rounded-pill object-cover"
+        />
+        <span
+          v-else
+          class="grid size-23 place-items-center rounded-pill bg-surface-cream font-display text-2xl font-bold text-secondary-400"
+        >
+          {{ fallbackText || "—" }}
+        </span>
+      </template>
+
       <img
-        v-if="preview || current"
+        v-else-if="preview || current"
         :src="preview ?? current ?? ''"
         alt=""
         class="max-h-24 object-contain"
       />
 
       <span class="text-adm-base text-secondary-900 font-semibold">
-        Arrastra una imagen aquí
+        {{ isAvatar ? "Arrastra la foto aquí" : "Arrastra una imagen aquí" }}
       </span>
       <span class="text-adm-sm text-secondary-400">o</span>
-      <button
-        type="button"
-        class="px-4 py-2 bg-secondary-900 text-white border-none rounded-pill text-adm-sm font-semibold cursor-pointer"
-        @click="fileInput?.click()"
-      >
-        Seleccionar archivo
-      </button>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 bg-secondary-900 text-white border-none rounded-pill text-adm-sm font-semibold cursor-pointer"
+          @click="fileInput?.click()"
+        >
+          Seleccionar archivo
+        </button>
+        <!-- Solo tras elegir una: quitar la que ya estaba guardada es otra
+             operación (exige mandar el campo vacío al servidor). -->
+        <button
+          v-if="preview"
+          type="button"
+          class="px-3 py-2 text-adm-sm font-medium text-secondary-400 underline cursor-pointer hover:text-danger-DEFAULT"
+          @click="onClear"
+        >
+          Quitar
+        </button>
+      </div>
 
       <span v-if="hint" class="text-adm-sm text-secondary-400">
         {{ hint }}

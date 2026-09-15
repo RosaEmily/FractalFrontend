@@ -1,18 +1,28 @@
 import type { OfferDTO, OfferListDTO } from "../dto/offer.dto";
 import type { Offer, OfferList, OfferStatus } from "../models/offer.model";
 
+/*
+ * Etiquetas del diseño V3 (`v3EstadoMatricula`). Hablan del PROGRAMA, no del
+ * formulario: "Matrícula abierta" dice qué puede hacer el visitante, mientras
+ * que "Inscripciones Cerradas" —el texto anterior— sonaba a puerta cerrada
+ * incluso cuando el programa aún no empezaba.
+ */
 const STATUS_LABEL: Record<OfferStatus, string> = {
-  open: "Inscripciones Abiertas",
-  upcoming: "Inscripciones Cerradas",
-  ongoing: "En Progreso",
-  ended: "Finalizado",
+  open: "Matrícula abierta",
+  upcoming: "Próximo inicio",
+  ongoing: "En curso",
+  ended: "Cerrado",
 };
 
+/*
+ * Tonos del sistema V3, no la paleta cruda de Tailwind: `bg-green-100` no
+ * existe en el @theme del proyecto y desentonaba con el resto de la landing.
+ */
 const STATUS_CLASS: Record<OfferStatus, string> = {
-  open: "bg-green-100 text-green-700",
-  upcoming: "bg-blue-100 text-blue-700",
-  ongoing: "bg-yellow-100 text-yellow-700",
-  ended: "bg-red-100 text-red-700",
+  open: "bg-success-soft text-success-DEFAULT",
+  upcoming: "bg-amber-soft text-amber-DEFAULT",
+  ongoing: "bg-info-soft text-info-DEFAULT",
+  ended: "bg-secondary-100 text-secondary-500",
 };
 
 function resolveOfferStatus(dto: OfferDTO): OfferStatus {

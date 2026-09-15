@@ -1,4 +1,5 @@
 import apiFractal from "@/shared/helpers/axios/api-fractal";
+import { buildRequestBody } from "@/shared/utils/form-data";
 import type {
   ApiResponse,
   DataPaginationMeta,
@@ -118,10 +119,25 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
     };
   }
 
+  /**
+   * Crea un registro. Si el body trae un `File`, viaja como multipart.
+   *
+   * La detección es automática: un módulo con imagen no tiene que armar el
+   * `FormData` a mano ni recordar el header (era la cuarta vez que se repetía
+   * ese patrón en el proyecto).
+   */
   async create(
     body: CreateBody<T>,
   ): Promise<ApiResponse<CreateModel<T> | null>> {
-    const response = await apiFractal.post<CreateDTO<T>>(this.route, body);
+    const { data: payload, config } = buildRequestBody(
+      body as Record<string, unknown>,
+    );
+
+    const response = await apiFractal.post<CreateDTO<T>>(
+      this.route,
+      payload,
+      config,
+    );
 
     const adapter = this.getAdapter("create") as CreateAdapter<T>;
 
@@ -131,14 +147,29 @@ export abstract class BaseRepository<T extends RepositoryTypes> {
     };
   }
 
+  /**
+   * Actualiza un registro.
+   *
+   * ⚠️ Con archivos se envía por **POST con `_method: PUT`**: PHP no parsea
+   * `multipart/form-data` en peticiones PUT y el body llegaría vacío. Sin
+   * archivos se mantiene el PUT de siempre.
+   */
   async update(
     id: number | string,
     body: UpdateBody<T>,
   ): Promise<ApiResponse<UpdateModel<T> | null>> {
-    const response = await apiFractal.put<UpdateDTO<T>>(
-      `${this.route}/${id}`,
-      body,
+    const { data: payload, config, spoofed } = buildRequestBody(
+      body as Record<string, unknown>,
+      "PUT",
     );
+
+    const response = spoofed
+      ? await apiFractal.post<UpdateDTO<T>>(
+          `${this.route}/${id}`,
+          payload,
+          config,
+        )
+      : await apiFractal.put<UpdateDTO<T>>(`${this.route}/${id}`, payload);
 
     const adapter = this.getAdapter("update") as UpdateAdapter<T>;
 

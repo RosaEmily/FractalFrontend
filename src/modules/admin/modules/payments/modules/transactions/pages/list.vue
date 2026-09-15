@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { h } from "vue";
 import SectionList from "@/modules/admin/components/Section/list.vue";
+import StackedCell from "@/modules/admin/components/ui/stacked-cell.vue";
 import transactionService from "../services/transaction.service";
 import StatusCell from "../components/status-cell.vue";
 import type { Transaction } from "../models/transaction.model";
@@ -12,14 +13,16 @@ const columns: GridUiColumnProps<Transaction>[] = [
     field: "enrollmentId",
     header: "Matrícula",
     sortable: true,
+    sortField: "enrollment_id",
     showFilterMenu: false,
     type: "custom",
+    // El alumno arriba y el id como referencia: "#12" no dice de quién es el pago.
     render: (row: Transaction) =>
-      h(
-        "span",
-        { class: "text-adm-base font-bold text-secondary-900" },
-        `#${row.enrollmentId}`,
-      ),
+      h(StackedCell, {
+        primary: row.studentName ?? `Matrícula #${row.enrollmentId}`,
+        secondary: row.studentName ? `Matrícula #${row.enrollmentId}` : null,
+        plain: true,
+      }),
   },
   {
     field: "paymentMethodName",
@@ -52,6 +55,21 @@ const columns: GridUiColumnProps<Transaction>[] = [
       ),
   },
   {
+    field: "createdAtLabel",
+    header: "Fecha",
+    sortable: true,
+    // El `order` viaja literal a MySQL: la columna real es `created_at`.
+    sortField: "created_at",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: Transaction) =>
+      h(
+        "span",
+        { class: "font-mono text-adm-sm text-secondary-500" },
+        row.createdAtLabel,
+      ),
+  },
+  {
     field: "status",
     header: "Estado",
     showFilterMenu: false,
@@ -71,6 +89,10 @@ const columns: GridUiColumnProps<Transaction>[] = [
     :show-status="false"
     :show-delete="false"
     :show-create="false"
+    :show-edit="false"
+    :show-updated-at="false"
+    sort-field="created_at"
+    :sort-order="-1"
     title="Transacciones"
     module="payments/transactions"
   />

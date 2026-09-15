@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { h } from "vue";
 import SectionList from "@/modules/admin/components/Section/list.vue";
+import StackedCell from "@/modules/admin/components/ui/stacked-cell.vue";
+import StatusPill from "@/modules/admin/components/ui/status-pill.vue";
 import courseEvaluationService from "../services/course-evaluation.service";
 import type { CourseEvaluation } from "../models/course-evaluation.model";
 import type { GridUiColumnProps } from "@/shared/components/type";
 import { FilterMatchMode } from "@primevue/core";
 
+/*
+ * El listado mostraba solo nombre, peso y máximo: varias cohortes tienen
+ * evaluaciones llamadas igual ("Examen Final"), así que sin curso y programa
+ * las filas eran indistinguibles.
+ */
 const columns: GridUiColumnProps<CourseEvaluation>[] = [
   {
     field: "name",
@@ -16,6 +23,31 @@ const columns: GridUiColumnProps<CourseEvaluation>[] = [
     type: "custom",
     render: (row: CourseEvaluation) =>
       h("span", { class: "text-adm-base font-bold text-secondary-900" }, row.name),
+  },
+  {
+    field: "courseName",
+    header: "Curso / Programa",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: CourseEvaluation) =>
+      h(StackedCell, {
+        primary: row.courseName ?? "—",
+        secondary: row.offerName,
+        mono: false,
+        plain: true,
+      }),
+  },
+  {
+    field: "evaluationTypeName",
+    header: "Tipo",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: CourseEvaluation) =>
+      h(StatusPill, {
+        label: row.evaluationTypeName ?? "—",
+        tone: "neutral",
+        dot: false,
+      }),
   },
   {
     field: "weight",
@@ -34,6 +66,7 @@ const columns: GridUiColumnProps<CourseEvaluation>[] = [
     field: "maxScore",
     header: "Nota máxima",
     sortable: true,
+    sortField: "max_score",
     showFilterMenu: false,
     type: "custom",
     render: (row: CourseEvaluation) =>

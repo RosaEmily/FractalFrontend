@@ -8,6 +8,7 @@ import {
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import OfferCoursesField from "../components/OfferCoursesField.vue";
+import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 import { onMounted, ref, computed } from "vue";
 import { useRoute } from "vue-router";
@@ -20,6 +21,7 @@ import learningPathService from "../../learning-paths/services/learning-path.ser
 import currencyService from "../../currencies/services/currency.service";
 import { OFFER_TYPE_OPTIONS } from "../constants/offer.constant";
 import { safeRequest } from "@/shared/utils/request";
+import { validateCourseItems } from "../utils/offer-form";
 
 import type { Course } from "../../courses/models/course.model";
 import type { Teacher } from "../../teachers/models/teacher.model";
@@ -32,6 +34,25 @@ const activeOnly = {
 const courses = ref<Course[]>([]);
 const teachers = ref<Teacher[]>([]);
 const courseItems = ref<OfferCourseItem[]>([]);
+
+/*
+ * La imagen viaja como `File`: `BaseRepository` detecta el archivo y arma el
+ * multipart solo.
+ */
+const image = ref<File | null>(null);
+
+/** Imagen ya guardada: el campo la muestra hasta que se elija otra. */
+const currentImage = ref<string | null>(null);
+
+/** Problemas de la tabla de cursos, calculados al enviar. */
+const courseProblems = ref<string[]>([]);
+
+/** El picker necesita un `Date`; el formulario guarda el string de la API. */
+const enrollmentStartAsDate = (value: unknown): Date | undefined => {
+  if (!value || typeof value !== "string") return undefined;
+  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
 
 const route = useRoute();
 const identifier = ref<string>(String(route.params.id));
@@ -99,13 +120,23 @@ const formSchema = z
   );
 
 const onSubmit = (body: Record<string, unknown>) => {
-  if (!courseItems.value.length) {
-    return Promise.reject(
-      new Error("Debe agregar al menos un curso al programa"),
-    );
+  /*
+   * Mismas reglas que al crear (viven en `utils/offer-form`): curso sin
+   * repetir, docente sí puede repetirse, fechas coherentes y un día por
+   * horario.
+   */
+  courseProblems.value = validateCourseItems(
+    courseItems.value,
+    body.enrollment_start_date as string | null,
+  );
+
+  if (courseProblems.value.length) {
+    return Promise.reject(new Error(courseProblems.value[0]));
   }
+
   return offerService.update(identifier.value, {
     ...body,
+    image_url: image.value,
     courses: toCourseItems(courseItems.value),
   } as never);
 };
@@ -138,6 +169,7 @@ onMounted(async () => {
     currency_id: offer.currencyId,
   };
   courseItems.value = offer.courseItems ?? [];
+  currentImage.value = offer.imageUrl;
 });
 </script>
 <template>
@@ -150,37 +182,19 @@ onMounted(async () => {
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
-      <InputTextCore
-        v-model="fields.name.value"
-        label="Nombre del programa"
+      <!-- Mismo orden que al crear: tipo → qué se dicta → nombre → prefijo. -->
+      <SelectCore
+        v-model="fields.type.value"
+        label="Tipo"
         required
-        :invalid="!!errors.name"
-        :message-error="errors.name"
-        :messages-info="['Incluye la cohorte, ej: · Cohorte 2026-I']"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccione el tipo"
+        :options="OFFER_TYPE_OPTIONS"
+        :invalid="!!errors.type"
+        :message-error="errors.type"
+        @update:model-value="selectedType = $event"
       />
-
-      <div class="grid gap-4 md:grid-cols-2">
-        <InputTextCore
-          v-model="fields.prefix.value"
-          label="Prefijo"
-          required
-          :invalid="!!errors.prefix"
-          :message-error="errors.prefix"
-          :messages-info="['Código corto interno.']"
-        />
-        <SelectCore
-          v-model="fields.type.value"
-          label="Tipo"
-          required
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Seleccione el tipo"
-          :options="OFFER_TYPE_OPTIONS"
-          :invalid="!!errors.type"
-          :message-error="errors.type"
-          @update:model-value="selectedType = $event"
-        />
-      </div>
 
       <SelectCore
         v-if="isLearningPath"
@@ -196,6 +210,24 @@ onMounted(async () => {
         :message-error="errors.learning_path_id"
         autoLoad
         :service="() => learningPathService.all(activeOnly)"
+      />
+
+      <InputTextCore
+        v-model="fields.name.value"
+        label="Nombre del programa"
+        required
+        :invalid="!!errors.name"
+        :message-error="errors.name"
+        :messages-info="['Incluye la cohorte, ej: · Cohorte 2026-I']"
+      />
+
+      <InputTextCore
+        v-model="fields.prefix.value"
+        label="Prefijo"
+        required
+        :invalid="!!errors.prefix"
+        :message-error="errors.prefix"
+        :messages-info="['Código corto interno.']"
       />
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -214,6 +246,7 @@ onMounted(async () => {
           required
           dayjs-format-value="YYYY-MM-DD HH:mm:ss"
           dayjs-format-input="DD/MM/YYYY HH:mm"
+          :min-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
           :invalid="!!errors.enrollment_end_date"
           :message-error="errors.enrollment_end_date"
         />
@@ -232,6 +265,7 @@ onMounted(async () => {
           v-model="fields.max_students.value"
           label="Cupo máximo"
           required
+          hint-label="No puede ser menor al mínimo"
           :min="1"
           :invalid="!!errors.max_students"
           :message-error="errors.max_students"
@@ -263,12 +297,40 @@ onMounted(async () => {
         :service="() => currencyService.all(activeOnly)"
       />
 
+      <ImageField
+        label="Imagen"
+        hint="JPG, PNG o WEBP. Máximo 500 KB."
+        accept="image/jpeg,image/png,image/webp"
+        :max-kb="500"
+        :current="currentImage"
+        @select="(file) => (image = file)"
+      />
+
       <div>
         <p class="mb-2 text-adm-md font-semibold text-secondary-900">
           Cursos, docentes y horarios
         </p>
+        <ul
+          v-if="courseProblems.length"
+          class="mb-3 space-y-1 rounded-adm-md border border-danger-DEFAULT/40 bg-danger-soft px-4 py-3"
+        >
+          <li
+            v-for="problem in courseProblems"
+            :key="problem"
+            class="text-adm-sm text-danger-DEFAULT"
+          >
+            {{ problem }}
+          </li>
+        </ul>
+
+        <!--
+          Al EDITAR los cursos sí se pueden tocar: el programa ya existe y puede
+          necesitar un curso más. Lo que no se prellena es nada — sobrescribir
+          lo guardado con los datos de la línea perdería el trabajo hecho.
+        -->
         <OfferCoursesField
           v-model="courseItems"
+          :enrollment-start-date="enrollmentStartAsDate(fields.enrollment_start_date.value)"
           :courses="courses"
           :teachers="teachers"
         />

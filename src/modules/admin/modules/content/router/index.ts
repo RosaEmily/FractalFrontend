@@ -4,6 +4,7 @@ import { routesFaqs } from "../modules/faqs/router";
 import { routesSocialNetworks } from "../modules/social-networks/router";
 import { routesBanners } from "../modules/banners/router";
 import { routesContacts } from "../modules/contacts/router";
+import { routesSiteConfig } from "../modules/site-config/router";
 
 import type { RouteRecordRaw } from "vue-router";
 
@@ -18,6 +19,7 @@ export const routesContent: RouteRecordRaw[] = [
       ...routesSocialNetworks,
       ...routesBanners,
       ...routesContacts,
+      ...routesSiteConfig,
     ],
   },
 ];

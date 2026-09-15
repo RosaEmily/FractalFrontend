@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { SelectCore } from "@/shared/components";
 import { safeRequest } from "@/shared/utils/request";
 import offerService from "@/modules/admin/modules/catalog/modules/offers/services/offer.service";
@@ -20,6 +20,13 @@ interface Props {
   modelValue: number | null;
   invalid?: boolean;
   messageError?: string | null;
+  /**
+   * Contexto para preseleccionar al EDITAR. Los horarios solo llegan en el
+   * detalle del programa, así que sin estos ids habría que recorrer todos los
+   * programas para saber a cuál pertenece el horario guardado.
+   */
+  offerId?: number | null;
+  offerCourseId?: number | null;
 }
 
 const props = defineProps<Props>();
@@ -53,6 +60,17 @@ const schedules = computed(() => {
   }));
 });
 
+/** Trae los cursos y horarios del programa elegido (van juntos en el detalle). */
+const loadCourseItems = async (offerId: number) => {
+  loadingCourses.value = true;
+  const { data } = await safeRequest(() => offerService.edit(offerId), {
+    showAlert: false,
+  });
+  loadingCourses.value = false;
+
+  courseItems.value = data?.courseItems ?? [];
+};
+
 const onOfferChange = async () => {
   selectedCourse.value = null;
   courseItems.value = [];
@@ -60,17 +78,32 @@ const onOfferChange = async () => {
 
   if (!selectedOffer.value) return;
 
-  loadingCourses.value = true;
-  const { data } = await safeRequest(
-    () => offerService.edit(selectedOffer.value as number),
-    { showAlert: false },
-  );
-  loadingCourses.value = false;
-
-  courseItems.value = data?.courseItems ?? [];
+  await loadCourseItems(selectedOffer.value);
 };
 
 const onCourseChange = () => emit("update:modelValue", null);
+
+/*
+ * Precarga al editar. El `offerId` llega después de la respuesta de `edit()`,
+ * así que no se puede resolver en el montaje: es un efecto asíncrono real y por
+ * eso va en un `watch` y no en un `computed`.
+ *
+ * `immediate` cubre el caso en que el dato ya estuviera disponible al montar.
+ */
+watch(
+  () => props.offerId,
+  async (offerId) => {
+    // Solo prellena; si el admin ya eligió un programa a mano, no se le pisa.
+    if (!offerId || selectedOffer.value) return;
+
+    selectedOffer.value = offerId;
+    await loadCourseItems(offerId);
+    // El curso se fija DESPUÉS de tener los horarios, para que el tercer select
+    // encuentre sus opciones y el `modelValue` guardado se muestre.
+    selectedCourse.value = props.offerCourseId ?? null;
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

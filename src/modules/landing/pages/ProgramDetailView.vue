@@ -6,14 +6,53 @@ import LandingBadge from '../components/ui/LandingBadge.vue'
 import LandingButton from '../components/ui/LandingButton.vue'
 import { useOfferDetailStore } from '../stores/useOfferDetailStore'
 import { useToastStore } from '@/shared/stores/useToastStore'
+import { useCartStore } from '@/modules/checkout/stores/useCartStore'
 import type { OfferCourse } from '../models/offer.model'
+import { useRouter } from 'vue-router'
 
 const route      = useRoute()
+const router     = useRouter()
 const store      = useOfferDetailStore()
 const toastStore = useToastStore()
+const cart       = useCartStore()
 
 const offer  = computed(() => store.data)
 const isPath = computed(() => (offer.value?.courses.length ?? 0) > 1)
+
+/*
+ * Cupo. `max_students` es NOT NULL con default 0 en la BD, así que **0 significa
+ * "sin límite definido"**, no "sin vacantes": tratarlo como tope dejaría agotado
+ * todo programa recién creado. Misma regla que aplica el backend al validar.
+ */
+const soldOut = computed(() => {
+  const o = offer.value
+  if (!o) return false
+  return o.max_students > 0 && o.enrolled_students_count >= o.max_students
+})
+
+const inCart = computed(() => (offer.value ? cart.has(offer.value.id) : false))
+
+/*
+ * Agrega al carrito y lleva al checkout. No compra: el alumno revisa el carrito
+ * primero, y así puede sumar más programas (una matrícula admite varios).
+ */
+const enroll = () => {
+  if (!offer.value || soldOut.value) return
+
+  cart.add(offer.value)
+  router.push({ name: 'checkout-cart' })
+}
+
+/** Consulta por WhatsApp con el programa ya mencionado, para no repetirlo. */
+const advisorHref = computed(() => {
+  const name = offer.value?.name ?? ''
+  return `https://wa.me/51987654321?text=${encodeURIComponent(
+    `Hola, quiero información sobre el programa ${name}`.trim(),
+  )}`
+})
+
+// `window` no existe en el scope del template: la apertura va en una función.
+const openAdvisor = () => window.open(advisorHref.value, '_blank', 'noopener')
 
 // Syllabus accordion
 const openModule = ref<number>(0)
@@ -197,9 +236,21 @@ onMounted(loadOffer)
             <div class="bg-surface-paper border border-line rounded-xl p-7 shadow-md">
               <div class="flex justify-between items-center mb-4">
                 <span class="font-mono text-[0.5625rem] tracking-widest uppercase text-secondary-400">INVERSIÓN</span>
-                <span class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide bg-success-soft text-success-DEFAULT rounded-full px-2.5 py-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-success-DEFAULT animate-pulse-dot" />
-                  Matrícula abierta
+                <!-- El estado se deriva del cupo y de la ventana de matrícula;
+                     antes decía "Matrícula abierta" fijo, incluso agotado. -->
+                <span
+                  v-if="soldOut"
+                  class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide bg-amber-soft text-amber-DEFAULT rounded-full px-2.5 py-1"
+                >
+                  Cupo lleno
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide rounded-full px-2.5 py-1"
+                  :class="offer?.status_class"
+                >
+                  <span v-if="offer?.status === 'open'" class="w-1.5 h-1.5 rounded-full bg-success-DEFAULT animate-pulse-dot" />
+                  {{ offer?.status_label }}
                 </span>
               </div>
 
@@ -211,8 +262,31 @@ onMounted(loadOffer)
               </p>
 
               <div class="flex flex-col gap-2 mt-6">
-                <LandingButton variant="primary" size="lg" class="w-full justify-center">Inscribirme ahora</LandingButton>
-                <LandingButton variant="soft" size="md" :arrow="false" class="w-full justify-center">
+                <!-- Agotado no ofrece comprar: el botón llevaría a un carrito
+                     que el backend rechaza. Se ofrece el asesor en su lugar. -->
+                <LandingButton
+                  v-if="!soldOut"
+                  variant="primary"
+                  size="lg"
+                  class="w-full justify-center"
+                  @click="enroll"
+                >
+                  {{ inCart ? 'Ver mi carrito' : 'Inscribirme ahora' }}
+                </LandingButton>
+                <div
+                  v-else
+                  class="rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-4 py-3 text-center font-body text-[0.8125rem] leading-relaxed text-secondary-500"
+                >
+                  Esta cohorte alcanzó su cupo máximo. Escríbenos y te avisamos
+                  de la siguiente.
+                </div>
+                <LandingButton
+                  variant="soft"
+                  size="md"
+                  :arrow="false"
+                  class="w-full justify-center"
+                  @click="openAdvisor"
+                >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.261 2 2 6.261 2 11.5c0 1.852.537 3.576 1.459 5.033L2 22l5.612-1.437A9.5 9.5 0 0011.5 21c5.239 0 9.5-4.261 9.5-9.5S16.739 2 11.5 2z"/></svg>
                   Hablar con un asesor
                 </LandingButton>
@@ -287,9 +361,21 @@ onMounted(loadOffer)
             <div class="bg-surface-paper border border-line rounded-xl p-7 shadow-md">
               <div class="flex justify-between items-center mb-4">
                 <span class="font-mono text-[0.5625rem] tracking-widest uppercase text-secondary-400">INVERSIÓN</span>
-                <span class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide bg-success-soft text-success-DEFAULT rounded-full px-2.5 py-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-success-DEFAULT animate-pulse-dot" />
-                  Matrícula abierta
+                <!-- El estado se deriva del cupo y de la ventana de matrícula;
+                     antes decía "Matrícula abierta" fijo, incluso agotado. -->
+                <span
+                  v-if="soldOut"
+                  class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide bg-amber-soft text-amber-DEFAULT rounded-full px-2.5 py-1"
+                >
+                  Cupo lleno
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-wide rounded-full px-2.5 py-1"
+                  :class="offer?.status_class"
+                >
+                  <span v-if="offer?.status === 'open'" class="w-1.5 h-1.5 rounded-full bg-success-DEFAULT animate-pulse-dot" />
+                  {{ offer?.status_label }}
                 </span>
               </div>
               <div class="font-display text-[3.5rem] font-extrabold text-secondary-900 leading-none tracking-tight">
@@ -299,8 +385,31 @@ onMounted(loadOffer)
                 O en cuotas de S/ {{ installment }} × 6 meses sin intereses.
               </p>
               <div class="flex flex-col gap-2 mt-6">
-                <LandingButton variant="primary" size="lg" class="w-full justify-center">Inscribirme ahora</LandingButton>
-                <LandingButton variant="soft" size="md" :arrow="false" class="w-full justify-center">
+                <!-- Agotado no ofrece comprar: el botón llevaría a un carrito
+                     que el backend rechaza. Se ofrece el asesor en su lugar. -->
+                <LandingButton
+                  v-if="!soldOut"
+                  variant="primary"
+                  size="lg"
+                  class="w-full justify-center"
+                  @click="enroll"
+                >
+                  {{ inCart ? 'Ver mi carrito' : 'Inscribirme ahora' }}
+                </LandingButton>
+                <div
+                  v-else
+                  class="rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-4 py-3 text-center font-body text-[0.8125rem] leading-relaxed text-secondary-500"
+                >
+                  Esta cohorte alcanzó su cupo máximo. Escríbenos y te avisamos
+                  de la siguiente.
+                </div>
+                <LandingButton
+                  variant="soft"
+                  size="md"
+                  :arrow="false"
+                  class="w-full justify-center"
+                  @click="openAdvisor"
+                >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.261 2 2 6.261 2 11.5c0 1.852.537 3.576 1.459 5.033L2 22l5.612-1.437A9.5 9.5 0 0011.5 21c5.239 0 9.5-4.261 9.5-9.5S16.739 2 11.5 2z"/></svg>
                   Hablar con un asesor
                 </LandingButton>
@@ -938,7 +1047,9 @@ onMounted(loadOffer)
               Quedan pocos cupos en esta cohorte. Asegura tu lugar e inicia el programa con el mejor equipo docente del Perú.
             </p>
             <div class="flex flex-wrap justify-center gap-3">
-              <LandingButton variant="on-accent" size="lg">Inscribirme ahora</LandingButton>
+              <LandingButton v-if="!soldOut" variant="on-accent" size="lg" @click="enroll">
+                {{ inCart ? 'Ver mi carrito' : 'Inscribirme ahora' }}
+              </LandingButton>
               <LandingButton variant="on-accent-sec" size="lg" :arrow="false">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.261 2 2 6.261 2 11.5c0 1.852.537 3.576 1.459 5.033L2 22l5.612-1.437A9.5 9.5 0 0011.5 21c5.239 0 9.5-4.261 9.5-9.5S16.739 2 11.5 2z"/></svg>
                 Hablar con un asesor

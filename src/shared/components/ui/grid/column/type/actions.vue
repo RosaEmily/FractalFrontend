@@ -26,14 +26,22 @@ const props = withDefaults(
 );
 
 const normalizeAction = (action: Action): Action => {
+  /*
+   * ⚠️ `columnKeyId` es el DEFAULT, no un valor fijo: antes se escribía después
+   * de `...action` y pisaba lo que declarara el listado. Los recursos cuya PK no
+   * es `id` —instructores y estudiantes van por `document_number`— acababan
+   * leyendo `data["id"]`, que no existe: el enlace de editar quedaba en
+   * `/edit/undefined`, y el toggle de estado y el borrado mandaban `[undefined]`.
+   */
   const base = {
-    ...action,
     columnKeyId: "id",
+    ...action,
   };
   const configByType: Record<string, Partial<Action>> = {
     edit: {
       icon: action.icon ?? mdiPencil,
-      params: action.params ?? "id",
+      // El parámetro de la URL es la misma clave que identifica la fila.
+      params: action.params ?? base.columnKeyId,
     },
     delete: {
       icon: action.icon ?? mdiTrashCanOutline,

@@ -25,6 +25,8 @@ export interface TeacherDTO {
 }
 
 export interface TeacherBodyDTO {
+  /** Instructor destacado: aparece primero en la grilla de la landing. */
+  is_favorite?: boolean;
   document_type: string | null;
   document_number: string | null;
   specialty: string | null;

@@ -7,6 +7,7 @@ import {
   mdiWeb,
   mdiImageMultipleOutline,
   mdiCardAccountPhoneOutline,
+  mdiCogOutline,
 } from "@mdi/js";
 
 export const MENU_CONTENT: MenuItem[] = [
@@ -16,6 +17,15 @@ export const MENU_CONTENT: MenuItem[] = [
     icon: mdiShimmer,
     roles: ["ADMIN"],
     children: [
+      // Banners primero: es lo primero que se ve en la landing.
+      {
+        id: "content.banners",
+        label: "Banners",
+        icon: mdiImageMultipleOutline,
+        roles: ["ADMIN"],
+        route: { name: "banners.list" },
+        module: "banners",
+      },
       {
         id: "content.sponsors",
         label: "Patrocinadores",
@@ -57,12 +67,12 @@ export const MENU_CONTENT: MenuItem[] = [
         module: "contacts",
       },
       {
-        id: "content.banners",
-        label: "Banners",
-        icon: mdiImageMultipleOutline,
+        id: "content.site-config",
+        label: "Configuración SEO",
+        icon: mdiCogOutline,
         roles: ["ADMIN"],
-        route: { name: "banners.list" },
-        module: "banners",
+        route: { name: "siteConfig" },
+        module: "siteConfig",
       },
     ],
   },

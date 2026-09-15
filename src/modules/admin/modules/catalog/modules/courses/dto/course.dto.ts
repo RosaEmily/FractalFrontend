@@ -21,4 +21,6 @@ export interface CourseBodyDTO {
   price: number | null;
   currency_id: number | null;
   tags?: number[];
+  /** Archivo nuevo; si no se elige, se conserva la imagen guardada. */
+  image_url?: File | null;
 }

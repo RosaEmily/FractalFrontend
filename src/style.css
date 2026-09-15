@@ -75,6 +75,10 @@
   --color-control-border: #c9c0ae;
   --color-control-off:    #d7cfbe;
 
+  /* Esqueleto de carga: base y brillo que lo recorre. */
+  --color-skeleton:       #efe7d8;
+  --color-skeleton-shine: #f7f1e5;
+
   /* ── Escala tipográfica del admin ────────────────────────── */
   /* Tamaños del diseño (admin/*.jsx), en rem para respetar el
      zoom del navegador. Usar estas clases en vez de valores [..] */
@@ -84,6 +88,8 @@
   --text-adm-md:    0.875rem;    /* 14px  — inputs, botones */
   --text-adm-lg:    1.125rem;    /* 18px  — título de listado */
   --text-adm-xl:    1.375rem;    /* 22px  — título de formulario */
+  /* Título de pantalla del aula: escala con el viewport (26px → 36px). */
+  --text-aula-title: clamp(1.625rem, 3vw, 2.25rem);
   --text-adm-label: 0.656rem;    /* 10.5px — cabecera de tabla (mono) */
 
   /* ── Espaciados con nombre ───────────────────────────────── */
@@ -175,4 +181,46 @@
   [role="button"][aria-disabled="true"] {
     cursor: not-allowed;
   }
+}
+
+/*
+ * Esqueleto de carga del aula.
+ *
+ * Un brillo que recorre la barra de izquierda a derecha. Se prefiere al
+ * spinner porque el esqueleto tiene la forma de lo que va a llegar: el ojo ya
+ * sabe dónde mirar cuando aparecen los datos.
+ */
+@keyframes aula-shimmer {
+  from { background-position: 100% 0; }
+  to   { background-position: -100% 0; }
+}
+
+.aula-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-skeleton) 25%,
+    var(--color-skeleton-shine) 50%,
+    var(--color-skeleton) 75%
+  );
+  background-size: 200% 100%;
+  animation: aula-shimmer 1.25s linear infinite;
+}
+
+/*
+ * Entrada del contenido cuando termina de cargar. Un fade con desplazamiento
+ * corto: sin él, los datos aparecen de golpe donde estaba el esqueleto.
+ */
+@keyframes aula-fadeup {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+.aula-fade {
+  animation: aula-fadeup 0.28s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Quien pide menos movimiento ve la barra quieta, no parpadeando. */
+@media (prefers-reduced-motion: reduce) {
+  .aula-shimmer { animation: none; }
+  .aula-fade { animation: none; }
 }

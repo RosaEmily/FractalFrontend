@@ -28,6 +28,7 @@ const columns: GridUiColumnProps<CertificateTemplate>[] = [
     field: "fontFamily",
     header: "Fuente",
     sortable: true,
+    sortField: "font_family",
     showFilterMenu: false,
   },
 ];

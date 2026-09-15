@@ -11,6 +11,13 @@ export const FinalGradeAdapter = {
     calculatedAt: dto.calculated_at
       ? dayjs(dto.calculated_at).format("YYYY-MM-DD")
       : null,
+    studentName: dto.student_name ?? null,
+    studentDocument: dto.student_document ?? null,
+    courseName: dto.course_name ?? null,
+    offerName: dto.offer_name ?? null,
+    closedAt: dto.closed_at
+      ? dayjs(dto.closed_at).format("YYYY-MM-DD")
+      : null,
     status: dto.status,
     updated_at: dto.updated_at,
   }),
