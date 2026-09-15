@@ -10,6 +10,27 @@ import { FilterMatchMode } from "@primevue/core";
 
 const columns: GridUiColumnProps<Enrollment>[] = [
   {
+    /*
+     * El id de la matrícula es como se la identifica fuera del panel: es lo que
+     * ve el alumno en su cuenta y lo que se cita al preguntar por un pago. Sin
+     * él, dos matrículas del mismo alumno en la misma fecha eran
+     * indistinguibles en el listado.
+     */
+    field: "id",
+    header: "Matrícula",
+    sortable: true,
+    style: "width: 120px",
+    showFilterMenu: true,
+    filter: { value: null, matchMode: FilterMatchMode.EQUALS },
+    type: "custom",
+    render: (row: Enrollment) =>
+      h(
+        "span",
+        { class: "font-mono text-adm-sm font-bold text-primary-600" },
+        `#${row.id}`,
+      ),
+  },
+  {
     field: "studentName",
     header: "Estudiante",
     /*
