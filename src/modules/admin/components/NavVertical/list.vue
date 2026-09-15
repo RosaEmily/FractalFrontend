@@ -6,6 +6,7 @@ withDefaults(
   defineProps<{
     menu: MenuItem[];
     isCollapsed?: boolean;
+    openGroups: Set<string | number>;
   }>(),
   {
     isCollapsed: false,
@@ -14,6 +15,7 @@ withDefaults(
 
 const emit = defineEmits<{
   (e: "menu-click", item: MenuItem): void;
+  (e: "toggle-group", id: string | number): void;
 }>();
 </script>
 
@@ -24,7 +26,9 @@ const emit = defineEmits<{
       :key="item.id"
       :item="item"
       :is-collapsed="isCollapsed"
+      :open-groups="openGroups"
       @menu-click="emit('menu-click', $event)"
+      @toggle-group="emit('toggle-group', $event)"
     />
   </ul>
 </template>

@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import FieldPreview from "../../../components/field-preview.vue";
 import sponsorService from "../services/sponsor.service";
@@ -25,11 +24,11 @@ const formSchema = z.object({
     .max(255, { message: "No puede tener más de 255 caracteres" }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await sponsorService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = { name: resp.name };
@@ -44,6 +43,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="sponsors.list"
     :service="(body) => sponsorService.update(identifier, { ...body, image })"
+    :loading-data="loadingData"
+    :skeleton-fields="2"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

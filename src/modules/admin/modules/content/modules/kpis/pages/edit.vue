@@ -6,7 +6,6 @@ import { useRoute } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, InputNumberCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import kpiService from "../services/kpi.service";
 import type { KpiBodyDTO } from "../dto/kpi.dto";
 
@@ -35,11 +34,11 @@ const formSchema = z.object({
     }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await kpiService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -57,6 +56,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="kpis.list"
     :service="(body) => kpiService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="3"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

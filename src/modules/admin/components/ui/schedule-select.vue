@@ -30,7 +30,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<{ (e: "update:modelValue", value: number | null): void }>();
+const emit = defineEmits<{
+  (e: "update:modelValue", value: number | null): void;
+}>();
 
 const DAY_LABEL: Record<string, string> = Object.fromEntries(
   DAY_OF_WEEK_OPTIONS.map((day) => [day.value, day.label]),

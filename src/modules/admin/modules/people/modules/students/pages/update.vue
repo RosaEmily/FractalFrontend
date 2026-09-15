@@ -19,7 +19,6 @@ import {
   SelectCore,
   DatePicketCore,
 } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import {
   CAREER_OPTIONS,
   EDUCATION_LEVEL_OPTIONS,
@@ -82,11 +81,11 @@ const formSchema = z.object({
   is_favorite: z.boolean().optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await studentService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   userId.value = resp.user_id ?? null;
@@ -115,6 +114,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="students.list"
     :service="(body) => studentService.update(identifier, body as never)"
+    :loading-data="loadingData"
+    :skeleton-fields="7"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

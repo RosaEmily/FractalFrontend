@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, DatePicketCore } from "@/shared/components";
 import ScheduleSelect from "@/modules/admin/components/ui/schedule-select.vue";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import classSessionService from "../services/class-session.service";
 import { classSessionSchema } from "../utils/class-session-form";
 import type { ClassSessionBodyDTO } from "../dto/class-session.dto";
@@ -29,11 +28,11 @@ const offerCourseId = ref<number | null>(null);
 
 const formSchema = classSessionSchema;
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await classSessionService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   offerId.value = resp.offerId;
@@ -59,6 +58,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="classSessions.list"
     :service="(body) => classSessionService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="7"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

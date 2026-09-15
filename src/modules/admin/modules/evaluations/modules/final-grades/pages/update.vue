@@ -12,7 +12,6 @@ import {
 } from "@/shared/components";
 import EnrollmentCourseSelect from "@/modules/admin/components/ui/enrollment-course-select.vue";
 import { SCORE_LIMIT } from "@/modules/admin/constants/numeric-limits";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import finalGradeService from "../services/final-grade.service";
 import type { FinalGradeBodyDTO } from "../dto/final-grade.dto";
 
@@ -40,11 +39,11 @@ const formSchema = z.object({
   calculated_at: z.string().nullable().optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await finalGradeService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -63,6 +62,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="finalGrades.list"
     :service="(body) => finalGradeService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="3"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

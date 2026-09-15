@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, TextAreaCore } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import evaluationTypeService from "../services/evaluation-type.service";
 import type { EvaluationTypeBodyDTO } from "../dto/evaluation-type.dto";
 
@@ -25,11 +24,11 @@ const formSchema = z.object({
   description: z.string().nullable().optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await evaluationTypeService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -46,6 +45,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="evaluationTypes.list"
     :service="(body) => evaluationTypeService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="1"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

@@ -16,7 +16,6 @@ import { onMounted, ref } from "vue";
 import type { RoleBodyDTO } from "../dto/role.dto";
 
 import { useRoute } from "vue-router";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 
 const route = useRoute();
 
@@ -60,11 +59,11 @@ const formSchema = z.object({
     .optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const landingStore = useLoadingStore();
-  landingStore.start();
   const resp = await roleService.edit(identifier.value);
-  landingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
   initialValues.value = {
     name: resp.name,
@@ -80,6 +79,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="roles.list"
     :service="(body) => roleService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="2"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

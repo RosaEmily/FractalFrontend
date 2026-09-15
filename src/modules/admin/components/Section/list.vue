@@ -17,6 +17,9 @@ import { useRouter } from "vue-router";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import { useConfirmStore } from "@/shared/stores/useConfirmStore";
 import { FilterMatchMode } from "@primevue/core";
+import BulkBar from "@/modules/admin/components/ui/bulk-bar.vue";
+import { HeroCore } from "@/shared/components";
+import { mdiCheck, mdiClose, mdiTrashCanOutline } from "@mdi/js";
 
 const router = useRouter();
 const toastStore = useToastStore();
@@ -84,6 +87,7 @@ const keys = computed(() => {
 });
 
 const updatedAtColumn: GridUiColumnProps<T> = {
+    style: "width: 190px",
     field: "updated_at",
     header: "Fecha de actualización",
     type: "date",
@@ -104,6 +108,9 @@ const updatedAtColumn: GridUiColumnProps<T> = {
 };
 
 const statusColumn: GridUiColumnProps<T> = {
+    // Ancho fijo como en el diseño (130px): sin él las columnas se reparten el
+    // sobrante y una píldora de estado acaba ocupando un tercio de la tabla.
+    style: "width: 130px",
     field: "status",
     header: "Estado",
     type: "state",
@@ -184,6 +191,9 @@ const newColumns: GridUiColumnProps<T>[] = [
   ...(!hasOwnActionsColumn && rowActions.length
     ? [
         {
+          // 150px fijos, como en el diseño: es la columna más a la derecha y
+          // sin ancho se quedaba con todo el espacio sobrante.
+          style: "width: 150px",
           field: "actions",
           header: "Acciones",
           actions: rowActions,
@@ -197,7 +207,9 @@ const newColumns: GridUiColumnProps<T>[] = [
  * ejemplo revocar una sesión, que no pasa por los servicios del CRUD).
  */
 defineExpose({
-  refresh: () => gripUiRefs.value?.refreshData(),
+  // `force`: recargar tras una acción es siempre un cambio real, y el guard
+  // interno del grid solo mira orden y filtros — sin esto no se pedía nada.
+  refresh: () => gripUiRefs.value?.refreshData(false, true),
 });
 
 const getSelectedIds = () =>
@@ -230,65 +242,124 @@ const executeAction = async ({
 
   if (status && !error) {
     successToast();
-    await gripUiRefs.value?.refreshData();
+    // Idem: los datos cambiaron en el servidor aunque orden y filtros sigan
+    // iguales, así que el refetch va forzado.
+    await gripUiRefs.value?.refreshData(false, true);
   }
 };
 
-const actionsMassive = [
-  {
-    label: "Habilitar",
-    command: () =>
-      executeAction({
-        action: (ids: (number | string)[]) =>
-          props.services.status?.(ids) ?? Promise.resolve(null),
-        successToast: () =>
-          toastStore.showToastSuccess({
-            summary: "Actualización de estado",
-            detail: "Los registros seleccionados se habilitaron correctamente.",
-          }),
+/*
+ * Las tres acciones viven en funciones porque el diseño las ofrece en DOS
+ * sitios a la vez: el menú del botón "Crear" (`AdmCreateDropdown`) y la barra
+ * flotante (`AdmBulkBar`). Duplicar la lógica en ambos era la vía rápida a que
+ * se desincronizaran.
+ */
+const enableSelected = () =>
+  executeAction({
+    action: (ids: (number | string)[]) =>
+      props.services.status?.(ids) ?? Promise.resolve(null),
+    successToast: () =>
+      toastStore.showToastSuccess({
+        summary: "Actualización de estado",
+        detail: "Los registros seleccionados se habilitaron correctamente.",
       }),
-  },
-  {
-    label: "Deshabilitar",
-    command: () =>
+  });
+
+const disableSelected = () =>
+  executeAction({
+    action: (ids: (number | string)[]) =>
+      props.services.status?.(ids, 0) ?? Promise.resolve(null),
+    successToast: () =>
+      toastStore.showToastError({
+        summary: "Actualización de estado",
+        detail: "Los registros seleccionados se deshabilitaron correctamente.",
+      }),
+  });
+
+const deleteSelected = () => {
+  const ids = getSelectedIds();
+  if (!validateSelection(ids)) return;
+
+  confirmStore.confirmDelete({
+    message:
+      "¿Estás seguro de que deseas eliminar los registros seleccionados?",
+    accept: () =>
       executeAction({
         action: (ids: (number | string)[]) =>
-          props.services.status?.(ids, 0) ?? Promise.resolve(null),
+          props.services.delete?.(ids) ?? Promise.resolve(null),
         successToast: () =>
           toastStore.showToastError({
-            summary: "Actualización de estado",
-            detail:
-              "Los registros seleccionados se deshabilitaron correctamente.",
+            summary: "Eliminación",
+            detail: "Los registros seleccionados se eliminaron correctamente.",
           }),
       }),
-  },
-  {
-    separator: true,
-  },
-  {
-    label: "Eliminar",
-    command: async () => {
-      const ids = getSelectedIds();
-      if (!validateSelection(ids)) return;
+  });
+};
 
-      confirmStore.confirmDelete({
-        message:
-          "¿Estás seguro de que deseas eliminar los registros seleccionados?",
-        accept: () =>
-          executeAction({
-            action: (ids: (number | string)[]) =>
-              props.services.delete?.(ids) ?? Promise.resolve(null),
-            successToast: () =>
-              toastStore.showToastError({
-                summary: "Eliminación",
-                detail:
-                  "Los registros seleccionados se eliminaron correctamente.",
-              }),
-          }),
-      });
-    },
-  },
-];
+/** Cuántas filas hay marcadas: lo leen la barra y la cabecera del dropdown. */
+const selectedCount = computed<number>(() => rowsSelect.value.length);
+
+/*
+ * El diseño deshabilita los ítems del menú cuando no hay selección y muestra
+ * una cabecera "N SELECCIONADOS" encima. Antes estaban siempre activos y al
+ * pulsarlos solo salía un toast de advertencia.
+ */
+const actionsMassive = computed(() => {
+  const noSelection = selectedCount.value === 0;
+  const items: Record<string, unknown>[] = [];
+
+  /*
+   * Cabecera "N SELECCIONADOS" del diseño. PrimeVue no expone un slot para la
+   * cabecera del menú, así que viaja como un ítem más marcado con `header` y
+   * el slot `#item` lo pinta distinto. Sin selección no se muestra.
+   */
+  if (!noSelection) {
+    items.push({
+      label: `${selectedCount.value} ${
+        selectedCount.value === 1 ? "SELECCIONADO" : "SELECCIONADOS"
+      }`,
+      header: true,
+      disabled: true,
+    });
+  }
+
+  /*
+   * El `tone` y el `icon` los pinta el slot `#item`: el diseño da a cada
+   * acción un icono en cuadrito de color (verde / ámbar / rojo), no una lista
+   * de texto plano.
+   */
+  if (props.showStatus && props.services.status) {
+    items.push(
+      {
+        label: "Habilitar",
+        icon: mdiCheck,
+        tone: "ok",
+        disabled: noSelection,
+        command: enableSelected,
+      },
+      {
+        label: "Deshabilitar",
+        icon: mdiClose,
+        tone: "warn",
+        disabled: noSelection,
+        command: disableSelected,
+      },
+    );
+  }
+
+  if (props.showDelete && props.services.delete) {
+    if (items.length) items.push({ separator: true });
+    items.push({
+      label: "Eliminar",
+      icon: mdiTrashCanOutline,
+      tone: "danger",
+      disabled: noSelection,
+      command: deleteSelected,
+    });
+  }
+
+  return items;
+});
 </script>
 <template>
   <CardCore>
@@ -319,10 +390,49 @@ const actionsMassive = [
               @click="router.replace(`/admin/${props.module}/create`)"
               :model="actionsMassive"
               auto-z-index
-            />
+            >
+              <!--
+                Cada acción con su icono en cuadrito de color, como el
+                `AdmMenuItem` del diseño. Deshabilitado = 40% de opacidad.
+              -->
+              <template #item="{ item }">
+                <span v-if="item.header" class="adm-menu-header">
+                  {{ item.label }}
+                </span>
+                <button
+                  v-else
+                  type="button"
+                  class="adm-menu-item"
+                  :class="[
+                    `adm-menu-item--${item.tone ?? 'default'}`,
+                    { 'adm-menu-item--disabled': item.disabled },
+                  ]"
+                  :disabled="!!item.disabled"
+                >
+                  <span class="adm-menu-item__icon">
+                    <HeroCore v-if="item.icon" :path="item.icon" size="13" />
+                  </span>
+                  <span>{{ item.label }}</span>
+                </button>
+              </template>
+            </SplitButtonCore>
           </template>
         </ToolbarCore>
       </template>
     </GripUi>
   </CardCore>
+
+  <!--
+    Barra flotante del diseño. Va FUERA del CardCore: es `position: fixed`
+    sobre el viewport, no parte de la tarjeta del listado.
+  -->
+  <BulkBar
+    :count="selectedCount"
+    :show-status="showStatus && !!services.status"
+    :show-delete="showDelete && !!services.delete"
+    @enable="enableSelected"
+    @disable="disableSelected"
+    @delete="deleteSelected"
+    @clear="gripUiRefs?.clearSelection()"
+  />
 </template>

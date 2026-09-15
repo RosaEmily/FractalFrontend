@@ -5,10 +5,16 @@ export interface UserDTO {
   last_name: string;
   photo_url: string | null;
   gender_name: string | null;
+  /** Valor crudo ('m'|'f'|'o'): `gender_name` es solo para mostrar. */
+  gender: string | null;
+  /** Sesiones simultáneas permitidas (1-4). */
+  max_sessions: number | null;
   status: number;
   created_at: string;
   updated_at: string;
   roles: string[];
+  /** Ids para el multiselect del formulario; `roles` son los nombres. */
+  role_ids: number[];
   teacher: Record<string, unknown> | null;
   student: Record<string, unknown> | null;
 }
@@ -23,6 +29,7 @@ export interface UserBodyDTO {
   email: string | null;
   password: string | null;
   gender: string | null;
+  max_sessions: number | null;
   roles: number[];
 
   // Comunes a las fichas de docente y alumno

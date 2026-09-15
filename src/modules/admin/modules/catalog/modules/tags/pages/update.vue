@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import tagService from "../services/tag.service";
 import type { TagBodyDTO } from "../dto/tag.dto";
 
@@ -30,11 +29,11 @@ const formSchema = z.object({
     }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await tagService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -51,6 +50,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="tags.list"
     :service="(body) => tagService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="2"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

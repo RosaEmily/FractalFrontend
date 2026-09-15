@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import { z } from "zod";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
 import PersonPhotoField from "@/modules/admin/components/ui/person-photo-field.vue";
-import { withRefinements } from "@/shared/utils/zod/withRefinements";
-import { numbersOnly } from "@/shared/utils/zod/shortcuts";
 import {
   InputTextCore,
   InputNumberCore,
   SelectCore,
   TextAreaCore,
 } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import {
   ACADEMIC_DEGREE_OPTIONS,
   DOCUMENT_TYPE_OPTIONS,
 } from "@/modules/admin/constants/options";
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
+import {
+  getDocumentRule,
+  PHONE_PE,
+} from "@/modules/admin/constants/documents";
+import {
+  documentNumberSchema,
+  phoneSchema,
+} from "@/modules/admin/utils/document-schema";
 
 import teacherService from "../services/teacher.service";
 import type { TeacherBodyDTO } from "../dto/teacher.dto";
@@ -47,37 +52,26 @@ const initialValues = ref<TeacherBodyDTO>({
   is_favorite: false,
 });
 
+/*
+ * El tipo de documento elegido. Se sigue aparte de `CrudForm` porque de él
+ * dependen la longitud válida, el tope de caracteres y el texto de ayuda.
+ */
+const documentType = ref<string | null>(null);
+const documentRule = computed(() => getDocumentRule(documentType.value));
+
 const formSchema = z.object({
   document_type: z.string({ message: "El tipo de documento es obligatorio" }),
-  document_number: withRefinements(
-    z
-      .string({ message: "El número de documento es obligatorio" })
-      .min(6, { message: "Debe tener al menos 6 caracteres" })
-      .max(50, { message: "No puede tener más de 50 caracteres" }),
-    numbersOnly,
-  ),
-  specialty: z
-    .string({ message: "La especialidad es obligatoria" })
-    .max(255, { message: "No puede tener más de 255 caracteres" }),
-  experience_years: z
-    .number({ message: "Los años de experiencia son obligatorios" })
-    .int()
-    .min(EXPERIENCE_YEARS_LIMIT.min, { message: "No puede ser negativo" })
-    .max(EXPERIENCE_YEARS_LIMIT.max, {
-      message: `No puede superar ${EXPERIENCE_YEARS_LIMIT.max} años`,
-    }),
-  description: z.string().nullable().optional(),
-  academic_degree: z.string({ message: "El grado académico es obligatorio" }),
-  other_academic_degree: z.string().max(100).nullable().optional(),
-  phone: z.string().max(20).nullable().optional(),
+  document_number: documentNumberSchema(documentType.value),
+
+  phone: phoneSchema(),
   is_favorite: z.boolean().optional(),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await teacherService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   userId.value = resp.user_id ?? null;
@@ -106,6 +100,9 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="teachers.list"
     :service="(body) => teacherService.update(identifier, body as never)"
+    :loading-data="loadingData"
+    :skeleton-fields="6"
+    skeleton-textarea
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">
@@ -130,13 +127,16 @@ onMounted(async () => {
           placeholder="Selecciona un tipo"
           :invalid="!!errors.document_type"
           :message-error="errors.document_type"
+          @update:model-value="documentType = ($event as string) ?? null"
         />
         <InputTextCore
           v-model="fields.document_number.value"
           label="Número de documento"
+          :hint-label="documentRule.hint"
+          :maxlength="documentRule.length ?? documentRule.max"
           :invalid="!!errors.document_number"
           :message-error="errors.document_number"
-          v-keyfilter.numbersOnly
+          v-keyfilter="documentRule.numericOnly ? /^\d+$/ : /^[A-Za-z0-9]+$/"
         />
       </div>
 
@@ -160,27 +160,30 @@ onMounted(async () => {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectCore
           v-model="fields.academic_degree.value"
-          label="Grado académico"
+          label="Título académico"
           :options="ACADEMIC_DEGREE_OPTIONS"
           option-label="label"
           option-value="value"
-          placeholder="Selecciona un grado"
+          placeholder="Selecciona un título"
           :invalid="!!errors.academic_degree"
           :message-error="errors.academic_degree"
         />
         <InputTextCore
           v-model="fields.phone.value"
           label="Teléfono"
+          :hint-label="PHONE_PE.hint"
+          :maxlength="PHONE_PE.length"
           :invalid="!!errors.phone"
           :message-error="errors.phone"
+          v-keyfilter.numbersOnly
         />
       </div>
 
-      <!-- La API exige other_academic_degree cuando el grado es "other". -->
+      <!-- La API exige other_academic_degree cuando el título es "other". -->
       <InputTextCore
         v-if="fields.academic_degree.value === 'other'"
         v-model="fields.other_academic_degree.value"
-        label="Especifica el grado académico"
+        label="Especifica el título académico"
         :invalid="!!errors.other_academic_degree"
         :message-error="errors.other_academic_degree"
       />

@@ -12,7 +12,6 @@ import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 import { onMounted, ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 
 import offerService, { toCourseItems } from "../services/offer.service";
 import courseService from "../../courses/services/course.service";
@@ -141,9 +140,9 @@ const onSubmit = (body: Record<string, unknown>) => {
   } as never);
 };
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const [coursesResp, teachersResp] = await Promise.all([
     safeRequest(() => courseService.all(activeOnly), { showAlert: false }),
     safeRequest(() => teacherService.all(activeOnly), { showAlert: false }),
@@ -152,7 +151,7 @@ onMounted(async () => {
   if (teachersResp.status) teachers.value = teachersResp.data ?? [];
 
   const offer = await offerService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!offer) return;
 
   selectedType.value = offer.type;
@@ -179,6 +178,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="offers.list"
     :service="onSubmit"
+    :loading-data="loadingData"
+    :skeleton-fields="6"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

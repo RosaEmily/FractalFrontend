@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import FieldPreview from "../../../components/field-preview.vue";
 import BannerPreview from "../components/banner-preview.vue";
@@ -46,11 +45,11 @@ onBeforeUnmount(() => {
 
 const previewImage = computed(() => desktopUrl.value ?? currentDesktop.value);
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await bannerService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -69,6 +68,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="banners.list"
     :service="(body) => bannerService.update(identifier, { ...body, desktop, mobile })"
+    :loading-data="loadingData"
+    :skeleton-fields="4"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

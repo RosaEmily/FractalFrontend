@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 /**
  * Celda de identidad del diseño: avatar con iniciales (no depende de que
@@ -16,6 +16,21 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { mono: true });
 
+/*
+ * La foto puede no cargar: la URL de S3 puede estar caída, el archivo borrado
+ * o el enlace mal guardado. Sin esto quedaba el icono de imagen rota, que se
+ * ve peor que no tener foto — así que se cae a las iniciales.
+ */
+const failed = ref(false);
+
+// Una foto nueva merece otro intento: si no, al cambiarla seguiría en iniciales.
+watch(
+  () => props.photo,
+  () => (failed.value = false),
+);
+
+const showPhoto = computed(() => !!props.photo && !failed.value);
+
 const initials = computed(() =>
   props.name
     .trim()
@@ -30,10 +45,11 @@ const initials = computed(() =>
 <template>
   <div class="flex items-center gap-2.5">
     <img
-      v-if="photo"
-      :src="photo"
+      v-if="showPhoto"
+      :src="photo ?? undefined"
       alt=""
       class="size-8 rounded-full object-cover shrink-0"
+      @error="failed = true"
     />
     <span
       v-else

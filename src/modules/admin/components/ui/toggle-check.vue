@@ -24,7 +24,11 @@ defineEmits<{ toggle: [value: boolean] }>();
   >
     <span
       class="mt-px grid size-[1.188rem] shrink-0 place-items-center rounded-[0.313rem] border-[1.5px] transition-colors"
-      :class="on ? 'border-primary-500 bg-primary-500' : 'border-line bg-surface-paper'"
+      :class="
+        on
+          ? 'border-primary-500 bg-primary-500'
+          : 'border-line bg-surface-paper'
+      "
     >
       <svg
         v-if="on"

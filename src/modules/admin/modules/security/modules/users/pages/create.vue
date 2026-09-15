@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import {
@@ -16,20 +16,32 @@ import {
   InputPasswordCore,
   InputNumberCore,
   SelectCore,
-  MultiselectCore,
   DatePicketCore,
   TextAreaCore,
 } from "@/shared/components";
 import {
   GENDER_OPTIONS,
+  MAX_SESSIONS_OPTIONS,
   DOCUMENT_TYPE_OPTIONS,
   ACADEMIC_DEGREE_OPTIONS,
   CAREER_OPTIONS,
   EDUCATION_LEVEL_OPTIONS,
 } from "@/modules/admin/constants/options";
-import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
+import {
+  EXPERIENCE_YEARS_LIMIT,
+  MAX_SESSIONS_LIMIT,
+} from "@/modules/admin/constants/numeric-limits";
+import {
+  getDocumentRule,
+  PHONE_PE,
+} from "@/modules/admin/constants/documents";
+import {
+  documentNumberSchema,
+  phoneSchema,
+} from "@/modules/admin/utils/document-schema";
 
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
+import RoleChips from "@/modules/admin/components/ui/role-chips.vue";
 
 import userService from "../services/user.service";
 import type { UserBodyDTO } from "../dto/user.dto";
@@ -48,6 +60,10 @@ const loadRoles = async () => {
   roles.value = await roleService.all();
   return roles.value;
 };
+
+// Los chips los pinta el propio formulario, así que la carga ya no la dispara
+// el `auto-load` del multiselect que había antes.
+onMounted(loadRoles);
 
 const roleNames = computed(() =>
   roles.value
@@ -88,6 +104,8 @@ const initialValues = ref<UserBodyDTO>({
   email: null,
   password: null,
   gender: null,
+  // Default de la columna (`unsignedTinyInteger default 1`).
+  max_sessions: 1,
   roles: [],
   // Perfil docente
   specialty: null,
@@ -106,6 +124,13 @@ const initialValues = ref<UserBodyDTO>({
   document_number: null,
   phone: null,
 });
+
+/*
+ * El tipo de documento elegido. Se sigue aparte de `CrudForm` porque de él
+ * dependen la longitud válida, el tope de caracteres y el texto de ayuda.
+ */
+const documentType = ref<string | null>(null);
+const documentRule = computed(() => getDocumentRule(documentType.value));
 
 /** Mantiene `selectedRoles` en sincronía con lo elegido en el multiselect. */
 const onRolesChange = (value: unknown) => {
@@ -136,6 +161,15 @@ const formSchema = computed(() => {
       .string({ message: "La contraseña es obligatoria" })
       .min(6, { message: "Debe tener al menos 6 caracteres" }),
     gender: z.enum(["m", "f", "o"], { message: "Debes seleccionar un género" }),
+    max_sessions: z
+      .number({ message: "Debes indicar cuántas sesiones se permiten" })
+      .int()
+      .min(MAX_SESSIONS_LIMIT.min, {
+        message: `Debes permitir al menos ${MAX_SESSIONS_LIMIT.min} sesión`,
+      })
+      .max(MAX_SESSIONS_LIMIT.max, {
+        message: `No puedes permitir más de ${MAX_SESSIONS_LIMIT.max} sesiones`,
+      }),
     roles: z
       .array(z.number())
       .min(1, { message: "Debes seleccionar al menos un rol" }),
@@ -146,10 +180,9 @@ const formSchema = computed(() => {
     base.document_type = z.string({
       message: "El tipo de documento es obligatorio",
     });
-    base.document_number = z
-      .string({ message: "El número de documento es obligatorio" })
-      .max(50);
-    base.phone = z.string({ message: "El teléfono es obligatorio" }).max(20);
+    base.document_number = documentNumberSchema(documentType.value);
+
+    base.phone = phoneSchema();
   }
 
   if (isTeacher.value) {
@@ -165,7 +198,7 @@ const formSchema = computed(() => {
       });
     base.description = z.string({ message: "La descripción es obligatoria" });
     base.academic_degree = z.string({
-      message: "El grado académico es obligatorio",
+      message: "El título académico es obligatorio",
     });
   }
 
@@ -252,24 +285,31 @@ const formSchema = computed(() => {
           :message-error="errors.gender"
         />
         <!--
-          El multiselect enlaza al campo del formulario (igual que en Roles);
-          `selectedRoles` se actualiza aparte porque de él dependen los
-          campos de perfil que se muestran.
+          Select y no input numérico: el rango es 1-4 y el usuario elige un
+          dispositivo, no teclea un número. Mismo control que en el perfil.
         -->
-        <MultiselectCore
-          v-model="fields.roles.value"
-          label="Roles · define qué datos adicionales se piden"
-          :options="roles"
-          option-label="name"
-          option-value="id"
-          placeholder="Selecciona los roles"
-          :service="loadRoles"
-          auto-load
-          :invalid="!!errors.roles"
-          :message-error="errors.roles"
-          @update:model-value="onRolesChange"
+        <SelectCore
+          v-model="fields.max_sessions.value"
+          label="Sesiones simultáneas permitidas"
+          :options="MAX_SESSIONS_OPTIONS"
+          option-label="label"
+          option-value="value"
+          placeholder="Selecciona un máximo"
+          :invalid="!!errors.max_sessions"
+          :message-error="errors.max_sessions"
         />
       </div>
+
+      <!-- Los roles van a ancho completo: son chips en fila, no un campo. -->
+      <RoleChips
+        v-model="fields.roles.value"
+        label="Roles · define qué datos adicionales se piden"
+        :options="roles"
+        hint="Un usuario puede tener más de un rol. TEACHER y STUDENT abren campos adicionales abajo."
+        :invalid="!!errors.roles"
+        :message-error="errors.roles"
+        @update:model-value="onRolesChange"
+      />
 
       <!-- Datos comunes a las fichas de docente y alumno -->
       <template v-if="isTeacher || isStudent">
@@ -283,19 +323,25 @@ const formSchema = computed(() => {
             placeholder="Selecciona un tipo"
             :invalid="!!errors.document_type"
             :message-error="errors.document_type"
+            @update:model-value="documentType = ($event as string) ?? null"
           />
           <InputTextCore
             v-model="fields.document_number.value"
             label="Número de documento"
+            :hint-label="documentRule.hint"
+            :maxlength="documentRule.length ?? documentRule.max"
             :invalid="!!errors.document_number"
             :message-error="errors.document_number"
-            v-keyfilter.numbersOnly
+            v-keyfilter="documentRule.numericOnly ? /^\d+$/ : /^[A-Za-z0-9]+$/"
           />
           <InputTextCore
             v-model="fields.phone.value"
             label="Teléfono"
+            :hint-label="PHONE_PE.hint"
+            :maxlength="PHONE_PE.length"
             :invalid="!!errors.phone"
             :message-error="errors.phone"
+            v-keyfilter.numbersOnly
           />
         </div>
       </template>
@@ -320,18 +366,18 @@ const formSchema = computed(() => {
         </div>
         <SelectCore
           v-model="fields.academic_degree.value"
-          label="Grado académico"
+          label="Título académico"
           :options="ACADEMIC_DEGREE_OPTIONS"
           option-label="label"
           option-value="value"
-          placeholder="Selecciona un grado"
+          placeholder="Selecciona un título"
           :invalid="!!errors.academic_degree"
           :message-error="errors.academic_degree"
         />
         <InputTextCore
           v-if="fields.academic_degree.value === 'other'"
           v-model="fields.other_academic_degree.value"
-          label="Especifica el grado académico"
+          label="Especifica el título académico"
           :invalid="!!errors.other_academic_degree"
           :message-error="errors.other_academic_degree"
         />

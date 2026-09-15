@@ -6,7 +6,6 @@ import { useRoute } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import socialNetworkService from "../services/social-network.service";
 import type { SocialNetworkBodyDTO } from "../dto/social-network.dto";
 
@@ -28,11 +27,11 @@ const formSchema = z.object({
     .max(255, { message: "No puede tener más de 255 caracteres" }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await socialNetworkService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -49,6 +48,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="socialNetworks.list"
     :service="(body) => socialNetworkService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="2"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

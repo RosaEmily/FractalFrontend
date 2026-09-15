@@ -43,17 +43,21 @@ const onSelect = async (file: File) => {
 
   saving.value = true;
   const { data, error } = await safeRequest(
-    () => userService.update(props.userId as number, { photo_url: file } as never),
+    () =>
+      userService.update(props.userId as number, { photo_url: file } as never),
     { showAlert: false },
   );
   saving.value = false;
 
   if (!data) {
-    toast.showToastError({ detail: error?.message ?? "No pudimos guardar la foto." });
+    toast.showToastError({
+      detail: error?.message ?? "No pudimos guardar la foto.",
+    });
     return;
   }
 
-  const url = (data as unknown as { photo_url?: string | null }).photo_url ?? null;
+  const url =
+    (data as unknown as { photo_url?: string | null }).photo_url ?? null;
   preview.value = url;
   emit("uploaded", url);
   toast.showToastSuccess({ detail: "Foto actualizada correctamente." });

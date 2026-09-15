@@ -10,7 +10,6 @@ import {
   WEIGHT_LIMIT,
   SCORE_LIMIT,
 } from "@/modules/admin/constants/numeric-limits";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import courseEvaluationService from "../services/course-evaluation.service";
 import evaluationTypeService from "../../evaluation-types/services/evaluation-type.service";
 import type { CourseEvaluationBodyDTO } from "../dto/course-evaluation.dto";
@@ -43,11 +42,11 @@ const formSchema = z.object({
     .max(SCORE_LIMIT.max, { message: "Valor demasiado alto" }),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const loadingStore = useLoadingStore();
-  loadingStore.start();
   const resp = await courseEvaluationService.edit(identifier.value);
-  loadingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
 
   initialValues.value = {
@@ -67,6 +66,8 @@ onMounted(async () => {
     :initialValues="initialValues"
     redirect="courseEvaluations.list"
     :service="(body) => courseEvaluationService.update(identifier, body)"
+    :loading-data="loadingData"
+    :skeleton-fields="5"
     submit-label="Actualizar"
   >
     <template #default="{ fields, errors }">

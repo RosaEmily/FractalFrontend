@@ -20,6 +20,16 @@ export const CAREER_OPTIONS: SelectOption[] = [
   { label: "Otro", value: "other" },
 ];
 
+/**
+ * TÍTULO profesional del docente (`teachers.academic_degree`).
+ *
+ * Comparte las disciplinas de `CAREER_OPTIONS` **a propósito**: aquí describen
+ * al docente ("Ingeniería Civil" = es ingeniero civil) y en `CAREER_OPTIONS` la
+ * carrera que estudia el alumno. Se muestra en la landing encima del nombre,
+ * como credencial.
+ *
+ * Los `value` deben coincidir con `User::ACADEMIC_DEGREE` de la API.
+ */
 export const ACADEMIC_DEGREE_OPTIONS: SelectOption[] = [...CAREER_OPTIONS];
 
 export const EDUCATION_LEVEL_OPTIONS: SelectOption[] = [

@@ -11,7 +11,6 @@ import { InputTextCore, TextAreaCore } from "@/shared/components";
 import type { PermissionCreateBodyDTO } from "../dto/permission.dto";
 
 import permissionService from "../services/permission.service";
-import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 
 const route = useRoute();
 
@@ -46,11 +45,11 @@ const formSchema = z.object({
   ),
 });
 
+const loadingData = ref<boolean>(true);
+
 onMounted(async () => {
-  const landingStore = useLoadingStore();
-  landingStore.start();
   const resp = await permissionService.edit(identifier.value);
-  landingStore.finish();
+  loadingData.value = false;
   if (!resp) return;
   initialValues.value = {
     name: resp.name,
@@ -66,6 +65,9 @@ onMounted(async () => {
     redirect="permissions.list"
     :service="(body) => permissionService.update(identifier, body)"
     submit-label="Actualizar"
+    :loading-data="loadingData"
+    :skeleton-fields="1"
+    skeleton-textarea
   >
     <template #default="{ fields, errors }">
       <InputTextCore
