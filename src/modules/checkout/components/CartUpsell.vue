@@ -83,7 +83,7 @@ onMounted(async () => {
           <p
             class="mt-1.5 font-display text-base font-extrabold text-primary-500"
           >
-            {{ formatMoney(Number(offer.price)) }}
+            {{ formatMoney(Number(offer.price_raw ?? 0)) }}
           </p>
         </div>
 

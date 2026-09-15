@@ -29,8 +29,12 @@ export interface OfferDTO {
   max_students: number;
   enrolled_students_count: number;
   duration_days: number;
-  duration_months: number;
+  duration_months: number | null;
+  /** Formateado por la API (`"$ 199.99"`). Solo para MOSTRAR. */
   price: string;
+  /** Valor crudo (`"199.99"`). Es el que se usa para calcular. */
+  price_raw: string | null;
+  currency_id: number | null;
   courses: OfferCourseDTO[];
 }
 

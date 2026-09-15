@@ -29,9 +29,13 @@ export interface Offer {
   min_students: number;
   max_students: number;
   enrolled_students_count: number;
-  duration_days: number;
-  duration_months: number;
+  duration_days: number | null;
+  duration_months: number | null;
+  /** Formateado por la API. Solo para MOSTRAR — `Number()` sobre esto da NaN. */
   price: string;
+  /** Valor crudo, el que se usa para calcular. */
+  price_raw: string | null;
+  currency_id: number | null;
   courses: OfferCourse[];
   status: OfferStatus;
   status_label: string;
