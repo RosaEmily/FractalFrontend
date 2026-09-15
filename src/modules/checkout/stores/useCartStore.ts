@@ -2,8 +2,13 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { Offer } from "@/modules/landing/models/offer.model";
 import { CartItemAdapter } from "../adapters/checkout.adapter";
-import type { CartItem, CartProblem, CartTotals } from "../models/checkout.model";
+import type {
+  CartItem,
+  CartProblem,
+  CartTotals,
+} from "../models/checkout.model";
 import { checkoutService } from "../services/checkout.service";
+import { offerService } from "@/modules/landing/services/offer.service";
 
 const STORAGE_KEY = "fractal.cart";
 
@@ -71,7 +76,38 @@ export const useCartStore = defineStore("cart", () => {
    */
   async function ensureValidated(): Promise<void> {
     if (isEmpty.value || totals.value || validating.value) return;
+    await refreshStaleItems();
     await validate();
+  }
+
+  /**
+   * Vuelve a pedir los programas cuyo precio guardado no sirve.
+   *
+   * ⚠️ `JSON.stringify(NaN)` produce **`null`**, así que un carrito guardado
+   * con un precio roto se relee como `price: null` y el resumen muestra
+   * `S/ 0.00` para siempre — el `localStorage` sobrevive al despliegue que
+   * arregló el cálculo. Pasó de verdad: los carritos creados antes del fix de
+   * `price_raw` quedaron en cero.
+   *
+   * Solo se refrescan los ítems rotos: un carrito sano no gasta peticiones.
+   */
+  async function refreshStaleItems(): Promise<void> {
+    const stale = items.value.filter(
+      (item) => !Number.isFinite(item.price) || item.price <= 0,
+    );
+    if (!stale.length) return;
+
+    const refreshed = await Promise.all(
+      stale.map((item) => offerService.get(item.offerId).catch(() => null)),
+    );
+
+    refreshed.forEach((offer) => {
+      if (!offer) return;
+      const index = items.value.findIndex((i) => i.offerId === offer.id);
+      if (index >= 0) items.value[index] = CartItemAdapter.fromOffer(offer);
+    });
+
+    persist();
   }
 
   const has = (offerId: number) =>
@@ -149,5 +185,6 @@ export const useCartStore = defineStore("cart", () => {
     clear,
     validate,
     ensureValidated,
+    refreshStaleItems,
   };
 });

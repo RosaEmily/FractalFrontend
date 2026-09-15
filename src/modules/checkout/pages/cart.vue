@@ -16,8 +16,13 @@ const router = useRouter();
  * `localStorage`, así que puede traer un programa cuyo cupo se llenó hace días.
  * Enterarse al final del flujo sería peor.
  */
-onMounted(() => {
-  if (!cart.isEmpty) cart.validate();
+onMounted(async () => {
+  if (cart.isEmpty) return;
+
+  // Antes de validar, recuperar los ítems cuyo precio guardado quedó inservible
+  // (ver `refreshStaleItems`): si no, el resumen muestra S/ 0.00.
+  await cart.refreshStaleItems();
+  await cart.validate();
 });
 
 const goNext = () => router.push({ name: "checkout-auth" });
