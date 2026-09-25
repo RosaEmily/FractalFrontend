@@ -64,8 +64,8 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="CERTIFICADOS"
-      title="Certificados"
+      eyebrow="CERTIFICACIÓN"
+      title="Mis certificados"
       sub="Cada curso aprobado genera su certificado con código verificable. Las líneas de carrera entregan además un diploma al completarse."
     />
 
@@ -186,7 +186,7 @@ onMounted(async () => {
 
       <AulaEmpty
         v-if="!certificates.length && !pending.length"
-        title="Todavía no tienes certificados"
+        title="Aún no tienes certificados"
         sub="Cuando apruebes un curso y el docente cierre el acta, tu certificado aparecerá acá con su código verificable."
       />
     </template>

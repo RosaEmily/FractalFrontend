@@ -13,6 +13,13 @@ export interface OfferCourseItem {
   courseId: number | null;
   name: string;
   teacherId: string | null;
+  /**
+   * Nombre del docente, para la vista de sesiones del programa.
+   *
+   * OPCIONAL: solo lo manda el detalle (`show`). Los formularios construyen
+   * filas nuevas sin él, y exigirlo rompía el alta de cursos del programa.
+   */
+  teacherName?: string | null;
   startDate: string | null;
   endDate: string | null;
   meetLink: string | null;

@@ -5,6 +5,7 @@ import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import CheckoutLayout from "../layouts/main.vue";
 import StepLayout from "../components/StepLayout.vue";
+import RadioButton from "primevue/radiobutton";
 import PayMark from "../components/PayMark.vue";
 import type { PaymentMethod } from "../models/checkout.model";
 import { checkoutService } from "../services/checkout.service";
@@ -95,12 +96,11 @@ const goToPayment = async () => {
           class="flex cursor-pointer items-center gap-4 rounded-adm-md border bg-surface-paper p-4 transition-colors"
           :class="selected === method.id ? 'border-primary-500 bg-accent-soft' : 'border-line hover:border-secondary-400'"
         >
-          <input
+          <RadioButton
             v-model="selected"
-            type="radio"
             name="payment-method"
             :value="method.id"
-            class="size-4 shrink-0 accent-primary-500"
+            class="shrink-0"
           />
           <PayMark :name="method.name" :height="24" class="shrink-0" />
           <span class="min-w-0 flex-1">

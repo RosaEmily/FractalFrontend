@@ -61,7 +61,7 @@ onMounted(async () => {
     <AulaPageHeader
       eyebrow="MIS CURSOS"
       title="Cursos"
-      sub="Todo el detalle académico —clases, notas, asistencia y certificado— vive dentro de cada curso."
+      sub="Todos los cursos a los que tienes acceso, de líneas de carrera y de cursos sueltos, ordenados por la clase más próxima."
     />
 
     <div class="flex gap-1 mb-5 border-b border-line">

@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import LandingBadge from '../ui/LandingBadge.vue'
 import LandingImage from '../ui/LandingImage.vue'
 import type { Offer } from '@/modules/landing/models/offer.model'
+import { offerTypeLabel } from '@/modules/landing/constants/labels'
 
 const props = defineProps<{ program: Offer }>()
 
@@ -42,7 +43,7 @@ const STATUS_VARIANT: Record<string, 'open' | 'upcoming' | 'soft' | 'ink'> = {
     <!-- Content -->
     <div class="flex flex-col flex-1 p-5 gap-2">
       <div class="flex items-center gap-2 flex-wrap">
-        <LandingBadge variant="tint" size="sm">{{ program.type }}</LandingBadge>
+        <LandingBadge variant="tint" size="sm">{{ offerTypeLabel(program.type) }}</LandingBadge>
         <span v-if="tags.length > 0" class="font-mono text-[0.625rem] text-secondary-400 uppercase tracking-wide">
           {{ tags.slice(0, 2).join(' · ') }}
         </span>

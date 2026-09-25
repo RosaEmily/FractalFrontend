@@ -53,7 +53,7 @@ const rowWidth = (index: number) => `${58 - (index % 3) * 9}%`;
       v-else-if="kind === 'table'"
       class="bg-surface-paper border border-line rounded-adm-lg overflow-hidden"
     >
-      <div class="flex gap-5 px-5 py-3.5 bg-admin-bg border-b border-line">
+      <div class="flex gap-5 px-5 py-3.5 bg-surface-page border-b border-line">
         <AulaBar :w="90" :h="9" />
         <AulaBar :w="150" :h="9" />
         <AulaBar :w="70" :h="9" />

@@ -13,6 +13,8 @@ export interface ClassSessionDTO {
   offer_id: number | null;
   offer_course_id: number | null;
   course_name: string | null;
+  offer_name: string | null;
+  offer_prefix: string | null;
   status: number;
   created_at: string;
   updated_at: string;
@@ -30,17 +32,25 @@ export interface ClassSessionBodyDTO {
 }
 
 /**
- * Alta por lote: una clase por curso del programa.
+ * Alta y actualización por lote: una clase por horario del programa.
  *
- * ⚠️ Va contra `actions/bulk-store`, que SOLO AGREGA. El otro endpoint
- * parecido (`offers/actions/sessions/{offer}`) sincroniza y borra las clases
- * del horario que no vengan en el payload — no usarlo desde acá.
+ * `actions/bulk-store` hace UPSERT sobre `schedule_id` + `session_date`: crea
+ * la que no existe y actualiza la que sí. Nunca borra.
+ *
+ * ⚠️ El otro endpoint parecido (`offers/actions/sessions/{offer}`) sincroniza
+ * y SÍ borra las clases del horario que no vengan en el payload — no usarlo
+ * desde acá.
  */
 export interface ClassSessionBulkBodyDTO {
   sessions: ClassSessionBodyDTO[];
 }
 
-/** Una fila omitida por el servidor, con el motivo para mostrarlo en pantalla. */
+/**
+ * Una fila omitida por el servidor, con el motivo para mostrarlo en pantalla.
+ *
+ * Con el upsert el único motivo es `duplicated_in_payload`: dos tarjetas con el
+ * mismo horario y fecha. Una clase que ya existe ya no se omite, se actualiza.
+ */
 export interface ClassSessionBulkSkippedDTO {
   schedule_id: number;
   session_date: string;
@@ -49,5 +59,6 @@ export interface ClassSessionBulkSkippedDTO {
 
 export interface ClassSessionBulkResultDTO {
   created: number;
+  updated: number;
   skipped: ClassSessionBulkSkippedDTO[];
 }

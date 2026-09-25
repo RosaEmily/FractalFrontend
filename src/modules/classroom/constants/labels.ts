@@ -4,6 +4,8 @@
  * en pantalla.
  */
 
+import { mdiBriefcaseOutline, mdiSchoolOutline, mdiShimmer } from "@mdi/js";
+
 /**
  * Bloque de soporte al pie del sidebar. Da salida cuando algo no cuadra con la
  * plataforma o la matrícula, que es lo que el alumno no puede resolver solo.
@@ -20,6 +22,35 @@ export const CLASSROOM_ROLE_LABEL: Record<string, string> = {
   STUDENT: "Estudiante",
   TEACHER: "Docente",
   COORDINATOR: "Coordinación académica",
+};
+
+/**
+ * Qué hace cada rol, para que quien tiene varios sepa cuál elegir. Los textos
+ * son los del diseño (`aula/login.jsx` → `AULA_ROLES.desc`): describen lo que
+ * la persona va a ver, no el permiso técnico.
+ */
+export const CLASSROOM_ROLE_DESC: Record<string, string> = {
+  STUDENT: "Mis cursos, clases, notas y certificados",
+  TEACHER: "Sesiones, asistencia y registro de notas",
+  COORDINATOR: "Cohortes, cupos y cierres pendientes",
+};
+
+/** Icono con el que se ofrece cada rol al elegir vista. */
+export const CLASSROOM_ROLE_ICON: Record<string, string> = {
+  STUDENT: mdiSchoolOutline,
+  TEACHER: mdiBriefcaseOutline,
+  COORDINATOR: mdiShimmer,
+};
+
+/**
+ * `students.career` — la BD guarda la clave técnica (`civil_engineering`) y en
+ * pantalla tiene que leerse en español, no el identificador crudo.
+ */
+export const CAREER_LABEL: Record<string, string> = {
+  civil_engineering: "Ingeniería civil",
+  architecture: "Arquitectura",
+  interior_design: "Diseño de interiores",
+  other: "Otra",
 };
 
 /** `enrollment_courses.progress_status`. */

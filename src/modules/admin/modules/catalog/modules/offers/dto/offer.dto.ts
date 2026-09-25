@@ -12,6 +12,8 @@ export interface OfferCourseItemDTO {
   course_id: number;
   name: string;
   teacher_id: string;
+  /** Nombre del docente; el listado solo manda el documento. */
+  teacher_name?: string | null;
   start_date: string;
   end_date: string;
   meet_link: string | null;

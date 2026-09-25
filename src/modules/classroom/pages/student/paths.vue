@@ -48,9 +48,9 @@ const open = (group: LearningPathGroup) => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="LÍNEAS DE CARRERA"
+      eyebrow="MIS PROGRAMAS"
       title="Línea de carrera"
-      sub="Cada línea agrupa cursos que se desbloquean en orden. Al completarla se emite el diploma."
+      sub="Los cursos de una línea se abren en secuencia: el siguiente se desbloquea cuando el anterior queda completado."
     />
 
     <AulaSkeleton v-if="loading" kind="table" :rows="3" />
@@ -123,7 +123,7 @@ const open = (group: LearningPathGroup) => {
 
     <AulaEmpty
       v-else
-      title="No estás en ninguna línea de carrera"
+      title="Aún no tienes una línea de carrera"
       sub="Tus cursos sueltos aparecen en la sección Cursos. Las líneas agrupan varios cursos con un diploma al final."
     />
   </div>

@@ -19,6 +19,7 @@ import {
   formatDate,
   formatMonth,
   formatTimeRange,
+  joinMeta,
   minutesOf,
   mondayOf,
   toDay,
@@ -167,9 +168,9 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="CRONOGRAMA"
+      eyebrow="CLASES EN VIVO"
       title="Cronograma"
-      sub="Tus clases en vivo, con el horario de cada curso."
+      sub="Cada clase cuelga de un horario del curso. Los colores distinguen tus cursos; las clases dictadas quedan atenuadas."
     >
       <template #actions>
         <div class="flex gap-1">
@@ -412,7 +413,12 @@ onMounted(async () => {
               type="button"
               class="truncate rounded-adm-sm bg-accent-soft px-1.5 py-1 text-left text-[0.688rem] font-semibold text-primary-600 cursor-pointer"
               :class="{ 'opacity-60': session.isDone }"
-              :title="`${session.topic ?? session.name} · ${formatTimeRange(session.startTime, session.endTime)}`"
+              :title="
+                joinMeta(
+                  session.topic ?? session.name,
+                  formatTimeRange(session.startTime, session.endTime),
+                )
+              "
               @click="openSession(session)"
             >
               {{ session.topic ?? session.name }}

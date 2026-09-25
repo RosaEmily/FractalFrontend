@@ -62,7 +62,7 @@ const columns: GridUiColumnProps<Certificate>[] = [
       h(StatusPill, {
         label: row.subjectTypeLabel,
         // El diploma de línea es el caso excepcional: se distingue en color.
-        tone: row.subjectType === "learning_path" ? "info" : "neutral",
+        tone: row.subjectType === "learning_path" ? "accent" : "neutral",
         dot: false,
       }),
   },

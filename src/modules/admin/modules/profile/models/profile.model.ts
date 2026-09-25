@@ -23,6 +23,38 @@ export interface Profile {
   status: number;
   /** Sesiones simultáneas permitidas. Solo lectura: lo define un ADMIN. */
   max_sessions: number;
+  /** Documento de la ficha académica. Null para un ADMIN, que no tiene. */
+  document_number: string | null;
+  document_type: string | null;
+  /** Datos que viven en `students`/`teachers`. Null para un ADMIN. */
+  profile: StudentProfile | TeacherProfile | null;
+}
+
+/**
+ * ⚠️ `kind` discrimina la unión: sin él, TypeScript no puede distinguir qué
+ * campos existen, porque alumno y docente comparten solo `phone`.
+ */
+export interface StudentProfile {
+  kind: "student";
+  phone: string | null;
+  address: string | null;
+  birth_date: string | null;
+  education_level: string | null;
+  education_level_name: string | null;
+  career: string | null;
+  career_name: string | null;
+  other_career: string | null;
+}
+
+export interface TeacherProfile {
+  kind: "teacher";
+  phone: string | null;
+  specialty: string | null;
+  experience_years: number | null;
+  description: string | null;
+  academic_degree: string | null;
+  academic_degree_name: string | null;
+  other_academic_degree: string | null;
 }
 
 export interface Session {

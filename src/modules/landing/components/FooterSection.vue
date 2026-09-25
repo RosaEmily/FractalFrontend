@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LandingButton from './ui/LandingButton.vue'
 import LandingEyebrow from './ui/LandingEyebrow.vue'
+import { InputTextCore } from '@/shared/components'
 
 const socialLinks = [
   { name: 'facebook',  href: 'https://www.facebook.com/fractalstudio.arq/' },
@@ -59,10 +60,10 @@ const footerCols = [
         </div>
 
         <form @submit.prevent class="relative z-10 flex gap-2 items-center bg-surface-page rounded-full p-1.5 border border-line">
-          <input
+          <InputTextCore
+            class="field-bare flex-1"
             type="email"
             placeholder="tu@correo.com"
-            class="flex-1 px-4 py-3 font-body text-[0.9375rem] bg-transparent border-none outline-none text-secondary-900 placeholder:text-secondary-400"
           />
           <LandingButton size="md" type="submit">Suscribirme</LandingButton>
         </form>

@@ -2,6 +2,8 @@ import apiFractal from "@/shared/helpers/axios/api-fractal";
 import type { ApiResponse } from "@/shared/interface/api-response";
 import type { MaterialDTO } from "../dto/classroom.dto";
 import type {
+  EvaluationTypeDTO,
+  PassingScoreDTO,
   EvaluationsDTO,
   FinalsDTO,
   GradebookDTO,
@@ -96,11 +98,28 @@ class TeacherRepository {
    * Guarda el cuadro completo: lo que no se envía se elimina. Una evaluación
    * con notas no se borra ni cambia de peso — la API lo reporta en `protected`.
    */
+  /**
+   * Catálogo de tipos para el selector del cuadro.
+   *
+   * Va por el aula y no por `evaluations/types`, que está bajo
+   * `authorize:ADMIN` y responde 403 al docente.
+   */
+  async evaluationTypes(): Promise<ApiResponse<EvaluationTypeDTO[]>> {
+    const response = await apiFractal.get<EvaluationTypeDTO[]>(
+      `${this.route}/evaluation-types`,
+    );
+    return { ...response, data: response.data ?? [] };
+  }
+
+  /**
+   * Upsert del cuadro completo. Responde con el cuadro ya guardado y sus
+   * totales recalculados, igual que `evaluations()`: no hace falta releer.
+   */
   async saveEvaluations(
     offerCourseId: number,
     evaluations: EvaluationInput[],
-  ): Promise<ApiResponse<unknown>> {
-    return apiFractal.post(
+  ): Promise<ApiResponse<EvaluationsDTO | null>> {
+    return apiFractal.post<EvaluationsDTO>(
       `${this.route}/courses/${offerCourseId}/evaluations`,
       { evaluations },
     );
@@ -113,11 +132,15 @@ class TeacherRepository {
   }
 
   /** Toda la matriz en una llamada. Upsert: volver a guardar corrige. */
+  /**
+   * Guarda las notas y responde con el gradebook recalculado (acumulados y
+   * peso evaluado incluidos), así que no hace falta releerlo.
+   */
   async saveGrades(
     offerCourseId: number,
     grades: GradeInput[],
-  ): Promise<ApiResponse<unknown>> {
-    return apiFractal.post(
+  ): Promise<ApiResponse<GradebookDTO | null>> {
+    return apiFractal.post<GradebookDTO>(
       `${this.route}/courses/${offerCourseId}/gradebook`,
       { grades },
     );
@@ -127,8 +150,8 @@ class TeacherRepository {
   async setPassingScore(
     offerCourseId: number,
     passingScore: number | null,
-  ): Promise<ApiResponse<unknown>> {
-    return apiFractal.patch(
+  ): Promise<ApiResponse<PassingScoreDTO | null>> {
+    return apiFractal.patch<PassingScoreDTO>(
       `${this.route}/courses/${offerCourseId}/passing-score`,
       { passing_score: passingScore },
     );

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { LabelCore } from "@/shared/components";
+import { LabelCore, ImageCore } from "@/shared/components";
 import { useToastStore } from "@/shared/stores/useToastStore";
 
 interface Props {
@@ -87,13 +87,21 @@ const onDrop = (event: DragEvent) => {
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
     >
+      <!--
+        `ImageCore` con `preview`: la vista previa del recuadro es pequeña y no
+        deja comprobar lo que se está subiendo (si el texto de un banner se lee,
+        si la foto está recortada). Con `preview` el clic la abre a tamaño
+        completo con zoom, sin sacar al usuario del formulario.
+      -->
+
       <!-- Foto de persona: círculo, y con iniciales cuando aún no hay imagen. -->
       <template v-if="isAvatar">
-        <img
+        <ImageCore
           v-if="preview || current"
           :src="preview ?? current ?? ''"
-          alt=""
-          class="size-23 rounded-pill object-cover"
+          preview
+          image-class="size-23 rounded-pill object-cover"
+          class="cursor-zoom-in"
         />
         <span
           v-else
@@ -103,11 +111,12 @@ const onDrop = (event: DragEvent) => {
         </span>
       </template>
 
-      <img
+      <ImageCore
         v-else-if="preview || current"
         :src="preview ?? current ?? ''"
-        alt=""
-        class="max-h-24 object-contain"
+        preview
+        image-class="max-h-24 object-contain"
+        class="cursor-zoom-in"
       />
 
       <span class="text-adm-base text-secondary-900 font-semibold">

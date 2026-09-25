@@ -4,6 +4,7 @@ import LandingLayout from '../layouts/LandingLayout.vue'
 import { safeRequest } from '@/shared/utils/request'
 import { teacherService } from '@/modules/landing/services/teacher.service'
 import type { Teacher } from '@/modules/landing/models/teacher.model'
+import { InputTextCore } from '@/shared/components'
 
 const teachers     = ref<Teacher[]>([])
 const loading      = ref(false)
@@ -154,12 +155,12 @@ onMounted(async () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="text-secondary-400 shrink-0" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"/><path d="M21 21L16.5 16.5"/>
           </svg>
-          <input
+          <InputTextCore
             v-model="search"
-            @input="currentPage = 1"
+            class="field-bare w-full"
             type="text"
             placeholder="Buscar docente..."
-            class="border-none bg-transparent outline-none font-body text-[0.8125rem] text-secondary-900 placeholder:text-secondary-400 w-full"
+            @input="currentPage = 1"
           />
         </div>
       </div>

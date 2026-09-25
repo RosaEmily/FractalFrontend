@@ -8,11 +8,18 @@ import type { OfferDTO } from "../dto/offer.dto";
 import dayjs from "dayjs";
 import { OFFER_TYPE_LABEL } from "../constants/offer.constant";
 
-/** Rango de matrícula como lo muestra el diseño: "01/03 – 15/05". */
+/**
+ * Rango de matrícula como lo muestra el diseño:
+ * "02/03/2026 – 20/03/2026".
+ *
+ * ⚠️ CON año: las cohortes se nombran por año (`BIM-2026-1`) y conviven
+ * ediciones de distintos años en el mismo listado — un "02/03 – 20/03" no dice
+ * de cuál se trata.
+ */
 const formatRange = (start?: string | null, end?: string | null): string => {
   if (!start && !end) return "—";
   const fmt = (value?: string | null) =>
-    value ? dayjs(value).format("DD/MM") : "—";
+    value ? dayjs(value).format("DD/MM/YYYY") : "—";
   return `${fmt(start)} – ${fmt(end)}`;
 };
 
@@ -24,6 +31,7 @@ export const OfferAdapter = {
         courseId: item.course_id,
         name: item.name,
         teacherId: item.teacher_id,
+        teacherName: item.teacher_name ?? null,
         /*
          * ⚠️ La API devuelve `YYYY-MM-DD HH:mm:ss` y el picker está declarado
          * con `dayjs-format-value="YYYY-MM-DD"`. Con la hora pegada el valor no

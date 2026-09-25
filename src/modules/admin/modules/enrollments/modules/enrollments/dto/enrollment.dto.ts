@@ -17,6 +17,8 @@ export interface EnrollmentDTO {
   payment_status_name: string;
   amount_format: string | null;
   courses: EnrollmentCourseDTO[];
+  /** Programas (ofertas) de la matrícula, sin repetir. */
+  offers: string[];
   status: number;
   created_at: string;
   updated_at: string;

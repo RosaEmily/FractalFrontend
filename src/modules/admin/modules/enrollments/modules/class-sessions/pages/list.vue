@@ -23,6 +23,26 @@ const columns: GridUiColumnProps<ClassSession>[] = [
       }),
   },
   {
+    /*
+     * De qué programa y curso es la clase. Sin esto el listado eran clases
+     * sueltas: "Sesión 1" se repite en cada curso y no había forma de saber a
+     * cuál pertenece sin abrir la edición.
+     *
+     * No es ordenable ni filtrable: los nombres viven en `offers` y `courses`,
+     * y el `order` viaja literal a MySQL (fallaría con *Unknown column*).
+     */
+    field: "offerName",
+    header: "Programa",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: ClassSession) =>
+      h(StackedCell, {
+        primary: row.courseName ?? "—",
+        secondary: row.offerPrefix ?? row.offerName,
+        mono: true,
+      }),
+  },
+  {
     field: "sessionDate",
     header: "Fecha",
     sortable: true,

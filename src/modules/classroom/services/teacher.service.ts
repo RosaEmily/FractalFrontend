@@ -3,8 +3,15 @@ import teacherRepository, {
   type EvaluationInput,
   type GradeInput,
 } from "../repositories/teacher.repository";
-import type { MaterialDTO } from "../dto/classroom.dto";
+import apiFractal from "@/shared/helpers/axios/api-fractal";
 import type {
+  MaterialDTO,
+  NotificationDTO,
+  NotificationsDTO,
+} from "../dto/classroom.dto";
+import type {
+  EvaluationTypeDTO,
+  PassingScoreDTO,
   EvaluationsDTO,
   FinalsDTO,
   GradebookDTO,
@@ -22,6 +29,23 @@ import type {
  * aplicó en el módulo de Reportes del admin.
  */
 class TeacherService {
+  /** Avisos del docente: mismo contrato que los del alumno. */
+  async notifications(): Promise<NotificationsDTO | null> {
+    const response = await apiFractal.get<NotificationsDTO>(
+      "classroom/teacher/notifications",
+    );
+    return response.data;
+  }
+
+  /** Sin lista, el backend marca todos los pendientes. */
+  async readNotifications(items?: NotificationDTO[]): Promise<boolean> {
+    const response = await apiFractal.post(
+      "classroom/teacher/notifications/read",
+      { items: items ?? [] },
+    );
+    return response.success;
+  }
+
   async courses(): Promise<TeacherCourseDTO[]> {
     const response = await teacherRepository.courses();
     return response.data ?? [];
@@ -68,34 +92,47 @@ class TeacherService {
     return response.data;
   }
 
+  async evaluationTypes(): Promise<EvaluationTypeDTO[]> {
+    const response = await teacherRepository.evaluationTypes();
+    return response.data ?? [];
+  }
+
+  /**
+   * Guarda el cuadro y devuelve cómo quedó.
+   *
+   * ⚠️ La respuesta del POST trae ya `evaluations` y `totals` recalculados —la
+   * misma forma que el GET—, así que quien guarda NO necesita volver a pedirlo:
+   * hacerlo mostraba dos peticiones seguidas al mismo endpoint y dejaba una
+   * ventana en la que la pantalla seguía con los datos viejos.
+   */
   async saveEvaluations(
     offerCourseId: number,
     evaluations: EvaluationInput[],
-  ): Promise<boolean> {
+  ): Promise<EvaluationsDTO | null> {
     const response = await teacherRepository.saveEvaluations(
       offerCourseId,
       evaluations,
     );
-    return response.success;
+    return response.data;
   }
 
   async saveGrades(
     offerCourseId: number,
     grades: GradeInput[],
-  ): Promise<boolean> {
+  ): Promise<GradebookDTO | null> {
     const response = await teacherRepository.saveGrades(offerCourseId, grades);
-    return response.success;
+    return response.data;
   }
 
   async setPassingScore(
     offerCourseId: number,
     passingScore: number | null,
-  ): Promise<boolean> {
+  ): Promise<PassingScoreDTO | null> {
     const response = await teacherRepository.setPassingScore(
       offerCourseId,
       passingScore,
     );
-    return response.success;
+    return response.data;
   }
 
   async materials(classSessionId: number): Promise<MaterialDTO[]> {
@@ -147,6 +184,13 @@ export const SESSION_ATTENDANCE_STATE: Record<
   { label: string; tone: string }
 > = {
   closed: { label: "Dictada", tone: "success" },
-  partial: { label: "Marcada a medias", tone: "warning" },
+  /*
+   * ⚠️ El diseño NO tiene un estado "a medias" (`sessionMeta`, shell.jsx:337):
+   * son Dictada / Hoy / Pendiente. Una clase con parte de la lista marcada
+   * SIGUE pendiente —lo que falta es cerrarla—, y la etiqueta larga además no
+   * cabía en la columna. El detalle de cuántos van marcados ya lo dice el
+   * aviso "N de M alumnos marcados".
+   */
+  partial: { label: "Pendiente", tone: "neutral" },
   pending: { label: "Pendiente", tone: "neutral" },
 };

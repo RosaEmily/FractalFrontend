@@ -4,14 +4,24 @@ import type { RouteRecordRaw } from "vue-router";
 import { safeJsonParse } from "@/shared/utils/safe-json";
 import {
   clearSession,
+  getActiveRole,
   getSessionUserRaw,
   hasSession,
   restoreSessionUser,
   roleNames,
+  setActiveRole,
   zoneFromPath,
   type AppZone,
 } from "@/shared/utils/session";
 import meService from "@/modules/admin/services/auth.service";
+import {
+  CLASSROOM_ROLE_PRIORITY,
+  classroomHomeFor,
+} from "@/modules/classroom/constants/menu";
+import {
+  syncActiveRole,
+  syncClassroomUser,
+} from "@/modules/classroom/composables/useClassroomRole";
 
 import { routesLanding } from "@/modules/landing/router";
 import { routesAuth } from "@/modules/auth/router";
@@ -97,6 +107,11 @@ const tryRecoverSession = async (zone: AppZone): Promise<boolean> => {
     if (!user) return false;
 
     restoreSessionUser(zone, user);
+
+    // El perfil del aula vive en un ref compartido: sin releerlo, la sesión
+    // recuperada dejaría la topbar en blanco hasta la siguiente recarga.
+    if (zone === "classroom") syncClassroomUser();
+
     return true;
   } catch {
     // 401/403/red caída: no hay sesión que rescatar, sigue el flujo normal.
@@ -145,7 +160,12 @@ router.beforeEach(async (to, _, next) => {
    * panel — son sesiones distintas y puede querer abrir la segunda.
    */
   if (to.meta.guestOnly && isAuthenticated) {
-    return next({ name: zone === "admin" ? "admin-home" : "classroom-home" });
+    return next({
+      name:
+        zone === "admin"
+          ? "admin-home"
+          : classroomHomeFor(userRoles, getActiveRole()),
+    });
   }
 
   /*
@@ -183,6 +203,34 @@ router.beforeEach(async (to, _, next) => {
   if (to.meta.roles) {
     const allowedRoles = to.meta.roles as string[];
     const hasAccess = userRoles.some((role) => allowedRoles.includes(role));
+
+    /*
+     * El aula se dibuja con UN rol a la vez, pero un usuario puede tener
+     * varios. Si la pantalla pedida es de otro de sus roles, no se le cierra la
+     * puerta: se cambia la vista activa a ese rol y se entra.
+     *
+     * Sin esto, un enlace directo del correo o un marcador parecerían rotos
+     * —"no tienes acceso" a algo que sí es suyo— solo porque la última vista
+     * elegida era la otra. El menú se redibuja al rol de la pantalla abierta,
+     * que es lo que el usuario espera al llegar ahí.
+     */
+    if (hasAccess && zone === "classroom") {
+      const active = getActiveRole();
+      const fits = active && allowedRoles.includes(active);
+
+      if (!fits) {
+        const target = CLASSROOM_ROLE_PRIORITY.find(
+          (role) => allowedRoles.includes(role) && userRoles.includes(role),
+        );
+
+        if (target) {
+          setActiveRole(target);
+          // La cookie es la persistencia; el ref del composable es lo que el
+          // menú mira. Sin esto el shell se dibujaría con la vista anterior.
+          syncActiveRole();
+        }
+      }
+    }
 
     if (!hasAccess) {
       /*

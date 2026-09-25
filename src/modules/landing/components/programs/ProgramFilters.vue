@@ -8,12 +8,13 @@
         <ChevronDownIcon :class="['size-4 transition-transform duration-200', open.tipo ? 'rotate-180' : '']" />
       </button>
       <div v-show="open.tipo" class="pb-3 space-y-2">
-        <label v-for="opt in filterOptions.tipos" :key="opt"
-          class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-primary-600">
-          <input type="checkbox" :value="opt" v-model="filters.types"
-            class="rounded border-gray-300 accent-primary-500" />
-          {{ opt }}
-        </label>
+        <ToggleCheck
+          v-for="opt in filterOptions.tipos"
+          :key="opt"
+          :label="opt"
+          :on="filters.types.includes(opt)"
+          @toggle="toggleOption(filters.types, opt)"
+        />
       </div>
     </div>
 
@@ -24,12 +25,13 @@
         <ChevronDownIcon :class="['size-4 transition-transform duration-200', open.tags ? 'rotate-180' : '']" />
       </button>
       <div v-show="open.tags" class="pb-3 space-y-2">
-        <label v-for="opt in filterOptions.tags" :key="opt"
-          class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-primary-600">
-          <input type="checkbox" :value="opt" v-model="filters.tags"
-            class="rounded border-gray-300 accent-primary-500" />
-          {{ opt }}
-        </label>
+        <ToggleCheck
+          v-for="opt in filterOptions.tags"
+          :key="opt"
+          :label="opt"
+          :on="filters.tags.includes(opt)"
+          @toggle="toggleOption(filters.tags, opt)"
+        />
       </div>
     </div>
 
@@ -70,12 +72,13 @@
         <ChevronDownIcon :class="['size-4 transition-transform duration-200', open.docente ? 'rotate-180' : '']" />
       </button>
       <div v-show="open.docente" class="pb-3 space-y-2">
-        <label v-for="opt in filterOptions.teachers" :key="opt"
-          class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-primary-600">
-          <input type="checkbox" :value="opt" v-model="filters.teachers"
-            class="rounded border-gray-300 accent-primary-500" />
-          {{ opt }}
-        </label>
+        <ToggleCheck
+          v-for="opt in filterOptions.teachers"
+          :key="opt"
+          :label="opt"
+          :on="filters.teachers.includes(opt)"
+          @toggle="toggleOption(filters.teachers, opt)"
+        />
       </div>
     </div>
 
@@ -92,6 +95,7 @@
   import { reactive } from 'vue'
   import { ChevronDownIcon } from '@heroicons/vue/24/solid'
   import RangeSlider from '../RangeSlider.vue'
+  import ToggleCheck from '@/modules/admin/components/ui/toggle-check.vue'
   import type { OfferFilterState } from '@/modules/landing/models/offer.model'
 
   const PRICE_MIN = 0
@@ -106,6 +110,22 @@
   }
 
   const filters = defineModel<OfferFilterState>({ required: true })
+
+  /**
+   * Alterna un valor dentro del array del filtro.
+   *
+   * Los `<input type="checkbox">` nativos lo hacían solos con `v-model` sobre
+   * el array; `ToggleCheck` —la casilla del diseño, que es un
+   * `<button role="checkbox">`— emite un booleano, así que la pertenencia se
+   * maneja acá. Se muta el array en sitio para no reemplazar el objeto del
+   * `defineModel`.
+   */
+  function toggleOption(list: string[], value: string) {
+    const index = list.indexOf(value)
+
+    if (index === -1) list.push(value)
+    else list.splice(index, 1)
+  }
 
   const open = reactive({
     tipo: true,

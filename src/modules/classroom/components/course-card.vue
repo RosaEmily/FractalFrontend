@@ -10,7 +10,12 @@ import {
 } from "@mdi/js";
 import { AulaCard, AulaPill, AulaProgress } from "./ui";
 import type { StudentCourse } from "../models/classroom.model";
-import { formatDate, formatScore, formatTimeRange } from "../utils/format";
+import {
+  formatDate,
+  formatScore,
+  formatTimeRange,
+  joinMeta,
+} from "../utils/format";
 
 const props = defineProps<{
   course: StudentCourse;
@@ -34,7 +39,10 @@ const timing = computed(() => {
   if (next) {
     return {
       label: "Próxima clase",
-      value: `${formatDate(next.date)} · ${formatTimeRange(next.startTime, next.endTime)}`,
+      value: joinMeta(
+        formatDate(next.date),
+        formatTimeRange(next.startTime, next.endTime),
+      ),
     };
   }
   if (locked.value) {

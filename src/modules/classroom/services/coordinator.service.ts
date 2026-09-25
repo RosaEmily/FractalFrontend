@@ -5,6 +5,7 @@ import type {
   QuotaDTO,
   StatsDTO,
 } from "../dto/coordinator.dto";
+import type { NotificationDTO, NotificationsDTO } from "../dto/classroom.dto";
 
 /**
  * Coordinación académica.
@@ -29,6 +30,24 @@ class CoordinatorService {
   async quotas(): Promise<QuotaDTO[]> {
     const response = await apiFractal.get<QuotaDTO[]>("dashboard/quotas");
     return response.data ?? [];
+  }
+
+  /**
+   * Avisos de coordinación. Viven en `dashboard` por el mismo motivo que el
+   * resto de su panel: COORDINATOR no tiene endpoints propios en Classroom.
+   */
+  async notifications(): Promise<NotificationsDTO | null> {
+    const response = await apiFractal.get<NotificationsDTO>(
+      "dashboard/notifications",
+    );
+    return response.data;
+  }
+
+  async readNotifications(items?: NotificationDTO[]): Promise<boolean> {
+    const response = await apiFractal.post("dashboard/notifications/read", {
+      items: items ?? [],
+    });
+    return response.success;
   }
 
   async classesToday(date?: string): Promise<ClassTodayDTO[]> {

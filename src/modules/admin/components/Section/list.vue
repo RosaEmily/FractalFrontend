@@ -182,24 +182,34 @@ const rowActions: Action[] = [
  * Y si no queda ninguna acción que mostrar (un listado de solo lectura), la
  * columna tampoco se agrega: sería una cabecera "Acciones" siempre vacía.
  */
-const hasOwnActionsColumn = props.columns.some((col) => col.field === "actions");
+const ownActionsColumn = props.columns.find((col) => col.field === "actions");
 
+/*
+ * ⚠️ La columna de acciones va SIEMPRE al final, sea propia o genérica.
+ *
+ * Antes las columnas de la página se volcaban enteras al principio, así que una
+ * página con acciones propias (Programas) las pintaba ANTES de Estado y el
+ * orden del diseño —Estado penúltimo, Acciones último— se rompía solo en esos
+ * listados. Se saca de `props.columns` y se reinserta al final.
+ */
 const newColumns: GridUiColumnProps<T>[] = [
-  ...props.columns,
+  ...props.columns.filter((col) => col.field !== "actions"),
   ...(props.showUpdatedAt ? [updatedAtColumn] : []),
   ...(props.showStatus ? [statusColumn] : []),
-  ...(!hasOwnActionsColumn && rowActions.length
-    ? [
-        {
-          // 150px fijos, como en el diseño: es la columna más a la derecha y
-          // sin ancho se quedaba con todo el espacio sobrante.
-          style: "width: 150px",
-          field: "actions",
-          header: "Acciones",
-          actions: rowActions,
-        } as GridUiColumnProps<T>,
-      ]
-    : []),
+  ...(ownActionsColumn
+    ? [ownActionsColumn]
+    : rowActions.length
+      ? [
+          {
+            // 150px fijos, como en el diseño: es la columna más a la derecha y
+            // sin ancho se quedaba con todo el espacio sobrante.
+            style: "width: 150px",
+            field: "actions",
+            header: "Acciones",
+            actions: rowActions,
+          } as GridUiColumnProps<T>,
+        ]
+      : []),
 ];
 
 /**

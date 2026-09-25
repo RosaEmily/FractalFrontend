@@ -38,9 +38,9 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="PROGRAMAS"
-      title="Programas"
-      sub="Lo que falta resolver en los cursos de cada grupo antes de que puedan cerrarse."
+      eyebrow="ESTRUCTURA ACADÉMICA"
+      title="Programas y cursos por grupo"
+      sub="Cada fila es un curso dentro de un grupo: su docente, su horario, sus clases generadas y la suma de pesos de sus evaluaciones."
     />
 
     <AulaSkeleton v-if="loading" kind="table" :rows="4" />

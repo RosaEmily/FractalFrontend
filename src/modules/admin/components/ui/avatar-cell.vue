@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { ImageCore } from "@/shared/components";
 
 /**
  * Celda de identidad del diseño: avatar con iniciales (no depende de que
@@ -44,11 +45,24 @@ const initials = computed(() =>
 
 <template>
   <div class="flex items-center gap-2.5">
-    <img
+    <!--
+      `preview`: 32px no alcanzan para reconocer una cara. El clic la abre a
+      tamaño completo.
+
+      ⚠️ `@click.stop`: la celda vive dentro de una fila de tabla que navega a
+      editar, así que sin detener la propagación ampliar la foto sacaría al
+      usuario del listado.
+
+      `ImageCore` reenvía el evento `error` de PrimeVue (`emits: ['show',
+      'hide', 'error']`), así que el fallback a iniciales se conserva.
+    -->
+    <ImageCore
       v-if="showPhoto"
       :src="photo ?? undefined"
-      alt=""
-      class="size-8 rounded-full object-cover shrink-0"
+      preview
+      image-class="size-8 rounded-full object-cover shrink-0"
+      class="shrink-0 cursor-zoom-in"
+      @click.stop
       @error="failed = true"
     />
     <span

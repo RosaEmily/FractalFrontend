@@ -70,11 +70,29 @@ export const formatMonth = (value: string | null | undefined): string => {
 export const formatTime = (value: string | null | undefined): string =>
   value ? String(value).slice(0, 5) : "—";
 
-/** Rango horario de una clase: `19:00–21:00`. */
+/**
+ * Rango horario de una clase: `19:00–21:00`.
+ *
+ * ⚠️ Devuelve CADENA VACÍA si falta alguno de los extremos, no `—–—`: un rango
+ * a medias no es un dato, y el marcador doble (`formatTime` ya cae a `—`) se
+ * leía como basura en pantalla. Más de la mitad de las `class_sessions` no
+ * tienen hora cargada, así que es el caso normal, no el borde.
+ *
+ * Quien lo muestre debe ocultar también su separador con un `v-if`.
+ */
 export const formatTimeRange = (
   start: string | null | undefined,
   end: string | null | undefined,
-): string => `${formatTime(start)}–${formatTime(end)}`;
+): string => (start && end ? `${formatTime(start)}–${formatTime(end)}` : "");
+
+/**
+ * Une las partes de una línea de metadatos con ` · `, salteando las vacías.
+ *
+ * ⚠️ Cosiendo el separador en la plantilla (`${a} · ${b}`) una parte ausente
+ * deja el `·` colgando. Acá el separador solo aparece entre dos partes reales.
+ */
+export const joinMeta = (...parts: (string | null | undefined)[]): string =>
+  parts.filter(Boolean).join(" · ");
 
 /**
  * Día de la semana de una fecha, en la clave que usa `schedules.day_of_week`.

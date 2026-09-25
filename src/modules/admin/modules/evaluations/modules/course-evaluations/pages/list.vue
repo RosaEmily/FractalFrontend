@@ -54,7 +54,7 @@ const columns: GridUiColumnProps<CourseEvaluation>[] = [
       row.offerTypeLabel
         ? h(StatusPill, {
             label: row.offerTypeLabel,
-            tone: row.offerType === "learning_path" ? "info" : "neutral",
+            tone: row.offerType === "learning_path" ? "accent" : "neutral",
             dot: false,
           })
         : h("span", { class: "text-secondary-400" }, "—"),

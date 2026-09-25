@@ -11,17 +11,23 @@ import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import offerService from "@/modules/admin/modules/catalog/modules/offers/services/offer.service";
 import type { Offer } from "@/modules/admin/modules/catalog/modules/offers/models/offer.model";
+import { DAY_OF_WEEK_OPTIONS } from "@/modules/admin/modules/catalog/modules/offers/constants/offer.constant";
 import classSessionService from "../services/class-session.service";
 import { nextDateForDay } from "../utils/class-session-form";
+
+/** Nombre del día en español; si llega uno desconocido, se muestra tal cual. */
+const dayLabel = (value: string): string =>
+  DAY_OF_WEEK_OPTIONS.find((d) => d.value === value)?.label ?? value;
 
 /**
  * Alta MASIVA de clases: se elige un programa y se genera una clase por cada
  * uno de sus cursos, con el horario y la próxima fecha ya derivados.
  *
- * ⚠️ Usa `bulkStore` (`actions/bulk-store`), que SOLO AGREGA. El endpoint
- * parecido `offers/actions/sessions/{offer}` sincroniza: borra las clases del
- * horario que no vengan en el payload. Acá se mandan solo las tarjetas
- * visibles, así que sincronizar borraría clases existentes con su asistencia.
+ * ⚠️ Usa `bulkStore` (`actions/bulk-store`), que hace UPSERT y NUNCA borra. El
+ * endpoint parecido `offers/actions/sessions/{offer}` sincroniza: borra las
+ * clases del horario que no vengan en el payload. Acá se mandan solo las
+ * tarjetas visibles, así que sincronizar borraría clases existentes con su
+ * asistencia.
  */
 interface BulkRow {
   scheduleId: number;
@@ -91,7 +97,9 @@ const onOfferChange = async () => {
       nuevas.push({
         scheduleId,
         courseName: item.name,
-        scheduleLabel: `${schedule.dayOfWeek} ${schedule.startTime}–${schedule.endTime}`,
+        // El día va TRADUCIDO: `schedules.day_of_week` guarda la clave en
+        // inglés (`monday`) y en pantalla salía así.
+        scheduleLabel: `${dayLabel(schedule.dayOfWeek)} ${schedule.startTime}–${schedule.endTime}`,
         sessionDate: nextDateForDay(schedule.dayOfWeek),
         startTime: schedule.startTime,
         endTime: schedule.endTime,
@@ -141,19 +149,25 @@ const onSubmit = async () => {
   if (error || !data) return;
 
   /*
-   * El servidor responde 200 aunque omita filas (una clase que ya existe no
-   * aborta el lote). Hay que avisar de lo omitido: si no, el usuario cree que
-   * se crearon todas.
+   * El servidor responde 200 aunque omita filas. Hay que avisar de lo omitido:
+   * si no, el usuario cree que se guardaron todas.
    */
+  const done = [
+    data.created ? `${data.created} creada(s)` : "",
+    data.updated ? `${data.updated} actualizada(s)` : "",
+  ]
+    .filter(Boolean)
+    .join(" y ");
+
   if (data.skipped.length) {
     toastStore.showToastError({
-      summary: "Algunas clases no se crearon",
-      detail: `${data.created} creada(s). ${data.skipped.length} ya existía(n) para ese horario y fecha.`,
+      summary: "Algunas clases no se guardaron",
+      detail: `${done || "Ninguna guardada"}. ${data.skipped.length} repetida(s) en el formulario (mismo horario y fecha).`,
     });
   } else {
     toastStore.showToastSuccess({
-      summary: "Clases creadas",
-      detail: `Se crearon ${data.created} clase(s) correctamente.`,
+      summary: "Clases guardadas",
+      detail: `${done || "Sin cambios"}.`,
     });
   }
 

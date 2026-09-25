@@ -19,6 +19,8 @@ export interface Enrollment {
   courses: EnrollmentCourse[];
   /** Nombres de los cursos, para la columna de chips. */
   courseNames: string[];
+  /** Programas a los que pertenecen esos cursos, sin repetir. */
+  offerNames: string[];
   status: number;
   updated_at: string;
 }

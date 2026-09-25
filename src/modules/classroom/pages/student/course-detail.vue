@@ -31,6 +31,7 @@ import {
   formatScore,
   formatTime,
   formatTimeRange,
+  joinMeta,
 } from "../../utils/format";
 
 const props = defineProps<{ id: string }>();
@@ -137,9 +138,14 @@ onMounted(async () => {
 
     <template v-else>
       <AulaPageHeader
-        :eyebrow="`${course.offerName} · ${course.offerPrefix ?? ''}`"
+        :eyebrow="joinMeta(course.offerName, course.offerPrefix)"
         :title="course.courseName"
-        :sub="`${course.teacherName ?? 'Docente por asignar'} · ${course.scheduleText}`"
+        :sub="
+          joinMeta(
+            course.teacherName ?? 'Docente por asignar',
+            course.scheduleText,
+          )
+        "
       >
         <template #actions>
           <a
@@ -343,7 +349,7 @@ onMounted(async () => {
 
         <AulaEmpty
           v-if="!course.materials.length"
-          title="Todavía no hay material"
+          title="El docente aún no sube material"
           sub="Cuando el docente suba diapositivas, lecturas o archivos de práctica, los verás acá."
         />
       </template>
@@ -433,7 +439,7 @@ onMounted(async () => {
 
         <AulaEmpty
           v-else
-          title="Sin evaluaciones todavía"
+          title="El docente aún no publica el cuadro de evaluación"
           sub="El docente aún no ha definido el cuadro de evaluación del curso."
         />
       </template>

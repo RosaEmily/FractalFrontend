@@ -13,27 +13,33 @@ const props = withDefaults(
  * Las clases van literales en el mapa, nunca interpoladas: Tailwind no detecta
  * nombres construidos en runtime y la regla no se generaría.
  */
+/*
+ * ⚠️ SIN borde: el diseño (`shell.jsx` → `AulaPill`) solo usa fondo suave y
+ * texto del mismo tono. El borde que tenía antes engordaba la píldora y la
+ * hacía competir con los botones.
+ */
 const TONES: Record<string, string> = {
-  neutral: "bg-surface-soft text-secondary-500 border-line",
-  accent: "bg-accent-soft text-primary-500 border-accent-tint",
-  success: "bg-success-soft text-success-DEFAULT border-success-DEFAULT/25",
-  warning: "bg-amber-soft text-amber-DEFAULT border-amber-DEFAULT/25",
-  danger: "bg-danger-soft text-danger-DEFAULT border-danger-DEFAULT/25",
-  info: "bg-info-soft text-info-DEFAULT border-info-DEFAULT/25",
+  neutral: "bg-surface-cream text-secondary-500",
+  accent: "bg-accent-soft text-primary-600",
+  success: "bg-success-soft text-success-DEFAULT",
+  warning: "bg-amber-soft text-amber-DEFAULT",
+  danger: "bg-danger-soft text-danger-DEFAULT",
+  info: "bg-info-soft text-info-DEFAULT",
 };
 
 const toneClass = computed(() => TONES[props.tone] ?? TONES.neutral);
 
+/* Medidas del diseño: sm = 3px 8px / 10.5px · md = 5px 11px / 11.5px. */
 const sizeClass = computed(() =>
   props.size === "sm"
-    ? "text-adm-xs px-1.5 py-0.5"
-    : "text-adm-sm px-2 py-0.5",
+    ? "text-[0.656rem] px-2 py-[0.188rem]"
+    : "text-[0.719rem] px-2.5 py-[0.313rem]",
 );
 </script>
 
 <template>
   <span
-    class="inline-flex items-center gap-1 rounded-pill border font-medium whitespace-nowrap"
+    class="inline-flex items-center gap-1.5 rounded-pill font-mono font-semibold uppercase tracking-[0.03em] whitespace-nowrap"
     :class="[toneClass, sizeClass]"
   >
     <slot />

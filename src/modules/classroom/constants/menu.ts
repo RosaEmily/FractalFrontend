@@ -31,8 +31,9 @@ export interface ClassroomMenuItem {
  * El menú del aula cambia por completo según quién mira: no es el mismo menú
  * con ítems ocultos. Por eso es un mapa por rol y no una lista con `roles`.
  *
- * Un usuario con dos roles (raro, pero posible) ve el del primero que coincida
- * en este orden: la coordinación manda sobre el resto.
+ * Un usuario con varios roles ve el del rol ACTIVO, que él elige al entrar y
+ * puede cambiar desde el menú de usuario ("CAMBIAR DE VISTA"). No es raro:
+ * alguien puede llevar un curso, dictar otro y además coordinar.
  */
 export const CLASSROOM_MENU: Record<string, ClassroomMenuItem[]> = {
   STUDENT: [
@@ -110,7 +111,7 @@ export const CLASSROOM_MENU: Record<string, ClassroomMenuItem[]> = {
       route: "classroom-coordinator-programs",
     },
     {
-      label: "Cohortes",
+      label: "Grupos",
       icon: mdiViewGridOutline,
       route: "classroom-coordinator-cohorts",
     },
@@ -127,7 +128,11 @@ export const CLASSROOM_MENU: Record<string, ClassroomMenuItem[]> = {
   ],
 };
 
-/** Orden de precedencia cuando el usuario tiene más de un rol del aula. */
+/**
+ * Orden en que se ofrecen los roles del aula, y respaldo para quien todavía no
+ * eligió (un rol único no se pregunta). El activo lo decide el usuario:
+ * ver `useClassroomRole`.
+ */
 export const CLASSROOM_ROLE_PRIORITY = ["COORDINATOR", "TEACHER", "STUDENT"];
 
 /**
@@ -141,3 +146,48 @@ export const CLASSROOM_PARENT: Record<string, string> = {
   "classroom-session": "classroom-agenda",
   "classroom-enrollment": "classroom-account",
 };
+
+/**
+ * Pantalla de entrada de cada rol del aula.
+ *
+ * ⚠️ `classroom-home` es SOLO del alumno (`meta.roles: ["STUDENT"]`). Mandar
+ * ahí a un docente lo devolvía al login: el login validaba bien su rol y
+ * guardaba el perfil, pero el guard de la home lo rechazaba por rol y —como un
+ * rol ajeno a la zona no es un 403 sino una sesión que no sirve— borraba la
+ * cookie de perfil recién escrita. El toast decía "sesión iniciada" y la
+ * pantalla siguiente era otra vez el login.
+ */
+export const CLASSROOM_ROLE_HOME: Record<string, string> = {
+  COORDINATOR: "classroom-coordinator-home",
+  TEACHER: "classroom-teacher-home",
+  STUDENT: "classroom-home",
+};
+
+/**
+ * A qué pantalla entra este usuario: la home de `preferred` si es un rol que
+ * tiene, y si no la del de mayor precedencia.
+ *
+ * Sin rol conocido cae a la home del alumno: el guard decidirá, y esa ruta es
+ * la única que existía antes.
+ */
+export const classroomHomeFor = (
+  roles: string[],
+  preferred?: string | null,
+): string => {
+  /*
+   * El rol ELEGIDO manda sobre la precedencia: un alumno-docente que entró como
+   * docente tiene que caer en su panel, no en el del alumno por ser el de mayor
+   * prioridad. La precedencia solo decide cuando todavía no eligió.
+   */
+  const role =
+    preferred && roles.includes(preferred)
+      ? preferred
+      : CLASSROOM_ROLE_PRIORITY.find((name) => roles.includes(name));
+
+  return (role && CLASSROOM_ROLE_HOME[role]) ?? "classroom-home";
+};
+
+/** A qué rol pertenece cada home, para leer la elección desde una ruta. */
+export const CLASSROOM_HOME_ROLE: Record<string, string> = Object.fromEntries(
+  Object.entries(CLASSROOM_ROLE_HOME).map(([role, route]) => [route, role]),
+);
