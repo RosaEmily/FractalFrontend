@@ -2,6 +2,7 @@ import profileRepository from "../repositories/profile.repository";
 import type { Profile, Session } from "../models/profile.model";
 import type {
   ChangePasswordBodyDTO,
+  AulaProfileUpdateBodyDTO,
   ProfileUpdateBodyDTO,
 } from "../dto/profile.dto";
 
@@ -12,7 +13,7 @@ class ProfileService {
   }
 
   async update(
-    body: ProfileUpdateBodyDTO,
+    body: ProfileUpdateBodyDTO | AulaProfileUpdateBodyDTO,
     photo?: File | null,
   ): Promise<Profile | null> {
     const resp = await profileRepository.update(body, photo);

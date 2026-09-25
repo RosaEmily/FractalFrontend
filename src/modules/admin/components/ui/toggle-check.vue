@@ -6,9 +6,15 @@
  * explícitamente `<input type="checkbox">`: el nativo no se puede estilar de
  * forma consistente entre navegadores. Es un `<button role="checkbox">`.
  */
-withDefaults(
-  defineProps<{ label: string; hint?: string | null; on?: boolean }>(),
-  { on: false },
+const props = withDefaults(
+  defineProps<{
+    label: string;
+    hint?: string | null;
+    on?: boolean;
+    /** Se muestra el valor pero no se puede cambiar (modo lectura). */
+    disabled?: boolean;
+  }>(),
+  { on: false, disabled: false },
 );
 
 defineEmits<{ toggle: [value: boolean] }>();
@@ -19,8 +25,10 @@ defineEmits<{ toggle: [value: boolean] }>();
     type="button"
     role="checkbox"
     :aria-checked="on"
-    class="inline-flex cursor-pointer items-start gap-2.5 text-left"
-    @click="$emit('toggle', !on)"
+    :disabled="props.disabled"
+    class="inline-flex items-start gap-2.5 text-left"
+    :class="props.disabled ? 'cursor-default opacity-60' : 'cursor-pointer'"
+    @click="!props.disabled && $emit('toggle', !on)"
   >
     <span
       class="mt-px grid size-[1.188rem] shrink-0 place-items-center rounded-[0.313rem] border-[1.5px] transition-colors"

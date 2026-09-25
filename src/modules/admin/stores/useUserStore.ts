@@ -8,7 +8,12 @@ export const useUserStore = defineStore("user-store", () => {
   // ================================
   const firstName = ref("Sandro Daniel "); // Nombre del usuario
   const lastName = ref("Quispe Salinas"); // Apellido del usuario
-  const role = ref("Role"); // Rol principal, el que se muestra en la UI
+  /*
+   * Rol principal, el que se muestra en la UI. Vacío hasta que llega el perfil:
+   * antes decía "Role" y ese texto en inglés se veía en la cabecera mientras
+   * cargaba (el `v-if` del chip ya lo oculta si no hay valor).
+   */
+  const role = ref("");
   /** Todos los roles del usuario: el menú se filtra con la lista completa. */
   const roles = ref<string[]>([]);
   const email = ref(""); // Correo del usuario

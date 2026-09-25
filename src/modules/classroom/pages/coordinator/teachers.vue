@@ -10,7 +10,7 @@ import {
   AulaPageHeader,
   AulaSkeleton,
 } from "../../components/ui";
-import { formatTimeRange } from "../../utils/format";
+import { formatTimeRange, joinMeta } from "../../utils/format";
 
 const classes = ref<ClassTodayDTO[]>([]);
 const loading = ref(true);
@@ -46,9 +46,9 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="DOCENTES"
+      eyebrow="EQUIPO DOCENTE"
       title="Docentes"
-      sub="Quién dicta hoy y en qué cursos."
+      sub="Carga por docente: cursos asignados, alumnos a cargo, clases semanales y asistencia promedio."
     />
 
     <AulaSkeleton v-if="loading" kind="table" :rows="4" />
@@ -74,15 +74,19 @@ onMounted(async () => {
             :key="session.id"
             class="text-adm-sm text-secondary-500 mt-1"
           >
-            {{ session.course_name }} ·
-            {{ formatTimeRange(session.start_time, session.end_time) }}
+            {{
+              joinMeta(
+                session.course_name,
+                formatTimeRange(session.start_time, session.end_time),
+              )
+            }}
           </p>
         </div>
       </AulaCard>
 
       <AulaEmpty
         v-else
-        title="No hay clases hoy"
+        title="Sin docentes con carga asignada"
         sub="Ningún docente tiene clases programadas para el día de hoy."
       />
 

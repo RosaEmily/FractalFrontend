@@ -88,14 +88,14 @@ export const routesClassroom: RouteRecordRaw[] = [
       {
         /*
          * Página completa de avisos: el "Ver todas" del panel de la campana.
-         * Solo STUDENT — `/me/notifications` es `authorize:STUDENT` y no hay
-         * endpoint equivalente para docente ni coordinación.
+         * Los TRES roles, cada uno contra su endpoint — por eso la página vive
+         * en `pages/` y ya no en `pages/student/`.
          */
         path: "notificaciones",
         name: "classroom-notifications",
-        component: () => import("../pages/student/notifications.vue"),
+        component: () => import("../pages/notifications.vue"),
         meta: {
-          roles: ["STUDENT"],
+          roles: ["STUDENT", "TEACHER", "COORDINATOR"],
           page: { base: { title: "Notificaciones" } },
         },
       },
@@ -109,12 +109,27 @@ export const routesClassroom: RouteRecordRaw[] = [
         },
       },
       {
+        /*
+         * Mi cuenta, para los TRES roles (`AulaAccountGeneric` del diseño).
+         * Los endpoints de perfil operan sobre el token y no piden rol; lo
+         * único que cambia es que sin ser alumno no hay tab de matrículas.
+         */
         path: "mi-cuenta",
         name: "classroom-account",
-        component: () => import("../pages/student/account.vue"),
+        component: () => import("../pages/account.vue"),
         meta: {
-          roles: ["STUDENT"],
+          roles: ["STUDENT", "TEACHER", "COORDINATOR"],
           page: { base: { title: "Mi cuenta" } },
+        },
+      },
+      {
+        /* Buscador a pantalla completa: el `case 'search'` de los tres roles. */
+        path: "buscar",
+        name: "classroom-search",
+        component: () => import("../pages/search.vue"),
+        meta: {
+          roles: ["STUDENT", "TEACHER", "COORDINATOR"],
+          page: { base: { title: "Buscador" } },
         },
       },
       {
@@ -209,7 +224,7 @@ export const routesClassroom: RouteRecordRaw[] = [
         component: () => import("../pages/coordinator/cohorts.vue"),
         meta: {
           roles: ["COORDINATOR"],
-          page: { base: { title: "Cohortes" } },
+          page: { base: { title: "Grupos" } },
         },
       },
       {

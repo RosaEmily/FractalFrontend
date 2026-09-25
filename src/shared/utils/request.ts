@@ -15,6 +15,32 @@ export async function safeRequest<T>(
     const data = await action();
     return { status: true, data, error: null };
   } catch (e: unknown) {
+    /*
+     * ⛔ Petición CANCELADA, no fallida.
+     *
+     * `ApiRequest` deduplica por endpoint: si la misma petición se pide otra vez
+     * antes de responder, aborta la anterior y la rechaza con `null`. Eso es
+     * flujo normal —pasa siempre que dos pantallas piden lo mismo al montar— y
+     * tratarlo como error llenaba la consola de `Error: null` y, con
+     * `showAlert`, sacaba un cartel de fallo por una petición que nadie esperaba
+     * ya.
+     *
+     * Se devuelve `status: false` con `data: null`: quien llama ya contempla ese
+     * caso (`data ?? []`), y la respuesta buena llega por la petición que la
+     * reemplazó.
+     */
+    if (e === null) {
+      return {
+        status: false,
+        data: null,
+        error: {
+          code: "REQUEST_CANCELLED",
+          message: "",
+          details: {},
+        },
+      };
+    }
+
     const error: SafeRequestError = {
       code: "UNKNOWN_ERROR",
       message: "Ups, ocurrió algo inesperado. Por favor, intenta más tarde.",

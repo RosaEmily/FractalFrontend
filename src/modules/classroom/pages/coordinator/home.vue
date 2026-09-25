@@ -90,7 +90,7 @@ onMounted(async () => {
           :icon="mdiAccountGroupOutline"
         />
         <AulaStat
-          label="Cohortes con matrícula"
+          label="Grupos con matrícula"
           :value="quotas.length || '—'"
           :icon="mdiViewGridOutline"
           tone="info"

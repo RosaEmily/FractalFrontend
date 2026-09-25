@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
+import { InputTextCore } from "@/shared/components";
 import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import CheckoutLayout from "../layouts/main.vue";
@@ -127,23 +128,19 @@ const pay = async () => {
           <div class="grid gap-3.5 sm:grid-cols-2">
             <label class="sm:col-span-2 block">
               <span class="mb-1.5 block text-[0.813rem] font-medium text-secondary-500">Número de tarjeta</span>
-              <input type="text" disabled placeholder="0000 0000 0000 0000"
-                class="w-full cursor-not-allowed rounded-adm-md border border-line bg-surface-page px-3.5 py-2.5 text-[0.906rem] text-secondary-400" />
+              <InputTextCore class="checkout-field" type="text" disabled placeholder="0000 0000 0000 0000" />
             </label>
             <label class="sm:col-span-2 block">
               <span class="mb-1.5 block text-[0.813rem] font-medium text-secondary-500">Nombre del titular</span>
-              <input type="text" disabled placeholder="Como aparece en la tarjeta"
-                class="w-full cursor-not-allowed rounded-adm-md border border-line bg-surface-page px-3.5 py-2.5 text-[0.906rem] text-secondary-400" />
+              <InputTextCore class="checkout-field" type="text" disabled placeholder="Como aparece en la tarjeta" />
             </label>
             <label class="block">
               <span class="mb-1.5 block text-[0.813rem] font-medium text-secondary-500">Vencimiento</span>
-              <input type="text" disabled placeholder="MM/AA"
-                class="w-full cursor-not-allowed rounded-adm-md border border-line bg-surface-page px-3.5 py-2.5 text-[0.906rem] text-secondary-400" />
+              <InputTextCore class="checkout-field" type="text" disabled placeholder="MM/AA" />
             </label>
             <label class="block">
               <span class="mb-1.5 block text-[0.813rem] font-medium text-secondary-500">CVV</span>
-              <input type="text" disabled placeholder="123"
-                class="w-full cursor-not-allowed rounded-adm-md border border-line bg-surface-page px-3.5 py-2.5 text-[0.906rem] text-secondary-400" />
+              <InputTextCore class="checkout-field" type="text" disabled placeholder="123" />
             </label>
           </div>
 

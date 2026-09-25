@@ -6,6 +6,7 @@ import type {
   SessionDTO,
   ChangePasswordBodyDTO,
   ChangePasswordResponseDTO,
+  AulaProfileUpdateBodyDTO,
   ProfileUpdateBodyDTO,
 } from "../dto/profile.dto";
 import { profileAdapter, sessionAdapter } from "../adapters/profile.adapter";
@@ -30,7 +31,7 @@ class ProfileRepository {
    * multipart/form-data en peticiones PUT.
    */
   async update(
-    body: ProfileUpdateBodyDTO,
+    body: ProfileUpdateBodyDTO | AulaProfileUpdateBodyDTO,
     photo?: File | null,
   ): Promise<ApiResponse<Profile | null>> {
     const payload = new FormData();

@@ -7,6 +7,7 @@ import ProgramFilterDrawer from '../components/programs/ProgramFilterDrawer.vue'
 import { useOfferStore } from '@/modules/landing/stores/useOfferStore'
 import { useToastStore } from '@/shared/stores/useToastStore'
 import type { OfferFilterState } from '@/modules/landing/models/offer.model'
+import { SelectCore } from '@/shared/components'
 
 const offerStore  = useOfferStore()
 const toastStore  = useToastStore()
@@ -107,12 +108,13 @@ onMounted(loadPrograms)
         <!-- Sort (desktop) -->
         <div class="hidden lg:flex items-center gap-3">
           <span class="font-mono text-[0.625rem] tracking-widest uppercase text-secondary-400">ORDENAR POR</span>
-          <select
+          <SelectCore
             v-model="sortBy"
-            class="px-4 py-2.5 font-body text-[0.844rem] font-medium border border-line rounded-full bg-surface-paper text-secondary-900 cursor-pointer focus:outline-none appearance-none pr-8"
-          >
-            <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-          </select>
+            class="landing-select w-64"
+            :options="sortOptions"
+            option-label="label"
+            option-value="value"
+          />
         </div>
       </div>
     </section>
@@ -134,12 +136,13 @@ onMounted(loadPrograms)
             {{ activeFilterCount }}
           </span>
         </button>
-        <select
+        <SelectCore
           v-model="sortBy"
-          class="font-body text-[0.875rem] border border-line rounded-full px-4 py-2.5 text-secondary-900 bg-surface-paper focus:outline-none cursor-pointer"
-        >
-          <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-        </select>
+          class="landing-select w-48"
+          :options="sortOptions"
+          option-label="label"
+          option-value="value"
+        />
       </div>
 
       <div class="flex gap-8">

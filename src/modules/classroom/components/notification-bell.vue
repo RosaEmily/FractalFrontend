@@ -4,13 +4,37 @@ import { useRouter } from "vue-router";
 import { HeroCore } from "@/shared/components";
 import { useClickOutsideMulti } from "@/shared/composables/useClickOutside";
 import { safeRequest } from "@/shared/utils/request";
-import { mdiBellOutline } from "@mdi/js";
+import { mdiBellOutline, mdiCheck } from "@mdi/js";
 import studentService from "../services/student.service";
+import teacherService from "../services/teacher.service";
+import coordinatorService from "../services/coordinator.service";
+import { useClassroomRole } from "../composables/useClassroomRole";
 import type { NotificationDTO } from "../dto/classroom.dto";
-import { AulaBar, AulaPill } from "./ui";
+import { AulaBar, AulaPill, AulaSpinner } from "./ui";
+import {
+  notificationIcon,
+  notificationTarget,
+  type NotificationAudience,
+} from "../utils/notification-route";
 import { formatDate } from "../utils/format";
 
 const router = useRouter();
+
+/**
+ * Los TRES roles tienen avisos, cada uno con su endpoint:
+ * `classroom/me/*` (alumno), `classroom/teacher/*` y `dashboard/*`
+ * (coordinación, porque COORDINATOR no tiene endpoints propios en Classroom).
+ *
+ * Todos derivan sus avisos de las tablas reales y comparten la tabla
+ * `notifications` solo para registrar lo leído, así que el contrato es el
+ * mismo y el panel no cambia según quién mire.
+ */
+const { isStudent, isTeacher } = useClassroomRole();
+
+/** Qué mapa de destinos aplica. */
+const audience = computed<NotificationAudience>(() =>
+  isStudent.value ? "student" : isTeacher.value ? "teacher" : "coordinator",
+);
 
 const open = ref(false);
 const items = ref<NotificationDTO[]>([]);
@@ -30,21 +54,53 @@ const TONES: Record<string, string> = {
   info: "bg-info-soft text-info-DEFAULT",
 };
 
+/** El servicio del rol activo. */
+const fetchNotifications = () => {
+  if (isStudent.value) return studentService.notifications();
+  if (isTeacher.value) return teacherService.notifications();
+
+  return coordinatorService.notifications();
+};
+
 const load = async () => {
   loading.value = true;
-  const { data } = await safeRequest(() => studentService.notifications(), {
+  const { data } = await safeRequest(fetchNotifications, {
     showAlert: false,
   });
   items.value = data?.items ?? [];
   loading.value = false;
 };
 
+/**
+ * Marca UNA como leída sin navegar.
+ *
+ * Revisar la bandeja y despacharla es una acción distinta de abrir el aviso:
+ * obligar a entrar en cada uno para silenciarlo sería peor.
+ */
+const marking = ref<string | null>(null);
+
+const toggleRead = async (notification: NotificationDTO) => {
+  if (notification.read) return;
+
+  marking.value = `${notification.entity_type}-${notification.entity_id}`;
+  await safeRequest(() => markRead([notification]), { showAlert: false });
+  marking.value = null;
+  await load();
+};
+
 const markAll = async () => {
   if (!unread.value) return;
-  await safeRequest(() => studentService.readNotifications(), {
-    showAlert: false,
-  });
+
+  await safeRequest(() => markRead(), { showAlert: false });
   await load();
+};
+
+/** Marca leídos contra el endpoint del rol. Los tres lo tienen. */
+const markRead = (list?: NotificationDTO[]) => {
+  if (isStudent.value) return studentService.readNotifications(list);
+  if (isTeacher.value) return teacherService.readNotifications(list);
+
+  return coordinatorService.readNotifications(list);
 };
 
 /**
@@ -55,25 +111,15 @@ const goTo = async (notification: NotificationDTO) => {
   open.value = false;
 
   if (!notification.read) {
-    await safeRequest(() => studentService.readNotifications([notification]), {
+    await safeRequest(() => markRead([notification]), {
       showAlert: false,
     });
     await load();
   }
 
-  const routes: Record<string, string> = {
-    course: "classroom-course",
-    certificates: "classroom-certificates",
-  };
+  const target = notificationTarget(notification, audience.value);
 
-  const name = routes[notification.route.name];
-  if (!name) return;
-
-  router.push(
-    notification.route.id
-      ? { name, params: { id: notification.route.id } }
-      : { name },
-  );
+  if (target) router.push(target);
 };
 
 /** Abre la página completa de avisos y cierra el panel. */
@@ -149,39 +195,88 @@ onMounted(load);
             </div>
           </div>
 
-          <button
+          <!--
+            ⚠️ La fila NO es un botón: lleva DOS acciones —abrir el aviso y
+            marcarlo leído— y un `<button>` no puede anidar otro. Era lo que
+            dejaba el círculo sin poder clicarse en la campana.
+          -->
+          <div
             v-for="notification in items"
             :key="`${notification.entity_type}-${notification.entity_id}`"
-            type="button"
-            class="adm-row w-full flex items-start gap-3 px-4 py-3 border-b border-line-soft last:border-0 text-left cursor-pointer"
+            class="flex w-full items-start gap-3 border-b border-line-soft px-4 py-3 last:border-0"
             :class="notification.read ? '' : 'bg-accent-soft/40'"
-            @click="goTo(notification)"
           >
+            <button
+              type="button"
+              class="flex min-w-0 flex-1 cursor-pointer items-start gap-3 text-left"
+              @click="goTo(notification)"
+            >
             <span
-              class="size-8 shrink-0 rounded-adm-sm inline-flex items-center justify-center"
+              class="size-8.5 shrink-0 rounded-adm-sm inline-flex items-center justify-center"
               :class="TONES[notification.tone] ?? TONES.info"
             >
-              <HeroCore :path="mdiBellOutline" class="size-3.5" />
+              <HeroCore :path="notificationIcon(notification)" class="size-4" />
             </span>
             <div class="min-w-0 flex-1">
-              <p class="text-adm-base text-secondary-900">
-                {{ notification.title }}
-              </p>
+              <!-- Título y hora en la MISMA línea, como el diseño (jsx:65). -->
+              <div class="flex items-baseline gap-2">
+                <p
+                  class="min-w-0 flex-1 text-adm-md text-secondary-900"
+                  :class="notification.read ? 'font-semibold' : 'font-bold'"
+                >
+                  {{ notification.title }}
+                </p>
+                <span
+                  class="shrink-0 font-mono text-adm-xs whitespace-nowrap text-secondary-400"
+                >
+                  {{ formatDate(notification.at, true) }}
+                </span>
+              </div>
               <p
                 v-if="notification.body"
-                class="text-adm-sm text-secondary-500 mt-0.5"
+                class="text-adm-sm text-secondary-500 mt-1 leading-relaxed"
               >
                 {{ notification.body }}
               </p>
-              <p class="font-mono text-adm-xs text-secondary-400 mt-1">
-                {{ formatDate(notification.at, true) }}
-              </p>
+              <!-- Origen del aviso: en esta pantalla es contenido, no una nota. -->
+              <span
+                class="mt-1.5 inline-block font-mono text-adm-xs tracking-[0.04em] text-secondary-400 uppercase"
+              >
+                {{ notification.entity_type }}
+              </span>
             </div>
-            <span
-              v-if="!notification.read"
-              class="size-1.5 shrink-0 mt-2 rounded-pill bg-primary-500"
-            />
-          </button>
+            </button>
+
+            <!--
+              El círculo se queda SIEMPRE, con check verde al leerse: es lo que
+              distingue un aviso despachado de uno pendiente. Desapareciendo,
+              la fila leída se veía idéntica a una sin tocar.
+            -->
+            <button
+              type="button"
+              class="mt-1.5 grid size-5 shrink-0 place-items-center rounded-pill border-[1.5px] transition-colors"
+              :class="
+                notification.read
+                  ? 'border-success-DEFAULT bg-success-DEFAULT'
+                  : 'cursor-pointer border-primary-500'
+              "
+              :disabled="notification.read"
+              :title="notification.read ? 'Leída' : 'Marcar como leída'"
+              @click="toggleRead(notification)"
+            >
+              <AulaSpinner
+                v-if="
+                  marking === `${notification.entity_type}-${notification.entity_id}`
+                "
+                :size="11"
+              />
+              <HeroCore
+                v-else-if="notification.read"
+                :path="mdiCheck"
+                class="size-3 text-white"
+              />
+            </button>
+          </div>
 
           <p
             v-if="!loading && !items.length"

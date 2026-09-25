@@ -1,18 +1,25 @@
 <script setup lang="ts">
+import { hasSession } from "@/shared/utils/session";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import Logo from "@/assets/fractal.png";
 import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
 import BlueprintGrid from "../components/BlueprintGrid.vue";
 import ErrorFigure from "../components/ErrorFigure.vue";
-import { ERROR_CODES, SERVER_CODES, SUPPORT_WHATSAPP } from "../constants/codes";
+import {
+  ERROR_CODES,
+  SERVER_CODES,
+  SUPPORT_WHATSAPP,
+} from "../constants/codes";
 
 const props = defineProps<{ status?: number }>();
 
 const route = useRoute();
 const router = useRouter();
 
-const state = computed(() => ERROR_CODES[props.status ?? 404] ?? ERROR_CODES[404]!);
+const state = computed(
+  () => ERROR_CODES[props.status ?? 404] ?? ERROR_CODES[404]!,
+);
 
 const isServer = computed(() => SERVER_CODES.includes(props.status ?? 404));
 
@@ -50,10 +57,24 @@ let timer: ReturnType<typeof setInterval> | undefined;
 const onPrimary = () => {
   const code = props.status ?? 404;
 
-  // Cada código vuelve a donde tiene sentido, no todos "al inicio".
-  if (code === 401) return router.push({ name: "login" });
+  /*
+   * Cada código vuelve a donde tiene sentido, no todos "al inicio".
+   *
+   * ⚠️ El 401 vuelve a la puerta de SU zona. Mandar siempre al panel dejaba al
+   * alumno y al docente en el login equivocado, donde sus credenciales fallan
+   * con "permisos insuficientes" y parece que la contraseña está mal.
+   *
+   * La zona NO sale del path: acá ya es `/error/401` y perdió el origen. Sale
+   * de qué cookie de perfil sobrevive.
+   */
+  if (code === 401) {
+    return router.push({
+      name: hasSession("classroom") ? "classroom-login" : "login",
+    });
+  }
   if ([400, 422].includes(code)) return router.back();
-  if ([408, 409, 429, 500, 502, 503, 504].includes(code)) return window.location.reload();
+  if ([408, 409, 429, 500, 502, 503, 504].includes(code))
+    return window.location.reload();
 
   return router.push({ name: "home" });
 };
@@ -88,7 +109,9 @@ onBeforeUnmount(() => clearInterval(timer));
   <div class="relative flex min-h-dvh flex-col overflow-hidden bg-surface-page">
     <BlueprintGrid />
 
-    <header class="relative flex items-center justify-between px-6 py-[1.375rem] md:px-8">
+    <header
+      class="relative flex items-center justify-between px-6 py-[1.375rem] md:px-8"
+    >
       <RouterLink :to="{ name: 'home' }">
         <img :src="Logo" alt="Fractal Studio" class="h-[1.875rem]" />
       </RouterLink>
@@ -100,7 +123,9 @@ onBeforeUnmount(() => clearInterval(timer));
       </RouterLink>
     </header>
 
-    <div class="relative flex flex-1 items-center justify-center px-6 pt-6 pb-14">
+    <div
+      class="relative flex flex-1 items-center justify-center px-6 pt-6 pb-14"
+    >
       <!-- El código gigante casi invisible: da escala sin robar atención. -->
       <span
         class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] font-display text-[20rem] leading-none font-extrabold tracking-[-0.04em] whitespace-nowrap text-secondary-900 opacity-[0.035] select-none"
@@ -119,7 +144,9 @@ onBeforeUnmount(() => clearInterval(timer));
           ERROR {{ state.code }}
         </p>
 
-        <h1 class="mt-2.5 font-display text-[1.563rem] leading-tight font-bold tracking-[-0.01em] text-secondary-900">
+        <h1
+          class="mt-2.5 font-display text-[1.563rem] leading-tight font-bold tracking-[-0.01em] text-secondary-900"
+        >
           {{ state.title }}
         </h1>
 
@@ -135,7 +162,12 @@ onBeforeUnmount(() => clearInterval(timer));
         </p>
 
         <div class="mt-[1.625rem] flex flex-wrap justify-center gap-2.5">
-          <LandingButton variant="primary" size="md" :arrow="false" @click="onPrimary">
+          <LandingButton
+            variant="primary"
+            size="md"
+            :arrow="false"
+            @click="onPrimary"
+          >
             {{ state.cta }}
           </LandingButton>
           <LandingButton
@@ -149,7 +181,10 @@ onBeforeUnmount(() => clearInterval(timer));
           </LandingButton>
         </div>
 
-        <p v-if="secondsLeft > 0" class="mt-5 font-mono text-[0.719rem] text-secondary-400">
+        <p
+          v-if="secondsLeft > 0"
+          class="mt-5 font-mono text-[0.719rem] text-secondary-400"
+        >
           Reintentamos en {{ secondsLeft }}s…
         </p>
 

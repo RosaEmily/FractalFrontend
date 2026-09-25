@@ -1,9 +1,14 @@
+export { default as AulaAvatar } from "./aula-avatar.vue";
 export { default as AulaBar } from "./aula-bar.vue";
 export { default as AulaCard } from "./aula-card.vue";
+export { default as AulaCourseSelect } from "./aula-course-select.vue";
 export { default as AulaEmpty } from "./aula-empty.vue";
 export { default as AulaNotice } from "./aula-notice.vue";
 export { default as AulaPageHeader } from "./aula-page-header.vue";
 export { default as AulaPill } from "./aula-pill.vue";
 export { default as AulaProgress } from "./aula-progress.vue";
 export { default as AulaSkeleton } from "./aula-skeleton.vue";
+export { default as AulaSpinner } from "./aula-spinner.vue";
 export { default as AulaStat } from "./aula-stat.vue";
+export { default as AulaTabs } from "./aula-tabs.vue";
+export type { AulaTabItem } from "./aula-tabs.vue";

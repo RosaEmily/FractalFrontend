@@ -23,6 +23,7 @@ export const EnrollmentAdapter = {
       amountFormat: dto.amount_format ?? "—",
       courses,
       courseNames: courses.map((course) => course.name),
+      offerNames: dto.offers ?? [],
       status: dto.status,
       updated_at: dto.updated_at,
     };

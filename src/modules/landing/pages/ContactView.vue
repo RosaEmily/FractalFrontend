@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LandingLayout from '../layouts/LandingLayout.vue'
+import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
 
 const form = ref({
   firstName: '',
@@ -39,6 +40,9 @@ const PROGRAMS = [
   'Curso Civil 3D',
   'Otro / aún no decido',
 ]
+
+/** `SelectCore` lee un campo por opción, y `PROGRAMS` son strings sueltos. */
+const programOptions = PROGRAMS.map((label) => ({ label, value: label }))
 
 const FAQS = [
   ['¿Las clases son virtuales o presenciales?', 'Todos los programas son 100% virtuales en vivo con grabaciones disponibles en aula 24/7. Algunos talleres son híbridos en nuestra sede de Miraflores.'],
@@ -188,52 +192,55 @@ const FAQS = [
             <div class="grid grid-cols-2 gap-3.5">
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Nombre</label>
-                <input v-model="form.firstName" required type="text" placeholder="Diego"
-                  class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors" />
+                <InputTextCore v-model="form.firstName" class="landing-field" required type="text" placeholder="Diego" />
               </div>
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Apellido</label>
-                <input v-model="form.lastName" required type="text" placeholder="Vargas"
-                  class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors" />
+                <InputTextCore v-model="form.lastName" class="landing-field" required type="text" placeholder="Vargas" />
               </div>
             </div>
 
             <!-- Email -->
             <div>
               <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Correo electrónico</label>
-              <input v-model="form.email" required type="email" placeholder="diego@ejemplo.com"
-                class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors" />
+              <InputTextCore v-model="form.email" class="landing-field" required type="email" placeholder="diego@ejemplo.com" />
             </div>
 
             <!-- Phone + Profession -->
             <div class="grid grid-cols-2 gap-3.5">
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Teléfono</label>
-                <input v-model="form.phone" type="tel" placeholder="+51 ..."
-                  class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors" />
+                <InputTextCore v-model="form.phone" class="landing-field" type="tel" placeholder="+51 ..." />
               </div>
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Profesión</label>
-                <input v-model="form.profession" type="text" placeholder="Arquitecto / Ing. Civil"
-                  class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors" />
+                <InputTextCore v-model="form.profession" class="landing-field" type="text" placeholder="Arquitecto / Ing. Civil" />
               </div>
             </div>
 
             <!-- Program select -->
             <div>
               <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Programa de interés</label>
-              <select v-model="form.program"
-                class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 focus:outline-none focus:border-primary-500/50 transition-colors cursor-pointer appearance-none">
-                <option value="">— Selecciona un programa —</option>
-                <option v-for="p in PROGRAMS" :key="p" :value="p">{{ p }}</option>
-              </select>
+              <SelectCore
+                v-model="form.program"
+                class="landing-field"
+                :options="programOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="— Selecciona un programa —"
+                show-clear
+              />
             </div>
 
             <!-- Message -->
             <div>
               <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Mensaje</label>
-              <textarea v-model="form.message" rows="4" placeholder="Cuéntanos sobre tu meta profesional…"
-                class="w-full px-3.5 py-3.5 font-body text-[0.875rem] border border-line rounded-lg bg-surface-page text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500/50 transition-colors resize-none" />
+              <TextAreaCore
+                v-model="form.message"
+                class="landing-field"
+                :rows="4"
+                placeholder="Cuéntanos sobre tu meta profesional…"
+              />
             </div>
 
             <!-- Consent -->

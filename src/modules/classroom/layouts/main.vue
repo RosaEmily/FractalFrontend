@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { AvatarCore, HeroCore, ImageCore } from "@/shared/components";
+import { computed, ref, watch } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+import { HeroCore, ImageCore } from "@/shared/components";
 import { useClickOutsideMulti } from "@/shared/composables/useClickOutside";
 import { safeRequest } from "@/shared/utils/request";
 import coordinatorService from "../services/coordinator.service";
@@ -13,23 +13,36 @@ import {
   mdiMenu,
   mdiClose,
   mdiAccountCircleOutline,
+  mdiCheck,
   mdiLogoutVariant,
   mdiWhatsapp,
+  mdiChevronDown,
+  mdiMagnify,
 } from "@mdi/js";
 import NavClassroom from "../components/nav-classroom.vue";
 import NotificationBell from "../components/notification-bell.vue";
 import SearchBox from "../components/search-box.vue";
 import { useClassroomRole } from "../composables/useClassroomRole";
 import {
+  CLASSROOM_ROLE_ICON,
   CLASSROOM_ROLE_LABEL,
   CLASSROOM_SUPPORT,
 } from "../constants/labels";
-import { AulaPill } from "../components/ui";
+import { classroomHomeFor } from "../constants/menu";
+import { AulaAvatar, AulaPill } from "../components/ui";
 
 const route = useRoute();
 const router = useRouter();
-const { menu, fullName, initials, user, activeRole, isStudent } =
-  useClassroomRole();
+const {
+  menu,
+  fullName,
+  firstName,
+  user,
+  activeRole,
+  classroomRoles,
+  hasMultipleRoles,
+  switchRole,
+} = useClassroomRole();
 
 /** En móvil el sidebar es un cajón que se superpone, no una columna. */
 const drawerOpen = ref(false);
@@ -64,7 +77,16 @@ const currentTitle = computed(() => {
  */
 const badges = ref<Record<string, number>>({});
 
-onMounted(async () => {
+/**
+ * Carga los contadores del rol activo.
+ *
+ * ⚠️ Se vuelve a llamar al CAMBIAR DE VISTA, no solo al montar: cada rol tiene
+ * los suyos y el shell no se desmonta al cambiar, así que sin esto el badge del
+ * rol anterior se quedaría pegado en el menú del nuevo.
+ */
+const loadBadges = async () => {
+  badges.value = {};
+
   if (activeRole.value === "COORDINATOR") {
     const { data } = await safeRequest(() => coordinatorService.attention(), {
       showAlert: false,
@@ -102,14 +124,34 @@ onMounted(async () => {
       ),
     };
   }
-});
+};
 
-/** Solo el alumno tiene "Mi cuenta": docente y coordinación no la usan. */
-const showAccount = computed(() => activeRole.value === "STUDENT");
+/*
+ * Se observa el rol activo en vez de llamar a mano en cada punto: el cambio de
+ * vista puede venir del menú, pero TAMBIÉN del guard cuando se abre un enlace
+ * directo a una pantalla del otro rol. `immediate` cubre el montaje.
+ */
+watch(activeRole, loadBadges, { immediate: true });
 
 const goAccount = () => {
   openMenu.value = false;
   router.push({ name: "classroom-account" });
+};
+
+/**
+ * Cambia la vista activa sin tocar la sesión: el token y el perfil son los
+ * mismos, solo cambia con qué cara del perfil se dibuja el aula.
+ *
+ * Se navega a la home del rol nuevo y no se conserva la pantalla actual: el
+ * menú cambia por completo, y la ruta en la que se estaba pertenece al rol que
+ * se acaba de dejar — el guard la rebotaría de todos modos.
+ */
+const changeRole = (role: string) => {
+  openMenu.value = false;
+
+  if (!switchRole(role)) return;
+
+  router.push({ name: classroomHomeFor(classroomRoles.value, role) });
 };
 
 const logout = async () => {
@@ -125,7 +167,8 @@ const logout = async () => {
 </script>
 
 <template>
-  <div class="h-dvh flex bg-admin-bg">
+  <!-- `aula`: ancla del scrollbar crema del diseño (ver `style.css`). -->
+  <div class="aula h-dvh flex bg-surface-page">
     <!--
       Sidebar: el logo vive acá, no en la topbar. Fondo `paper` (blanco) para
       separarlo del lienzo cream de la página.
@@ -134,7 +177,14 @@ const logout = async () => {
       class="hidden lg:flex w-62 shrink-0 flex-col bg-surface-paper border-r border-line"
     >
       <div class="px-5 pt-6 pb-4">
-        <ImageCore image-class="h-8" :src="Logo" />
+        <!--
+          El diseño (`V3Logo`) no lo envuelve en nada: es un mockup de UNA
+          pantalla, sin landing a la que volver. Acá sí hay una, y el logo es
+          el gesto estándar para llegar a ella desde cualquier zona logueada.
+        -->
+        <RouterLink :to="{ name: 'home' }">
+          <ImageCore image-class="h-8" :src="Logo" />
+        </RouterLink>
       </div>
 
       <div class="flex-1 overflow-y-auto px-3">
@@ -179,7 +229,9 @@ const logout = async () => {
         class="lg:hidden fixed inset-y-0 left-0 z-61 w-72 bg-surface-paper border-r border-line flex flex-col"
       >
         <div class="flex items-center justify-between px-5 pt-6 pb-4">
-          <ImageCore image-class="h-8" :src="Logo" />
+          <RouterLink :to="{ name: 'home' }" @click="drawerOpen = false">
+            <ImageCore image-class="h-8" :src="Logo" />
+          </RouterLink>
           <button
             type="button"
             class="adm-icon-btn"
@@ -196,8 +248,18 @@ const logout = async () => {
     </transition>
 
     <div class="flex-1 min-w-0 flex flex-col">
+      <!--
+        ⚠️ `relative z-50` en el HEADER, no en el panel que cuelga de él.
+
+        `backdrop-blur-md` crea un CONTEXTO DE APILAMIENTO: el `z-9999` de la
+        campana y del menú de usuario solo compite DENTRO del header, así que
+        por alto que sea nunca pasa por encima del `<main>`, que es su hermano
+        posterior. Los paneles se veían por debajo de las tarjetas.
+
+        Quien tiene que ganarle a `<main>` es el header entero.
+      -->
       <header
-        class="shrink-0 h-16 px-4 sm:px-7 flex items-center gap-3.5 bg-surface-paper/85 backdrop-blur-md border-b border-line"
+        class="relative z-50 shrink-0 h-16 px-4 sm:px-7 flex items-center gap-3.5 bg-surface-paper/85 backdrop-blur-md border-b border-line"
       >
         <button
           type="button"
@@ -208,7 +270,9 @@ const logout = async () => {
           <HeroCore :path="mdiMenu" class="size-5 text-secondary-900" />
         </button>
 
-        <ImageCore image-class="h-7 lg:hidden" :src="Logo" />
+        <RouterLink :to="{ name: 'home' }" class="lg:hidden">
+          <ImageCore image-class="h-7" :src="Logo" />
+        </RouterLink>
 
         <div class="hidden lg:flex items-center gap-2.5 min-w-0">
           <span
@@ -228,16 +292,55 @@ const logout = async () => {
           busca en lo suyo, el docente en sus cursos y clases, coordinación en
           las cohortes abiertas).
 
-          La campana, en cambio, sigue siendo solo del alumno: `/me/notifications`
-          es `authorize:STUDENT` y no existe un endpoint de avisos para docente
-          ni coordinación. Mostrarla vacía sería peor que no mostrarla.
+          La campana se muestra en los TRES roles, como el diseño. Solo el
+          alumno tiene avisos (`/me/notifications` es `authorize:STUDENT`), así
+          que a los demás no se les pide nada y el panel dice por qué está
+          vacío: el propio componente lo resuelve.
         -->
         <SearchBox class="hidden md:block" />
-        <NotificationBell v-if="isStudent" />
+        <!--
+          En móvil no entra el campo: la lupa NAVEGA a la página de búsqueda,
+          como en el diseño (shell.jsx:512).
+        -->
+        <button
+          type="button"
+          class="adm-icon-btn md:hidden"
+          aria-label="Buscar"
+          @click="router.push({ name: 'classroom-search' })"
+        >
+          <HeroCore :path="mdiMagnify" class="size-4.5 text-secondary-500" />
+        </button>
+        <NotificationBell />
 
         <div class="relative">
-          <div ref="menuRef" class="cursor-pointer" @click="openMenu = !openMenu">
-            <AvatarCore :text="initials || fullName" shape="circle" />
+          <!--
+            Nombre y rol al lado del avatar, como el diseño (shell.jsx:474):
+            el aula es multi-rol y el mismo usuario entra como docente o como
+            coordinación, así que sin el rol a la vista no se sabe con cuál se
+            está operando. Se ocultan en móvil, donde queda solo el avatar.
+          -->
+          <div
+            ref="menuRef"
+            class="flex cursor-pointer items-center gap-2.5"
+            @click="openMenu = !openMenu"
+          >
+            <AulaAvatar
+              :name="fullName"
+              :photo="user?.photo_url"
+              :size="38"
+            />
+            <div class="hidden leading-tight md:block">
+              <div class="text-adm-base font-semibold text-secondary-900">
+                {{ firstName || fullName }}
+              </div>
+              <div class="font-mono text-adm-xs text-secondary-400">
+                {{ roleLabel }}
+              </div>
+            </div>
+            <HeroCore
+              :path="mdiChevronDown"
+              class="hidden size-4 shrink-0 text-secondary-400 md:block"
+            />
           </div>
 
           <transition name="fade-scale">
@@ -249,7 +352,11 @@ const logout = async () => {
               <div
                 class="px-3.5 pt-3.5 pb-3 border-b border-line-soft flex items-center gap-3"
               >
-                <AvatarCore :text="initials || fullName" shape="circle" />
+                <AulaAvatar
+              :name="fullName"
+              :photo="user?.photo_url"
+              :size="38"
+            />
                 <div class="min-w-0 flex-1">
                   <div
                     class="font-display text-adm-base font-bold text-secondary-900 tracking-tight truncate"
@@ -262,7 +369,8 @@ const logout = async () => {
                 </div>
               </div>
 
-              <div v-if="showAccount" class="py-1.5">
+              <!-- "Mi cuenta" en los tres roles: el perfil ya no es del alumno. -->
+              <div class="py-1.5">
                 <div
                   class="adm-nav-item flex items-center gap-2.5 px-3.5 py-2.5 rounded-adm-sm cursor-pointer text-adm-base text-secondary-900"
                   @click="goAccount"
@@ -272,6 +380,44 @@ const logout = async () => {
                     class="size-4 text-secondary-500"
                   />
                   <span class="flex-1">Mi cuenta</span>
+                </div>
+              </div>
+
+              <!--
+                Cambiar de vista: solo aparece con más de un rol. Con uno solo
+                sería una lista de un elemento que no hace nada.
+              -->
+              <div v-if="hasMultipleRoles" class="py-1.5 border-t border-line-soft">
+                <p
+                  class="font-mono text-adm-xs text-secondary-400 uppercase tracking-[0.06em] px-3.5 py-1.5"
+                >
+                  Cambiar de vista
+                </p>
+
+                <div
+                  v-for="role in classroomRoles"
+                  :key="role"
+                  class="adm-nav-item flex items-center gap-2.5 px-3.5 py-2.5 rounded-adm-sm cursor-pointer text-adm-base"
+                  :class="
+                    role === activeRole
+                      ? 'bg-accent-soft text-primary-600 font-semibold'
+                      : 'text-secondary-900'
+                  "
+                  @click="changeRole(role)"
+                >
+                  <HeroCore
+                    :path="CLASSROOM_ROLE_ICON[role]"
+                    class="size-4"
+                    :class="
+                      role === activeRole ? 'text-primary-500' : 'text-secondary-500'
+                    "
+                  />
+                  <span class="flex-1">{{ CLASSROOM_ROLE_LABEL[role] ?? role }}</span>
+                  <HeroCore
+                    v-if="role === activeRole"
+                    :path="mdiCheck"
+                    class="size-4 text-primary-500"
+                  />
                 </div>
               </div>
 
@@ -296,8 +442,18 @@ const logout = async () => {
           encima de una real. Lo que sí se conserva del diseño es el fade de
           entrada, para que el contenido no aparezca de golpe.
         -->
+        <!--
+          ⚠️ La key es el PATH, no el `fullPath`: este último incluye la query
+          string, así que cambiar de pestaña (`?tab=sessions`) destruía y
+          recreaba la página entera — el nombre del encabezado desaparecía
+          hasta que `auth/profile` volvía a responder.
+
+          Lo que la key tiene que distinguir es una pantalla de OTRA (pasar de
+          `/curso/1` a `/curso/2` sí debe recargar, y eso ya está en el path);
+          la query es estado DENTRO de la misma pantalla.
+        -->
         <RouterView v-slot="{ Component, route: current }">
-          <component :is="Component" :key="current.fullPath" class="aula-fade" />
+          <component :is="Component" :key="current.path" class="aula-fade" />
         </RouterView>
       </main>
     </div>

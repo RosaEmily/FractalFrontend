@@ -7,6 +7,7 @@ import offerService from "../services/offer.service";
 import type { Offer } from "../models/offer.model";
 import type { GridUiColumnProps } from "@/shared/components/type";
 import { FilterMatchMode } from "@primevue/core";
+import { mdiCalendarClockOutline, mdiCalendarEditOutline } from "@mdi/js";
 import { OFFER_TYPE_OPTIONS } from "../constants/offer.constant";
 
 const columns: GridUiColumnProps<Offer>[] = [
@@ -40,7 +41,8 @@ const columns: GridUiColumnProps<Offer>[] = [
     render: (row: Offer) =>
       h(StatusPill, {
         label: row.typeLabel,
-        tone: row.type === "learning_path" ? "info" : "neutral",
+        // `soft` / `paper` del diseño: acento para Línea, neutro para Curso.
+        tone: row.type === "learning_path" ? "accent" : "neutral",
         dot: false,
       }),
   },
@@ -76,6 +78,63 @@ const columns: GridUiColumnProps<Offer>[] = [
         { class: "font-mono text-adm-md font-semibold text-secondary-900" },
         row.price ?? "—",
       ),
+  },
+  /*
+   * Columna de acciones PROPIA para sumar las dos de sesiones a las genéricas.
+   * `SectionList` detecta que la página ya trae `field: "actions"` y no agrega
+   * la suya: dos columnas con el mismo `field` repiten los botones al recargar.
+   *
+   * Son DOS acciones distintas y no una: el calendario responde "¿qué tiene
+   * este programa?" y la gestión "¿qué le falta?". Mezclarlas obligaría a
+   * entrar a un formulario para consultar.
+   */
+  {
+    style: "width: 190px",
+    field: "actions",
+    header: "Acciones",
+    actions: [
+      {
+        type: "redirect",
+        // Calendario con reloj: sesiones programadas con fecha y hora, que es
+        // justo lo que muestra la pantalla destino. El ojo genérico no decía
+        // de qué se veía el detalle.
+        icon: mdiCalendarClockOutline,
+        redirect: "/admin/catalog/offers/{id}/sessions",
+        params: "id",
+        columnKeyId: "id",
+        /*
+         * Sin `buttonProps`: hereda el botón circular del sistema, igual que
+         * editar y eliminar. Con `text`/`secondary` salía plano y gris,
+         * desalineado del resto de la columna.
+         */
+      },
+      {
+        type: "redirect",
+        // Calendario con lápiz: crear y actualizar las sesiones del programa.
+        icon: mdiCalendarEditOutline,
+        redirect: "/admin/catalog/offers/{id}/sessions/manage",
+        params: "id",
+        columnKeyId: "id",
+      },
+      {
+        type: "edit",
+        redirect: "/admin/catalog/offers/edit/{id}",
+        params: "id",
+        columnKeyId: "id",
+      },
+      {
+        type: "state",
+        handler: (ids: (number | string)[], state?: 0 | 1) =>
+          offerService.status(ids, state ?? 1),
+        columnKeyId: "id",
+        columnKey: "status",
+      },
+      {
+        type: "delete",
+        handler: (ids: (number | string)[]) => offerService.delete(ids),
+        columnKeyId: "id",
+      },
+    ],
   },
 ];
 </script>

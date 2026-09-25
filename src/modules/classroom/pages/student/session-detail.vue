@@ -23,6 +23,7 @@ import {
   formatDate,
   formatTime,
   formatTimeRange,
+  joinMeta,
   weekdayLabel,
 } from "../../utils/format";
 
@@ -98,7 +99,7 @@ onMounted(async () => {
 
     <AulaEmpty
       v-else-if="!session"
-      title="Clase no encontrada"
+      title="Sesión no encontrada"
       sub="Puede que no pertenezca a tus cursos o que ya no exista."
     />
 
@@ -106,7 +107,12 @@ onMounted(async () => {
       <AulaPageHeader
         :eyebrow="session.courseName ?? 'CLASE'"
         :title="session.topic ?? session.name ?? 'Sesión de clase'"
-        :sub="`${weekdayLabel(session.date)} ${formatDate(session.date, true)} · ${formatTimeRange(session.startTime, session.endTime)}`"
+        :sub="
+          joinMeta(
+            `${weekdayLabel(session.date)} ${formatDate(session.date, true)}`,
+            formatTimeRange(session.startTime, session.endTime),
+          )
+        "
       />
 
       <!-- Clase en vivo: el enlace es lo único que el alumno viene a buscar -->

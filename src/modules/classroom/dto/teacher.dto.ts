@@ -20,6 +20,16 @@ export interface TeacherCourseDTO {
   weights_ok: boolean;
   /** `not_started | in_progress | completed | overdue`, derivado en el backend. */
   state: string;
+  /**
+   * Asistencia del curso sobre las clases YA DICTADAS, 0-100.
+   *
+   * `null` cuando todavía no hay ninguna marca: 0% diría que no fue nadie, que
+   * es distinto de "aún no se pasó lista".
+   */
+  attendance_percent: number | null;
+  /** Numerador y denominador crudos, para promediar entre cursos sin sesgo. */
+  attendance_attended: number;
+  attendance_total: number;
 }
 
 export interface TeacherSessionDTO {
@@ -73,9 +83,25 @@ export interface CourseEvaluationDTO {
   graded_count: number;
 }
 
+/** Respuesta del PATCH de nota aprobatoria: la vigente y de dónde sale. */
+export interface PassingScoreDTO {
+  passing_score: number | string | null;
+  is_custom: boolean;
+}
+
+/** Fila del catálogo `evaluation_types`, para el selector del cuadro. */
+export interface EvaluationTypeDTO {
+  id: number;
+  name: string;
+}
+
 export interface EvaluationsDTO {
   evaluations: CourseEvaluationDTO[];
   totals: { weight_total: number; weights_ok: boolean };
+  /** Nota aprobatoria VIGENTE del grupo (propia o heredada del curso). */
+  passing_score?: number | string | null;
+  /** `true` si la fija el grupo; `false` si viene del curso. */
+  is_custom?: boolean;
 }
 
 export interface GradebookScoreDTO {
@@ -100,6 +126,8 @@ export interface GradebookDTO {
   evaluations: CourseEvaluationDTO[];
   students: GradebookStudentDTO[];
   totals: { weight_total: number; weights_ok: boolean; students: number };
+  /** Mínima vigente del grupo: por debajo, la nota se pinta en rojo. */
+  passing_score?: number | string | null;
 }
 
 export interface FinalsStudentDTO {
@@ -116,6 +144,16 @@ export interface FinalsStudentDTO {
   closed_at: string | null;
   certificate_id: number | null;
   certificate_code: string | null;
+  /**
+   * Nota ponderada acumulada ANTES del cierre: es contra lo que se contrasta la
+   * nota final. MySQL la serializa como string.
+   */
+  accumulated: string | number | null;
+  /**
+   * Asistencia sobre las clases YA DICTADAS, 0-100. `null` cuando el curso
+   * todavía no dictó ninguna: 0% diría que el alumno faltó a todas.
+   */
+  attendance_percent: number | null;
 }
 
 export interface FinalsDTO {

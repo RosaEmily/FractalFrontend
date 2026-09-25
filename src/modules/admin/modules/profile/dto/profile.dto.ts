@@ -1,3 +1,8 @@
+import type {
+  StudentProfile,
+  TeacherProfile,
+} from "../models/profile.model";
+
 export interface ProfileDTO {
   id: number;
   email: string;
@@ -11,7 +16,9 @@ export interface ProfileDTO {
   password_changed_at: string | null;
   status: number;
   max_sessions: number;
-  roles: ProfileRoleDTO[];
+  roles: ProfileRoleDTO[];  document_number?: string | null;
+  document_type?: string | null;
+  profile?: StudentProfile | TeacherProfile | null;
 }
 
 export interface ProfileRoleDTO {
@@ -41,11 +48,41 @@ export interface ChangePasswordResponseDTO {
 }
 
 /** Body del formulario de datos personales. */
+/**
+ * Body del formulario del ADMIN. Sus cuatro campos son obligatorios porque
+ * `CrudForm` los declara en su schema y los da siempre definidos.
+ */
 export interface ProfileUpdateBodyDTO {
   first_name: string | null;
   last_name: string | null;
   gender: "m" | "f" | "o" | null;
   max_sessions: number | null;
+}
+
+/**
+ * Body del perfil del AULA, que además edita la ficha académica.
+ *
+ * ⚠️ Va aparte del DTO del admin y NO lo extiende con campos opcionales: el
+ * formulario del admin usa `CrudForm`, que tipa sus `fields` a partir del
+ * schema, y hacer opcionales los cuatro de arriba los volvía
+ * `possibly undefined` en sus cuatro `v-model`. Son dos formularios distintos
+ * contra el mismo endpoint.
+ */
+export interface AulaProfileUpdateBodyDTO {
+  first_name?: string | null;
+  last_name?: string | null;
+  gender?: "m" | "f" | "o" | null;
+  phone?: string | null;
+  address?: string | null;
+  birth_date?: string | null;
+  education_level?: string | null;
+  career?: string | null;
+  other_career?: string | null;
+  specialty?: string | null;
+  experience_years?: number | null;
+  description?: string | null;
+  academic_degree?: string | null;
+  other_academic_degree?: string | null;
 }
 
 /** Body del formulario de cambio de contraseña. */

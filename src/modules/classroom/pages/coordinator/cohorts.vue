@@ -44,9 +44,9 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="COHORTES"
-      title="Cohortes"
-      sub="Ocupación de los grupos con matrícula abierta, contra su mínimo y su cupo."
+      eyebrow="OFERTA VIGENTE"
+      title="Grupos"
+      sub="Un grupo es la apertura de un programa con fechas, cupo y precio propios — la «cohorte» del modelo. El mínimo decide si se dicta; el máximo, si admite más matrículas."
     />
 
     <AulaSkeleton v-if="loading" kind="table" :rows="4" />
@@ -107,7 +107,7 @@ onMounted(async () => {
 
     <AulaEmpty
       v-else
-      title="No hay grupos con matrícula abierta"
+      title="No hay grupos abiertos"
       sub="Cuando una oferta tenga su periodo de inscripción vigente, aparecerá acá con su ocupación."
     />
   </div>

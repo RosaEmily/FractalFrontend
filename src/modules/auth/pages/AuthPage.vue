@@ -15,6 +15,7 @@ import { safeRequest } from "@/shared/utils/request";
 import {
   clearSession,
   roleNames,
+  setActiveRole,
   setSessionUser,
 } from "@/shared/utils/session";
 import { ErrorCode } from "@/shared/constants/error-code";
@@ -22,6 +23,15 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { safeJsonStringify } from "@/shared/utils/safe-json";
 import meService from "@/modules/admin/services/auth.service";
+import {
+  CLASSROOM_ROLE_PRIORITY,
+  classroomHomeFor,
+} from "@/modules/classroom/constants/menu";
+import {
+  syncActiveRole,
+  syncClassroomUser,
+} from "@/modules/classroom/composables/useClassroomRole";
+import RoleChoice from "../components/role-choice.vue";
 import {
   mdiShieldCheckOutline,
   mdiClipboardTextClockOutline,
@@ -76,6 +86,60 @@ const FEATURE_ICONS = [
 
 /** Rol que entró por la puerta equivocada; corta el acceso y ofrece la otra. */
 const wrongDoor = ref(false);
+
+/**
+ * Roles del aula entre los que el usuario tiene que elegir. Mientras tenga
+ * contenido se muestra "¿Cómo quieres entrar?" en vez del formulario: la sesión
+ * YA está abierta, solo falta saber con qué vista entrar.
+ */
+const pendingRoles = ref<string[]>([]);
+
+/** Los roles del usuario que el aula sabe dibujar, en el orden en que se ofrecen. */
+const classroomRolesOf = (roles: string[]): string[] =>
+  CLASSROOM_ROLE_PRIORITY.filter((role) => roles.includes(role));
+
+/**
+ * Entra al aula (o al panel) ya con la sesión creada. `chosen` es el rol que el
+ * usuario eligió, cuando hubo que preguntárselo.
+ */
+const enterClassroom = (
+  userRoles: string[],
+  redirect?: string,
+  chosen?: string,
+) => {
+  /*
+   * La cookie de perfil acaba de escribirse, pero el ref del composable se
+   * sembró al cargar el módulo: sin releerla, un segundo login en la misma
+   * carga de página (logout y entrada de otro usuario) mostraría el nombre y
+   * la foto del anterior.
+   */
+  syncClassroomUser();
+
+  if (chosen) {
+    setActiveRole(chosen);
+    // El ref del composable se siembra al cargar el módulo: sin sincronizarlo,
+    // el shell se dibujaría con la vista de la sesión anterior.
+    syncActiveRole();
+  }
+
+  if (redirect) {
+    router.replace(redirect);
+    return;
+  }
+
+  router.replace({
+    name:
+      variant.value.zone === "classroom"
+        ? classroomHomeFor(userRoles, chosen)
+        : variant.value.redirectTo,
+  });
+};
+
+/** El usuario eligió vista en "¿Cómo quieres entrar?". */
+const chooseRole = (role: string) => {
+  enterClassroom(pendingRoles.value, undefined, role);
+  pendingRoles.value = [];
+};
 
 /*
  * El login NO valida la política de contraseñas (largo mínimo, etc.): sería
@@ -214,12 +278,24 @@ const onSubmit = handleSubmit(async (values) => {
         detail: "Se ha iniciado sesión correctamente.",
       });
 
+      /*
+       * Con más de un rol del aula se pregunta con cuál entrar, en vez de
+       * decidirlo por precedencia: el menú y la home cambian por completo según
+       * el rol, y quien es alumno y docente a la vez no tiene por qué caer
+       * siempre en el mismo lado (`aula/login.jsx`).
+       *
+       * Un `redirect` pendiente gana: si venía de una pantalla concreta, ahí es
+       * donde quiere volver, y el guard ya ajusta la vista al rol de esa ruta.
+       */
       const redirect = route.query.redirect as string | undefined;
-      if (redirect) {
-        router.replace(redirect);
-      } else {
-        router.replace({ name: variant.value.redirectTo });
+      const mine = classroomRolesOf(userRoles);
+
+      if (variant.value.zone === "classroom" && mine.length > 1 && !redirect) {
+        pendingRoles.value = mine;
+        return;
       }
+
+      enterClassroom(userRoles, redirect);
     }
   } catch (error) {
     console.log("error", error);
@@ -230,7 +306,18 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="min-h-dvh flex flex-col bg-admin-bg">
+  <!--
+    Con la sesión ya creada y más de un rol, la pantalla es la elección de vista:
+    el formulario ya cumplió su función y volver a mostrarlo haría creer que el
+    acceso falló.
+  -->
+  <RoleChoice
+    v-if="pendingRoles.length"
+    :roles="pendingRoles"
+    @choose="chooseRole"
+  />
+
+  <div v-else class="min-h-dvh flex flex-col bg-admin-bg">
     <!-- Franja de seguridad: el diseño la usa para dar contexto de acceso -->
     <div
       class="bg-secondary-900 text-white px-7 py-2 flex items-center justify-between font-mono text-adm-xs tracking-[0.08em]"

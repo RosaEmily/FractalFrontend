@@ -46,6 +46,20 @@ const columns: GridUiColumnProps<Enrollment>[] = [
       h(StackedCell, { primary: row.studentName, secondary: row.studentId }),
   },
   {
+    /*
+     * El programa va ANTES que los cursos: es el contexto que los explica —
+     * dos matrículas con el mismo curso pueden ser de ofertas distintas, y sin
+     * esta columna había que abrir el detalle para saberlo.
+     *
+     * No es ordenable ni filtrable: el nombre vive en `offers`, no en
+     * `enrollments`, y el `order` viaja literal a MySQL.
+     */
+    field: "offerNames",
+    header: "Programa",
+    showFilterMenu: false,
+    maxVisible: 99,
+  },
+  {
     field: "courseNames",
     header: "Ítems",
     showFilterMenu: false,

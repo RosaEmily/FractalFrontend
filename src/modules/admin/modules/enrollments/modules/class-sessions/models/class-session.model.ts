@@ -20,6 +20,9 @@ export interface ClassSession {
   offerId: number | null;
   offerCourseId: number | null;
   courseName: string | null;
+  /** Programa (oferta) al que pertenece la clase, y su prefijo de cohorte. */
+  offerName: string | null;
+  offerPrefix: string | null;
   status: number;
   updated_at: string;
 }

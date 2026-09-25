@@ -3,15 +3,31 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
-import { ButtonCore } from "@/shared/components";
+import {
+  ButtonCore,
+  HeroCore,
+  InputNumberCore,
+  TextAreaCore,
+} from "@/shared/components";
+import {
+  mdiAccountGroupOutline,
+  mdiChartBoxOutline,
+  mdiCommentOutline,
+  mdiCheck,
+  mdiPencilOutline,
+} from "@mdi/js";
+import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
+import AvatarCell from "@/modules/admin/components/ui/avatar-cell.vue";
 import teacherService from "../../services/teacher.service";
 import type { GradebookDTO, TeacherCourseDTO } from "../../dto/teacher.dto";
 import {
   AulaCard,
+  AulaCourseSelect,
   AulaEmpty,
   AulaNotice,
   AulaPageHeader,
   AulaSkeleton,
+  AulaSpinner,
   AulaStat,
 } from "../../components/ui";
 import { formatScore } from "../../utils/format";
@@ -32,6 +48,74 @@ const saving = ref(false);
  */
 const edits = ref<Record<string, number | null>>({});
 
+/**
+ * ¿Esta evaluación ya se rindió?
+ *
+ * El diseño bloquea las columnas de evaluaciones que aún no se toman: sin eso
+ * el docente puede escribir la nota de un examen que todavía no ocurrió, y esa
+ * nota entra en el acumulado como si fuera real.
+ *
+ * `graded_count > 0` es la señal: basta con que un alumno tenga nota para que
+ * la evaluación cuente como rendida.
+ */
+/**
+ * Qué filas están en edición: el documento de un alumno, `"ALL"`, o nada.
+ *
+ * El diseño no deja la tabla siempre editable: se entra con el lápiz de una
+ * fila (para corregir a un alumno) o con "Editar todo" en la cabecera. Así una
+ * tabla de 30×5 celdas no es un campo minado donde cualquier clic cambia algo.
+ */
+const editing = ref<string | "ALL" | null>(null);
+
+const isEditing = (document: string): boolean =>
+  editing.value === "ALL" || editing.value === document;
+
+/** Alumnos marcados para guardar en lote. */
+const selectedRows = ref<string[]>([]);
+
+/*
+ * El checkbox solo tiene sentido en filas que se están editando: al salir de
+ * edición se descartan las que ya no lo están, o quedaría una selección que no
+ * se puede guardar.
+ */
+watch(editing, () => {
+  selectedRows.value = selectedRows.value.filter((doc) => isEditing(doc));
+});
+
+const editableRows = computed(() =>
+  (data.value?.students ?? []).filter((s) => isEditing(s.document_number)),
+);
+
+const allRowsSelected = computed(
+  () =>
+    selectedRows.value.length > 0 &&
+    selectedRows.value.length === editableRows.value.length,
+);
+
+const toggleAllRows = () => {
+  selectedRows.value = allRowsSelected.value
+    ? []
+    : editableRows.value.map((s) => s.document_number);
+};
+
+const toggleRow = (document: string) => {
+  const index = selectedRows.value.indexOf(document);
+
+  if (index === -1) selectedRows.value.push(document);
+  else selectedRows.value.splice(index, 1);
+};
+
+/** Mínima del grupo; el backend la resuelve (propia o heredada del curso). */
+const passingScore = computed(() => Number(data.value?.passing_score) || 13);
+
+/** Una nota por debajo de la mínima se pinta en rojo, como en el diseño. */
+const isFailing = (score: number | null | undefined): boolean =>
+  score !== null && score !== undefined && score < passingScore.value;
+
+const isTaken = (evaluationId: number): boolean =>
+  (data.value?.evaluations.find((e) => e.id === evaluationId)?.graded_count ??
+    0) > 0;
+
 const cellKey = (studentId: number, evaluationId: number) =>
   `${studentId}:${evaluationId}`;
 
@@ -42,6 +126,67 @@ const hasChanges = computed(
 );
 
 /** Celdas sin nota donde la evaluación ya existe: lo que falta por registrar. */
+/**
+ * Reparto de columnas del diseño (`teacher.jsx:614`):
+ * `36px minmax(200px,1fr) [92px por evaluación] 110px 56px`.
+ *
+ * ⚠️ El `1fr` de Alumno es quien absorbe el sobrante. Con una `<table>` pasaba
+ * lo contrario —el ancho libre se repartía entre las columnas de nota— y la
+ * columna del alumno quedaba vacía con todo apelotonado a la derecha.
+ */
+const gridColumns = computed(() => {
+  const evaluations = data.value?.evaluations.length ?? 0;
+
+  return `36px minmax(200px,1fr) ${"92px ".repeat(evaluations).trim()} 110px 56px`;
+});
+
+/** Mismo cálculo que el diseño: sin él las cabeceras se parten en 3 líneas. */
+const gridMinWidth = computed(() => {
+  const evaluations = data.value?.evaluations.length ?? 0;
+
+  return 292 + evaluations * 92 + 110 + (evaluations + 3) * 14;
+});
+
+/**
+ * La escala real del curso, sacada del `max_score` de sus evaluaciones.
+ *
+ * ⚠️ El diseño escribe "Escala vigesimal, 0 a 20", pero **la escala es
+ * configurable por evaluación** (`course_evaluations.max_score`): un cuadro
+ * sobre 100 hacía que el texto mintiera. Se conserva la redacción y solo el
+ * número sale del dato.
+ *
+ * Si las evaluaciones no comparten escala se nombran todas, porque entonces
+ * "0 a 20" sería falso para la mitad de las columnas.
+ */
+const scaleText = computed(() => {
+  const scales = [
+    ...new Set(
+      (data.value?.evaluations ?? []).map((e) => Number(e.max_score)),
+    ),
+  ].filter((n) => Number.isFinite(n) && n > 0);
+
+  if (!scales.length) return "Escala vigesimal, 0 a 20";
+
+  if (scales.length === 1) {
+    const max = scales[0] as number;
+
+    return max === 20
+      ? "Escala vigesimal, 0 a 20"
+      : `Escala de 0 a ${formatScore(max)}`;
+  }
+
+  return `Escalas distintas por evaluación: ${scales
+    .sort((a, b) => a - b)
+    .map((n) => formatScore(n))
+    .join(", ")}`;
+});
+
+/** Nombre del curso seleccionado: el aviso de notas faltantes lo nombra. */
+const courseName = computed(
+  () =>
+    courses.value.find((c) => c.id === selectedCourse.value)?.course_name ?? "",
+);
+
 const missing = computed(() =>
   (data.value?.students ?? []).reduce(
     (total, student) =>
@@ -90,10 +235,17 @@ const load = async (offerCourseId: number) => {
  * Una celda vacía borra la nota (null), que no es lo mismo que un 0: el 0
  * significa que el alumno rindió y sacó cero.
  */
-const onEdit = (studentId: number, evaluationId: number, value: string) => {
-  const trimmed = value.trim();
-  edits.value[cellKey(studentId, evaluationId)] =
-    trimmed === "" ? null : Number(trimmed);
+/**
+ * ⚠️ `InputNumberCore` entrega `number | null` — ya no un string del DOM: el
+ * campo vacío llega como `null`, que es justo lo que `save()` manda para borrar
+ * una nota. No hay que parsear nada.
+ */
+const onEdit = (
+  studentId: number,
+  evaluationId: number,
+  value: number | null,
+) => {
+  edits.value[cellKey(studentId, evaluationId)] = value;
 };
 
 /*
@@ -104,6 +256,54 @@ const onEdit = (studentId: number, evaluationId: number, value: string) => {
  * escribir un comentario mandara `score: null` y borrara la nota.
  */
 const feedbackEdits = ref<Record<string, string>>({});
+
+/**
+ * Celda cuyo comentario está abierto. Solo una a la vez: dos popovers abiertos
+ * se solapan y no se sabe cuál se está escribiendo.
+ */
+const openFeedback = ref<string | null>(null);
+
+const toggleFeedback = (studentId: number, evaluationId: number) => {
+  const key = cellKey(studentId, evaluationId);
+
+  openFeedback.value = openFeedback.value === key ? null : key;
+};
+
+/*
+ * La celda abierta se guarda por clave (`alumno:evaluación`) y la fila del
+ * comentario necesita las dos partes por separado: el documento para saber
+ * DEBAJO de qué fila se despliega, y el id para saber qué comentario edita.
+ */
+const openParts = computed(() => {
+  if (!openFeedback.value) return null;
+
+  const [studentId, evaluationId] = openFeedback.value.split(":").map(Number);
+
+  return { studentId, evaluationId };
+});
+
+const openRow = computed(() => {
+  const id = openParts.value?.studentId;
+
+  return (
+    data.value?.students.find((s) => s.enrollment_course_id === id)
+      ?.document_number ?? null
+  );
+});
+
+const openEvaluationId = computed(() => openParts.value?.evaluationId ?? null);
+
+const openEvaluationName = computed(
+  () =>
+    data.value?.evaluations.find((e) => e.id === openEvaluationId.value)
+      ?.name ?? "",
+);
+
+/** Comentario actual de la celda abierta, para la fila desplegada. */
+const openFeedbackValue = (studentIndex: number): string =>
+  openEvaluationId.value === null
+    ? ""
+    : feedbackOf(studentIndex, openEvaluationId.value);
 
 const feedbackOf = (studentIndex: number, evaluationId: number): string => {
   const key = cellKey(
@@ -121,11 +321,18 @@ const onFeedback = (studentId: number, evaluationId: number, value: string) => {
   feedbackEdits.value[cellKey(studentId, evaluationId)] = value;
 };
 
-const save = async () => {
+/**
+ * Guarda las notas tocadas.
+ *
+ * `onlyStudents` acota a unos alumnos concretos —el lápiz de una fila o la
+ * selección múltiple—: sin él, guardar a uno arrastraría los cambios a medias
+ * de las demás filas que el docente dejó abiertas.
+ */
+const save = async (onlyStudents?: number[]) => {
   if (!selectedCourse.value || !hasChanges.value) return;
 
   saving.value = true;
-  const { data: ok } = await safeRequest(() =>
+  const { data: saved } = await safeRequest(() =>
     teacherService.saveGrades(
       selectedCourse.value as number,
       /*
@@ -137,33 +344,70 @@ const save = async () => {
           ...Object.keys(edits.value),
           ...Object.keys(feedbackEdits.value),
         ]),
-      ].map((key) => {
-        const [studentId, evaluationId] = key.split(":").map(Number);
-        const current = data.value?.students
-          .find((s) => s.enrollment_course_id === studentId)
-          ?.scores.find((x) => x.course_evaluation_id === evaluationId);
+      ]
+        .filter((key) =>
+          onlyStudents
+            ? onlyStudents.includes(Number(key.split(":")[0]))
+            : true,
+        )
+        .map((key) => {
+          const [studentId, evaluationId] = key.split(":").map(Number);
+          const current = data.value?.students
+            .find((s) => s.enrollment_course_id === studentId)
+            ?.scores.find((x) => x.course_evaluation_id === evaluationId);
 
-        return {
-          enrollment_course_id: studentId as number,
-          course_evaluation_id: evaluationId as number,
-          // Si solo se tocó el comentario, se conserva la nota guardada.
-          score:
-            key in edits.value
-              ? (edits.value[key] ?? null)
-              : (current?.score ?? null),
-          feedback: feedbackEdits.value[key]?.trim() || null,
-        };
-      }),
+          return {
+            enrollment_course_id: studentId as number,
+            course_evaluation_id: evaluationId as number,
+            // Si solo se tocó el comentario, se conserva la nota guardada.
+            score:
+              key in edits.value
+                ? (edits.value[key] ?? null)
+                : (current?.score ?? null),
+            feedback: feedbackEdits.value[key]?.trim() || null,
+          };
+        }),
     ),
   );
   saving.value = false;
 
-  if (ok) {
-    toastStore.showToastSuccess({ detail: "Notas guardadas." });
+  if (saved) {
+    /*
+     * El POST devuelve el gradebook recalculado, así que se pinta con eso en
+     * vez de volver a pedirlo: eran dos peticiones seguidas al mismo endpoint.
+     */
+    data.value = saved;
+    edits.value = {};
     feedbackEdits.value = {};
-    await load(selectedCourse.value);
+    toastStore.showToastSuccess({ detail: "Notas guardadas." });
   }
 };
+
+/** Guarda lo editado y sale del modo edición (icono ✓ de fila o cabecera). */
+const saveEditing = async (document?: string) => {
+  const ids = document
+    ? [studentIdOf(document)].filter((id): id is number => id !== null)
+    : undefined;
+
+  await save(ids);
+  editing.value = null;
+};
+
+/** Guarda solo las filas marcadas con el checkbox. */
+const saveSelected = async () => {
+  const ids = selectedRows.value
+    .map(studentIdOf)
+    .filter((id): id is number => id !== null);
+
+  await save(ids);
+  selectedRows.value = [];
+  editing.value = null;
+};
+
+/** El `enrollment_course_id` de un alumno: las notas se guardan por ese id. */
+const studentIdOf = (document: string): number | null =>
+  data.value?.students.find((s) => s.document_number === document)
+    ?.enrollment_course_id ?? null;
 
 watch(selectedCourse, async (id) => {
   if (id) await load(id);
@@ -187,35 +431,26 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="REGISTRO DE NOTAS"
+      eyebrow="CALIFICACIÓN"
       title="Registro de notas"
-      sub="La matriz de alumnos por evaluación, con el acumulado de cada uno sobre 20."
+      :sub="`Se registra curso por curso: los pesos vienen del cuadro de evaluación de ese curso y aquí solo pones nota y comentario por alumno. ${scaleText}.`"
     />
 
     <AulaSkeleton v-if="loading" kind="page" :rows="5" />
 
     <AulaEmpty
       v-else-if="!courses.length"
-      title="No tienes cursos asignados"
+      title="Sin cursos asignados"
       sub="Cuando coordinación te asigne un curso, sus alumnos y notas aparecerán acá."
     />
 
     <template v-else>
-      <div class="mb-4">
-        <label
-          class="font-mono text-adm-xs text-secondary-400 uppercase tracking-[0.06em] block mb-1.5"
-        >
-          Curso
-        </label>
-        <select
-          v-model="selectedCourse"
-          class="w-full max-w-120 px-3 py-2 rounded-adm-sm border border-line bg-surface-paper text-adm-base text-secondary-900"
-        >
-          <option v-for="course in courses" :key="course.id" :value="course.id">
-            {{ course.course_name }} — {{ course.offer_name }}
-          </option>
-        </select>
-      </div>
+      <AulaCourseSelect
+        v-model="selectedCourse"
+        :courses="courses"
+        :filter="(c) => Number(c.weight_total) > 0"
+        disabled-hint="Sin cuadro de evaluación"
+      />
 
       <AulaSkeleton v-if="loadingTable" kind="table" :rows="8" />
 
@@ -236,176 +471,360 @@ onMounted(async () => {
           />
         </div>
 
-        <AulaNotice v-if="missing" tone="warning" class="mb-4">
-          Faltan {{ missing }} notas por registrar. El acta no se puede cerrar
-          mientras queden celdas vacías.
+        <AulaNotice
+          v-if="missing"
+          tone="warning"
+          class="mb-4"
+          :title="`${missing} notas sin registrar en ${courseName}`"
+        >
+          Corresponden a evaluaciones ya rendidas. Mientras falten, esos alumnos
+          ven su promedio solo sobre el peso evaluado y el acta no se puede
+          cerrar.
         </AulaNotice>
 
+        <!--
+          ⚠️ GRID, no `<table>`: el diseño (`AulaRow`, `shell.jsx:348`) reparte
+          con `36px minmax(200px,1fr) [92px…] 110px 56px`, y ese `1fr` de Alumno
+          es quien absorbe el sobrante. Una tabla hace lo contrario —reparte
+          entre las columnas sin ancho—, así que las notas se ensanchaban y la
+          columna Alumno quedaba vacía. Parchearlo con `w-full` funcionaba a
+          medias; el grid es lo que el diseño define.
+        -->
         <AulaCard
           v-if="data.students.length && data.evaluations.length"
-          pad="sm"
+          pad="none"
         >
           <div class="overflow-x-auto">
-            <table
-              class="w-full text-adm-base"
-              :style="{ minWidth: `${28 + data.evaluations.length * 8}rem` }"
-            >
-              <thead>
-                <tr
-                  class="font-mono text-adm-xs text-secondary-400 uppercase tracking-[0.06em]"
+            <div :style="{ minWidth: `${gridMinWidth}px` }">
+              <!-- Cabecera -->
+              <div
+                class="grid items-center gap-3.5 bg-surface-page px-[1.125rem] py-[0.813rem] font-mono text-[0.656rem] font-semibold uppercase tracking-[0.05em] text-secondary-400"
+                :style="{ gridTemplateColumns: gridColumns }"
+              >
+                <ToggleCheck
+                  label=""
+                  :on="allRowsSelected"
+                  @toggle="toggleAllRows"
+                />
+                <span>Alumno</span>
+                <!--
+                  Nombre y peso en la MISMA línea separados por `·`, como el
+                  diseño.
+                -->
+                <span
+                  v-for="evaluation in data.evaluations"
+                  :key="evaluation.id"
+                  class="text-center"
                 >
-                  <th
-                    class="text-left px-2 py-2 font-medium sticky left-0 bg-surface-paper"
+                  {{ evaluation.name }} · {{ Number(evaluation.weight) }}%
+                </span>
+                <span class="text-center">Acumulado</span>
+                <!-- Editar todo / Guardar todo, como en el diseño. -->
+                <span class="flex justify-end">
+                  <button
+                    v-if="editing === 'ALL'"
+                    type="button"
+                    class="grid size-7 place-items-center rounded-pill bg-success-soft text-success-DEFAULT disabled:opacity-60"
+                    :class="saving ? 'cursor-default' : 'cursor-pointer'"
+                    :disabled="saving"
+                    title="Guardar todo"
+                    @click="saveEditing()"
                   >
-                    Alumno
-                  </th>
-                  <th
+                    <AulaSpinner v-if="saving" :size="12" />
+                    <HeroCore v-else :path="mdiCheck" class="size-3.5" />
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="grid size-7 cursor-pointer place-items-center rounded-pill text-secondary-400"
+                    title="Editar todo"
+                    @click="editing = 'ALL'"
+                  >
+                    <HeroCore :path="mdiPencilOutline" class="size-3.5" />
+                  </button>
+                </span>
+              </div>
+
+              <template
+                v-for="(student, index) in data.students"
+                :key="student.enrollment_course_id"
+              >
+                <div
+                  class="grid items-center gap-3.5 border-t border-line-soft px-[1.125rem] py-[0.813rem]"
+                  :style="{ gridTemplateColumns: gridColumns }"
+                >
+                  <ToggleCheck
+                    label=""
+                    :on="selectedRows.includes(student.document_number)"
+                    :disabled="!isEditing(student.document_number)"
+                    @toggle="toggleRow(student.document_number)"
+                  />
+
+                  <!--
+                    Avatar de iniciales + nombre, como el diseño (`AulaAvatar`).
+                    La segunda línea es el AVANCE, no el documento: al calificar
+                    importa cuánto peso lleva evaluado cada alumno.
+                  -->
+                  <AvatarCell
+                    :name="student.full_name"
+                    :secondary="`${student.evaluated_weight}% registrado`"
+                  />
+
+                  <div
                     v-for="evaluation in data.evaluations"
                     :key="evaluation.id"
-                    class="text-left px-2 py-2 font-medium"
+                    class="min-w-0"
                   >
-                    {{ evaluation.name }}
-                    <span class="block text-secondary-300 normal-case">
-                      {{ Number(evaluation.weight) }}%
-                    </span>
-                  </th>
-                  <th class="text-left px-2 py-2 font-medium">Acumulado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(student, index) in data.students"
-                  :key="student.enrollment_course_id"
-                  class="border-t border-line-soft"
-                >
-                  <td
-                    class="px-2 py-2.5 text-secondary-900 sticky left-0 bg-surface-paper"
-                  >
-                    {{ student.full_name }}
+                    <!--
+                      En LECTURA la nota es texto centrado, no un input: una
+                      grilla de 30×5 con inputs vacíos parece un formulario a
+                      medio llenar. En rojo si no llega a la mínima.
+                    -->
                     <span
-                      class="block font-mono text-adm-xs text-secondary-400"
-                    >
-                      {{ student.document_number }}
-                    </span>
-                  </td>
-                  <td
-                    v-for="evaluation in data.evaluations"
-                    :key="evaluation.id"
-                    class="px-2 py-2.5"
-                  >
-                    <input
-                      type="number"
-                      inputmode="decimal"
-                      step="0.5"
-                      min="0"
-                      :max="Number(evaluation.max_score)"
-                      :value="scoreOf(index, evaluation.id)?.score ?? ''"
-                      placeholder="—"
-                      class="w-16 px-2 py-1 rounded-adm-sm border text-adm-base font-display font-bold text-center"
+                      v-if="!isEditing(student.document_number)"
+                      class="block text-center font-mono font-semibold"
                       :class="
-                        edits[
-                          cellKey(student.enrollment_course_id, evaluation.id)
-                        ] !== undefined
-                          ? 'border-primary-500 bg-accent-soft text-primary-600'
-                          : 'border-line text-secondary-900'
+                        isFailing(scoreOf(index, evaluation.id)?.score)
+                          ? 'text-danger-DEFAULT'
+                          : scoreOf(index, evaluation.id)?.score === null ||
+                              scoreOf(index, evaluation.id)?.score === undefined
+                            ? 'text-secondary-400'
+                            : 'text-secondary-900'
                       "
-                      @input="
-                        onEdit(
-                          student.enrollment_course_id,
-                          evaluation.id,
-                          ($event.target as HTMLInputElement).value,
-                        )
-                      "
-                    />
+                    >
+                      {{
+                        scoreOf(index, evaluation.id)?.score ??
+                        (isTaken(evaluation.id) ? "—" : "sin rendir")
+                      }}
+                    </span>
 
                     <!--
-                      Comentario de la nota. El alumno ya lo lee en el detalle
-                      de su curso (`feedback`), pero hasta ahora no había dónde
-                      escribirlo desde el aula.
+                      Input e icono en una columna centrada (`gap: 4` del
+                      diseño). Una evaluación que aún no se rinde queda
+                      BLOQUEADA: si no, se carga la nota de un examen que no
+                      ocurrió y entra al acumulado como real.
                     -->
-                    <input
-                      type="text"
-                      :value="feedbackOf(index, evaluation.id)"
-                      placeholder="Comentario"
-                      maxlength="1000"
-                      class="mt-1 w-16 rounded-adm-sm border border-line px-1.5 py-0.5 text-center text-adm-xs text-secondary-500 focus:w-36 focus:text-left"
-                      :class="
-                        feedbackEdits[
-                          cellKey(student.enrollment_course_id, evaluation.id)
-                        ] !== undefined
-                          ? 'border-primary-500 bg-accent-soft'
-                          : ''
-                      "
-                      @input="
-                        onFeedback(
-                          student.enrollment_course_id,
-                          evaluation.id,
-                          ($event.target as HTMLInputElement).value,
-                        )
-                      "
-                    />
-                  </td>
-                  <td class="px-2 py-2.5">
-                    <span class="font-display font-bold text-secondary-900">
-                      {{ formatScore(student.accumulated) }}
-                    </span>
-                    <span
-                      class="block font-mono text-adm-xs text-secondary-400"
-                    >
-                      {{ student.evaluated_weight }}% registrado
-                    </span>
-                  </td>
-                </tr>
+                    <div v-else class="flex flex-col items-center gap-1">
+                      <InputNumberCore
+                        :model-value="
+                          scoreOf(index, evaluation.id)?.score ?? null
+                        "
+                        class="aula-score w-18"
+                        :step="0.5"
+                        :min="0"
+                        :max="Number(evaluation.max_score)"
+                        :max-fraction-digits="1"
+                        :show-buttons="false"
+                        :disabled="!isTaken(evaluation.id)"
+                        :placeholder="
+                          isTaken(evaluation.id) ? '—' : 'sin rendir'
+                        "
+                        :class="[
+                          isTaken(evaluation.id) ? '' : 'is-pending',
+                          isTaken(evaluation.id) &&
+                          scoreOf(index, evaluation.id)?.score === null
+                            ? 'is-missing'
+                            : '',
+                          isFailing(scoreOf(index, evaluation.id)?.score)
+                            ? 'is-failing'
+                            : '',
+                          edits[
+                            cellKey(student.enrollment_course_id, evaluation.id)
+                          ] !== undefined
+                            ? 'is-edited'
+                            : '',
+                        ]"
+                        @update:model-value="
+                          onEdit(
+                            student.enrollment_course_id,
+                            evaluation.id,
+                            $event,
+                          )
+                        "
+                      />
 
-                <tr class="border-t border-line font-semibold">
-                  <td
-                    class="px-2 py-2.5 text-secondary-900 sticky left-0 bg-surface-paper"
+                      <!--
+                        Comentario de la nota. Solo en evaluaciones RENDIDAS:
+                        comentar un examen que no ocurrió no tiene sentido. El
+                        icono se enciende cuando ya hay texto.
+                      -->
+                      <button
+                        v-if="isTaken(evaluation.id)"
+                        type="button"
+                        class="inline-flex cursor-pointer items-center justify-center"
+                        :class="
+                          feedbackOf(index, evaluation.id)
+                            ? 'text-primary-600'
+                            : 'text-secondary-400'
+                        "
+                        title="Comentario para el alumno"
+                        @click.stop="
+                          toggleFeedback(
+                            student.enrollment_course_id,
+                            evaluation.id,
+                          )
+                        "
+                      >
+                        <HeroCore :path="mdiCommentOutline" class="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <span
+                    class="text-center font-display text-adm-lg font-extrabold text-secondary-900"
                   >
-                    Promedio del aula
-                  </td>
-                  <td
-                    v-for="evaluation in data.evaluations"
-                    :key="evaluation.id"
-                    class="px-2 py-2.5 font-mono text-adm-sm"
+                    {{ formatScore(student.accumulated) }}
+                  </span>
+
+                  <!-- Editar / Guardar de la fila. -->
+                  <span class="flex justify-end">
+                    <button
+                      v-if="isEditing(student.document_number)"
+                      type="button"
+                      class="grid size-7.5 place-items-center rounded-pill bg-success-soft text-success-DEFAULT disabled:opacity-60"
+                      :class="saving ? 'cursor-default' : 'cursor-pointer'"
+                      :disabled="saving"
+                      title="Guardar"
+                      @click="saveEditing(student.document_number)"
+                    >
+                      <AulaSpinner v-if="saving" :size="13" />
+                      <HeroCore v-else :path="mdiCheck" class="size-3.5" />
+                    </button>
+                    <button
+                      v-else
+                      type="button"
+                      class="grid size-7.5 cursor-pointer place-items-center rounded-pill text-secondary-400"
+                      title="Editar"
+                      @click="editing = student.document_number"
+                    >
+                      <HeroCore :path="mdiPencilOutline" class="size-3.5" />
+                    </button>
+                  </span>
+                </div>
+
+                <!--
+                  Comentario en una FILA PROPIA, no en un popover flotante: un
+                  `absolute` lo recorta el `overflow-x-auto` del contenedor.
+                -->
+                <div
+                  v-if="openRow === student.document_number"
+                  class="border-t border-line-soft bg-surface-page px-[1.125rem] py-3"
+                >
+                  <span
+                    class="mb-1.5 block font-mono text-adm-xs uppercase tracking-[0.06em] text-secondary-400"
                   >
-                    {{ formatScore(averages.get(evaluation.id) ?? null) }}
-                  </td>
-                  <td class="px-2 py-2.5 font-mono text-adm-sm">
-                    {{ data.totals.weight_total }}%
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    Comentario · {{ openEvaluationName }}
+                  </span>
+                  <TextAreaCore
+                    :model-value="openFeedbackValue(index)"
+                    :rows="2"
+                    placeholder="Feedback para el alumno…"
+                    :maxlength="1000"
+                    @update:model-value="
+                      onFeedback(
+                        student.enrollment_course_id,
+                        openEvaluationId!,
+                        $event ?? '',
+                      )
+                    "
+                  />
+                  <div class="mt-1.5 text-right">
+                    <button
+                      type="button"
+                      class="cursor-pointer text-adm-sm font-semibold text-primary-600"
+                      @click="openFeedback = null"
+                    >
+                      Listo
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Fila de cierre: fondo crema y borde grueso, como el diseño. -->
+              <div
+                class="grid items-center gap-3.5 border-t-[1.5px] border-line bg-surface-page px-[1.125rem] py-[0.813rem] font-semibold"
+                :style="{ gridTemplateColumns: gridColumns }"
+              >
+                <span />
+                <span class="text-secondary-900">Promedio del aula</span>
+                <span
+                  v-for="evaluation in data.evaluations"
+                  :key="evaluation.id"
+                  class="text-center font-mono text-adm-sm"
+                >
+                  {{ formatScore(averages.get(evaluation.id) ?? null) }}
+                </span>
+                <span class="text-center font-mono text-adm-sm">
+                  {{ data.totals.weight_total }}% total
+                </span>
+                <span />
+              </div>
+            </div>
           </div>
         </AulaCard>
+        <!--
+            Guardado en lote: se marcan varias filas en edición y se guardan de
+            una vez. Pegada abajo, porque la tabla se hace larga.
+          -->
+        <div
+          v-if="selectedRows.length"
+          class="sticky bottom-4 z-5 flex items-center gap-3.5 flex-wrap px-4.5 py-3 rounded-adm-md bg-secondary-900 shadow-lg mt-3"
+        >
+          <span class="text-adm-base font-semibold text-white">
+            {{ selectedRows.length }}
+            {{ selectedRows.length === 1 ? "seleccionado" : "seleccionados" }}
+          </span>
 
+          <div class="flex gap-2 ml-auto items-center">
+            <ButtonCore
+              :label="`Guardar seleccionados (${selectedRows.length})`"
+              class="w-auto"
+              size="small"
+              :loading="saving"
+              @click="saveSelected"
+            />
+            <button
+              type="button"
+              class="cursor-pointer px-3 py-2 rounded-pill text-adm-sm font-semibold text-white opacity-70"
+              @click="selectedRows = []"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!--
+          ⚠️ Condiciones EXPLÍCITAS, no `v-else`: la barra flotante de arriba
+          lleva su propio `v-if`, así que rompe la cadena de la tabla y estos
+          `v-else` encadenaban con ELLA — el estado vacío se pintaba debajo de
+          una tabla llena de alumnos.
+        -->
         <AulaEmpty
-          v-else-if="!data.evaluations.length"
+          v-if="!data.evaluations.length"
+          :icon="mdiChartBoxOutline"
           title="Sin cuadro de evaluación"
           sub="Define primero las evaluaciones del curso; recién entonces se pueden registrar notas."
         />
 
         <AulaEmpty
-          v-else
+          v-else-if="!data.students.length"
+          :icon="mdiAccountGroupOutline"
           title="Sin alumnos matriculados"
           sub="Este curso todavía no tiene alumnos en su grupo."
         />
 
-        <div
+        <!--
+          Sin botón de guardado suelto: se guarda con el ✓ de la fila, el de la
+          cabecera ("Editar todo") o la barra de selección múltiple.
+        -->
+        <p
           v-if="data.students.length && data.evaluations.length"
-          class="flex flex-wrap items-center justify-between gap-3 mt-4"
+          class="text-adm-sm text-secondary-400 mt-4"
         >
-          <p class="text-adm-sm text-secondary-400">
-            Una celda vacía borra la nota; un 0 significa que rindió y sacó
-            cero. Volver a guardar corrige, no duplica.
-          </p>
-          <ButtonCore
-            label="Guardar notas"
-            :loading="saving"
-            :disabled="!hasChanges"
-            @click="save"
-          />
-        </div>
+          Selecciona con el checkbox para guardar en grupo, o usa el lápiz de
+          una fila para editarla y guardarla sola. Las columnas en crema son
+          evaluaciones que aún no se rinden.
+        </p>
       </template>
     </template>
   </div>

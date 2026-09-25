@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-export type PillTone = "success" | "warning" | "danger" | "info" | "neutral";
+export type PillTone =
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "accent"
+  | "neutral";
 
 interface Props {
   label: string;
@@ -20,6 +26,13 @@ const TONES: Record<PillTone, string> = {
   warning: "bg-amber-soft text-amber-DEFAULT",
   danger: "bg-danger-soft text-danger-DEFAULT",
   info: "bg-info-soft text-info-DEFAULT",
+  /*
+   * Acento del sistema, equivalente al `variant="soft"` del diseño. Faltaba, y
+   * por eso las etiquetas de categoría acababan en `info` (AZUL), que en la
+   * paleta cálida de Fractal desentona: el azul está reservado para lo
+   * informativo, no para clasificar.
+   */
+  accent: "bg-accent-soft text-primary-600",
   neutral: "bg-admin-pane text-secondary-400",
 };
 

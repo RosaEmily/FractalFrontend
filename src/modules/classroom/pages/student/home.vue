@@ -250,7 +250,7 @@ onMounted(async () => {
 
       <AulaEmpty
         v-if="!courses.length"
-        title="Todavía no tienes cursos"
+        title="Aún no tienes cursos"
         sub="Cuando se confirme tu matrícula, tus cursos y clases aparecerán acá."
       >
         <button

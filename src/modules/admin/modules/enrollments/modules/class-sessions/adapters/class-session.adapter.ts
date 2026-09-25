@@ -21,6 +21,8 @@ export const ClassSessionAdapter = {
     offerId: dto.offer_id ?? null,
     offerCourseId: dto.offer_course_id ?? null,
     courseName: dto.course_name ?? null,
+    offerName: dto.offer_name ?? null,
+    offerPrefix: dto.offer_prefix ?? null,
     status: dto.status,
     updated_at: dto.updated_at,
   }),

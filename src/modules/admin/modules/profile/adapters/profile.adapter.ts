@@ -21,6 +21,14 @@ export const profileAdapter = {
       name: role.name,
       description: role.description,
     })),
+    document_number: dto.document_number ?? null,
+    document_type: dto.document_type ?? null,
+    /*
+     * Pasa tal cual: la API ya devuelve cada etiqueta resuelta
+     * (`career_name`, `education_level_name`…), así que renombrar acá solo
+     * agregaría una capa más que mantener sincronizada.
+     */
+    profile: dto.profile ?? null,
     created_at: dto.created_at,
     updated_at: dto.updated_at,
     password_changed_at: dto.password_changed_at,

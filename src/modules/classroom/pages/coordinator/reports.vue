@@ -53,9 +53,9 @@ onMounted(async () => {
 <template>
   <div>
     <AulaPageHeader
-      eyebrow="CIERRES Y PAGOS"
+      eyebrow="CIERRES"
       title="Cierres y pagos"
-      sub="Actas por cerrar, certificados por emitir y matrículas con pago pendiente."
+      sub="Los tres cierres que nadie automatiza: actas, certificados y pagos."
     />
 
     <AulaSkeleton v-if="loading" kind="page" :rows="4" />

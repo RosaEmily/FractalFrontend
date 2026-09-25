@@ -110,6 +110,27 @@
   --color-info-DEFAULT:    #2d6fcf;
   --color-info-soft:       #dceafa;
 
+  /*
+   * Tonos de AVISO (`AulaNotice`, shell.jsx:370).
+   *
+   * El `-DEFAULT` de arriba es el color vivo: sirve para un icono o una
+   * píldora, pero como texto sobre su propio `-soft` se lee lavado. El aviso
+   * necesita un tono OSCURO para el título y un borde OPACO —no el `-DEFAULT`
+   * con alfa, que sobre fondo crema vira a gris.
+   */
+  --color-amber-deep:  #8a5b00;
+  --color-amber-line:  #f0d9a8;
+  --color-info-deep:   #1f5099;
+  --color-info-line:   #c3dbf6;
+  --color-danger-deep: #a62b21;
+  --color-danger-line: #f3c6c1;
+  /* `success` no es un tono de aviso del diseño; se usa en un sitio del aula. */
+  --color-success-deep: #1f6b56;
+  --color-success-line: #b9e0d3;
+
+  /* Pulgar de la barra de desplazamiento del aula. */
+  --color-scrollbar-thumb: #e0d6c4;
+
   /* ── Líneas / bordes ─────────────────────────────────────── */
   --color-line:       #ebe2d0;
   --color-line-soft:  #f2ead8;
@@ -539,4 +560,331 @@
   background: var(--color-surface-paper);
   color: var(--color-secondary-900);
   box-shadow: 0 1px 2px rgb(31 26 20 / 0.08); /* shadowSm del diseño */
+}
+
+/*
+ * Select de la landing: la píldora redondeada del diseño V3, que no coincide
+ * con el control cuadrado del admin.
+ *
+ * Va acá y no como utilidad en el .vue porque `SelectCore` envuelve al Select
+ * de PrimeVue en un `<div>`: una clase pasada al componente cae en el WRAPPER,
+ * así que el control se estila por descendencia. Sustituye a los `<select>`
+ * nativos del orden de programas, que se saltaban el preset FractalPreset.
+ */
+.landing-select .p-select {
+  border-radius: 9999px;
+  border-color: var(--color-line);
+  background: var(--color-surface-paper);
+}
+
+.landing-select .p-select-label {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-secondary-900);
+}
+
+/*
+ * Campos del formulario de la landing (contacto y newsletter).
+ *
+ * El diseño V3 los dibuja más altos y con el radio grande, distinto del control
+ * compacto del admin. Igual que `.landing-select`, se estila por descendencia:
+ * los `*Core` envuelven al componente de PrimeVue en un `<div>`, así que la
+ * clase del componente cae en el wrapper y no en el control.
+ */
+.landing-field .p-inputtext,
+.landing-field .p-select,
+.landing-field .p-textarea {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  border-color: var(--color-line);
+  background: var(--color-surface-page);
+  font-size: 0.875rem;
+  color: var(--color-secondary-900);
+}
+
+.landing-field .p-textarea {
+  resize: none;
+}
+
+/*
+ * Campo "desnudo": el control va DENTRO de una píldora que ya dibuja borde y
+ * fondo (el buscador de docentes, el alta del newsletter, el buscador del
+ * aula), así que el input no debe aportar los suyos ni un foco propio.
+ */
+.field-bare .p-inputtext {
+  width: 100%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--color-secondary-900);
+}
+
+.field-bare .p-inputtext:focus,
+.field-bare .p-inputtext:enabled:focus {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+/*
+ * Campos del checkout: mismo control compacto del aula, con el radio `adm-md`.
+ * Los del paso de pago van deshabilitados a propósito mientras no haya pasarela
+ * integrada, así que el estado disabled tiene que leerse como tal.
+ */
+.checkout-field .p-inputtext {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-color: var(--color-line);
+  background: var(--color-surface-page);
+  font-size: 0.906rem;
+}
+
+.checkout-field .p-inputtext:disabled {
+  cursor: not-allowed;
+  color: var(--color-secondary-400);
+  opacity: 1;
+}
+
+/*
+ * Slider de rango de la landing (precio y duración): el diseño V3 lo dibuja
+ * más fino que el default de Aura, con el tramo activo en el color primario.
+ */
+.landing-range .p-slider {
+  width: 100%;
+  height: 0.375rem;
+  background: var(--color-line);
+}
+
+.landing-range .p-slider-range {
+  background: var(--color-primary-500);
+}
+
+.landing-range .p-slider-handle {
+  width: 1rem;
+  height: 1rem;
+  background: var(--color-surface-paper);
+  border: 2px solid var(--color-primary-500);
+}
+
+/*
+ * Celdas editables de la grilla de notas del aula.
+ *
+ * Son campos densos dentro de una tabla: sin ancho propio ni padding de
+ * formulario, y centrados como el número que muestran. `is-edited` marca la
+ * celda con cambios sin guardar — antes se hacía alternando clases de borde
+ * sobre el input nativo.
+ */
+.aula-score .p-inputtext {
+  width: 100%;
+  /* 8px 10px del diseño: con menos, el número queda pegado al borde. */
+  padding: 0.5rem 0.625rem;
+  text-align: center;
+  font-weight: 700;
+  border-color: var(--color-line);
+  color: var(--color-secondary-900);
+}
+
+/*
+ * Evaluación YA RENDIDA pero sin nota puesta: borde y fondo rosados.
+ *
+ * Es la celda que el docente viene a llenar, y en una grilla de 30×5 tiene que
+ * distinguirse de un vistazo tanto de la que ya tiene nota como de la que aún
+ * no se rinde (crema).
+ */
+.aula-score.is-missing .p-inputtext {
+  border-color: #e8b4ae;
+  background: #fdf1ef;
+}
+
+.aula-score.is-edited .p-inputtext {
+  border-color: var(--color-primary-500);
+  background: var(--color-accent-soft);
+  color: var(--color-primary-600);
+}
+
+.aula-feedback .p-inputtext {
+  width: 4rem;
+  padding: 0.125rem 0.375rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-secondary-500);
+  border-color: var(--color-line);
+  transition: width 0.15s;
+}
+
+/* El comentario se ensancha al escribirlo: en reposo solo cabe un vistazo. */
+.aula-feedback .p-inputtext:focus {
+  width: 9rem;
+  text-align: left;
+}
+
+.aula-feedback.is-edited .p-inputtext {
+  border-color: var(--color-primary-500);
+  background: var(--color-accent-soft);
+}
+
+/* Campo compacto dentro de las tablas del aula (editor del cuadro). */
+.aula-field .p-inputtext,
+.aula-field .p-select {
+  width: 100%;
+  padding: 0.375rem 0.625rem;
+  border-color: var(--color-line);
+  font-size: 0.875rem;
+}
+
+/*
+ * Nota máxima y mínima aprobatoria del cuadro: el diseño las muestra grandes
+ * (24px, display bold), porque son la escala de todo el curso y no un campo más
+ * del formulario.
+ */
+.aula-scale .p-inputtext {
+  width: 100%;
+  padding: 0.563rem 0.625rem;
+  text-align: center;
+  font-family: var(--font-display, inherit);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-secondary-900);
+  border-color: var(--color-line);
+}
+
+.aula-scale .p-inputtext:disabled {
+  opacity: 1;
+  color: var(--color-secondary-400);
+}
+
+/*
+ * Celda de una evaluación que aún no se rinde: fondo crema y sin cursor de
+ * edición. El diseño la distingue así para que el docente vea de un vistazo
+ * qué columnas todavía no puede cargar.
+ */
+.aula-score.is-pending .p-inputtext {
+  background: var(--color-surface-cream);
+  color: var(--color-secondary-400);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* Celda fuera del modo edición: se lee, no se toca. */
+.aula-score.is-readonly .p-inputtext {
+  border-color: transparent;
+  background: transparent;
+  cursor: default;
+  opacity: 1;
+}
+
+/*
+ * Giro del spinner de guardado. Va acá y no como utilidad de Tailwind porque
+ * necesita su propio @keyframes.
+ */
+@keyframes aula-spin {
+  to { transform: rotate(360deg); }
+}
+
+.aula-spin {
+  animation: aula-spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aula-spin { animation-duration: 2s; }
+}
+
+/* Nota por debajo de la mínima: se ve al escribirla, no al guardar. */
+.aula-score.is-failing .p-inputtext {
+  color: var(--color-danger-DEFAULT);
+}
+
+/*
+ * Botón `soft` del diseño (`V3Button` variant soft, v3/components.jsx:76).
+ *
+ * Es la acción presente pero NO ofrecida como el paso natural: relleno tenue
+ * del acento, no transparente. `outlined` de PrimeVue no sirve —sobre el fondo
+ * de un aviso pierde el contraste— y clavarlo con utilidades sueltas en cada
+ * sitio repite cuatro `!` y se olvida el hover.
+ */
+.v3-btn-soft {
+  background: var(--color-accent-soft) !important;
+  border-color: var(--color-accent-tint) !important;
+  color: var(--color-primary-600) !important;
+  box-shadow: none !important;
+}
+
+.v3-btn-soft:hover:not(:disabled) {
+  background: var(--color-accent-tint) !important;
+}
+
+/*
+ * Botón `secondary` del diseño (`V3Button`, v3/components.jsx:75).
+ *
+ * Transparente con borde y texto en el INK principal, no el gris de PrimeVue:
+ * es una acción seria pero no destacada — "Cambiar contraseña", no "Guardar".
+ * Al pasar el cursor se invierte, que es lo que lo distingue de un `ghost`.
+ */
+.v3-btn-secondary {
+  background: transparent !important;
+  border-color: var(--color-secondary-900) !important;
+  color: var(--color-secondary-900) !important;
+  box-shadow: none !important;
+}
+
+.v3-btn-secondary:hover:not(:disabled) {
+  background: var(--color-secondary-900) !important;
+  color: var(--color-surface-paper) !important;
+}
+
+/*
+ * Barra de desplazamiento del AULA (`Aula Virtual Fractal.html`).
+ *
+ * La del navegador sale gris y con flechas, que en el lienzo crema del aula se
+ * ve como un elemento ajeno. El diseño la adelgaza y la tiñe del color de las
+ * líneas.
+ *
+ * ⚠️ El `border: 3px solid transparent` + `background-clip: content-box` es lo
+ * que da el pulgar FINO dentro de un carril de 10px: sin eso el color ocupa
+ * todo el ancho y se ve como una barra maciza.
+ *
+ * Solo dentro de `.aula`: el admin conserva la barra nativa, que es lo que su
+ * propio diseño dibuja.
+ */
+.aula *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/*
+ * ⚠️ El CARRIL va transparente y hay que declararlo.
+ *
+ * El diseño no lo hace porque su HTML tiene fondo blanco detrás y el gris por
+ * defecto del navegador no se distingue. Acá el panel de avisos y las tarjetas
+ * tienen bordes y fondos crema, y ese carril gris se ve como una banda ajena
+ * pegada al borde.
+ */
+.aula *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
+ * Firefox no entiende `::-webkit-scrollbar` y usa las propiedades estándar.
+ *
+ * ⚠️ Van en `@supports`, NO sueltas: Chrome da PRIORIDAD a las estándar sobre
+ * `::-webkit-scrollbar`, así que declararlas para todos desactivaría el pulgar
+ * redondeado del diseño y dejaría una barra fina genérica. La consulta las
+ * limita a los navegadores que no soportan el pseudo-elemento.
+ */
+@supports not selector(::-webkit-scrollbar) {
+  .aula {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar-thumb) transparent;
+  }
+}
+
+.aula *::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-pill);
+  border: 3px solid transparent;
+  background-clip: content-box;
 }

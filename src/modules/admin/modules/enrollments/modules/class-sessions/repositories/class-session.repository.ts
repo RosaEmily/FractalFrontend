@@ -14,11 +14,12 @@ class ClassSessionRepository extends BaseRepository<ClassSessionRepositoryTypes>
   }
 
   /**
-   * Alta por lote. Devuelve cuántas se crearon y cuáles se omitieron.
+   * Alta y actualización por lote (upsert). Devuelve cuántas se crearon,
+   * cuántas se actualizaron y cuáles se omitieron.
    *
-   * ⚠️ El servidor responde 200 aunque omita filas: en un lote es normal que
-   * una clase ya exista, y fallar entero obligaría a rehacer el formulario.
-   * Hay que mirar `skipped`, no solo el éxito de la petición.
+   * ⚠️ El servidor responde 200 aunque omita filas: fallar entero obligaría a
+   * rehacer el formulario. Hay que mirar `skipped`, no solo el éxito de la
+   * petición.
    */
   async bulkStore(
     body: ClassSessionBulkBodyDTO,
@@ -30,7 +31,7 @@ class ClassSessionRepository extends BaseRepository<ClassSessionRepositoryTypes>
     // `ApiResponse.data` es `T | null`. Un 200 sin cuerpo no debería pasar,
     // pero devolver un resultado vacío evita que la página reviente leyendo
     // `.skipped` de null.
-    return response.data?.data ?? { created: 0, skipped: [] };
+    return response.data?.data ?? { created: 0, updated: 0, skipped: [] };
   }
 }
 

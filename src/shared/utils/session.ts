@@ -45,6 +45,20 @@ const userCookie = (zone: AppZone): string =>
 const expiresCookie = (zone: AppZone): string =>
   `${COOKIE_NAME_EXPIRES}_${zone === "admin" ? "admin" : "aula"}`;
 
+/**
+ * Rol con el que el usuario está mirando el AULA.
+ *
+ * ⚠️ No lleva zona porque el panel no tiene equivalente: ahí el menú se filtra
+ * por los roles del perfil y no hay nada que elegir. En el aula sí — un usuario
+ * puede ser alumno, dictar un curso y coordinar a la vez, y cada rol tiene un
+ * menú y una home distintos (no el mismo menú con ítems ocultos).
+ *
+ * Es una PREFERENCIA, no un permiso: dice con cuál de sus roles quiere entrar,
+ * y el guard igual comprueba que lo tenga. Un valor manipulado a mano no abre
+ * nada — el perfil manda.
+ */
+const roleCookie = `${COOKIE_NAME_USER}_role_aula`;
+
 /** Base del router, el subpath de GitHub Pages. */
 const ROUTER_BASE = "/FractalFrontend";
 
@@ -125,6 +139,25 @@ export const setSessionUser = (
 export const getSessionExpires = (zone: AppZone): string | undefined =>
   Cookies.get(expiresCookie(zone));
 
+/** Rol con el que se está mirando el aula, si el usuario ya eligió uno. */
+export const getActiveRole = (): string | undefined => Cookies.get(roleCookie);
+
+/**
+ * Guarda el rol elegido, con la misma caducidad que el perfil del aula para que
+ * los dos mueran juntos: un rol activo sin sesión detrás no significa nada.
+ */
+export const setActiveRole = (role: string): void => {
+  const expires = getSessionExpires("classroom");
+
+  Cookies.set(roleCookie, role, {
+    ...cookieOptions,
+    ...(expires ? { expires: new Date(expires) } : {}),
+  });
+};
+
+export const clearActiveRole = (): void =>
+  Cookies.remove(roleCookie, cookieOptions);
+
 /**
  * Borra las cookies visibles de UNA zona. La de sesión la borra el backend en
  * el logout — y también solo la suya, así que cerrar el aula deja el panel
@@ -135,6 +168,10 @@ export const clearSession = (zone: AppZone) => {
   // no encuentra la cookie si el `path` no coincide.
   Cookies.remove(expiresCookie(zone), cookieOptions);
   Cookies.remove(userCookie(zone), cookieOptions);
+
+  // El rol elegido muere con la sesión del aula: al volver a entrar se elige de
+  // nuevo, y dejarlo puesto haría que el siguiente usuario heredara la vista.
+  if (zone === "classroom") clearActiveRole();
 };
 
 /** Si el cliente cree tener sesión EN ESA ZONA. La palabra final la tiene la API. */

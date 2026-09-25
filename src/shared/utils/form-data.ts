@@ -27,9 +27,14 @@ export const hasFile = (body: unknown): boolean => {
  *   `nullable` del FormRequest dejaría de cumplirse.
  * - **Los booleanos van como `1`/`0`.** `String(true)` da `"true"`, que la
  *   validación `boolean` de Laravel rechaza.
- * - **Los arrays se envían como `campo[]`**, que es como PHP los agrupa.
- * - **Los objetos van en JSON**: es lo que espera un campo `array` de Laravel
- *   cuando el valor es un mapa (`social_networks`, por ejemplo).
+ * - **Los arrays se envían como `campo[i]`** con su índice, no como `campo[]`:
+ *   hace falta para poder anidar dentro (`courses[0][schedules][1][...]`).
+ * - **Los objetos se RECORREN**, no se serializan a JSON. ⚠️ Antes iban con
+ *   `JSON.stringify` y un `courses` de objetos llegaba como una lista de
+ *   strings: Laravel valida `courses.*.course_id` y no encontraba nada, así
+ *   que respondía "El curso es obligatorio" con todos los datos presentes.
+ *   La excepción es un objeto VACÍO, que sí se manda como `{}` — recorrerlo no
+ *   añadiría ninguna clave y el campo desaparecería del envío.
  */
 export const toFormData = (body: Record<string, unknown>): FormData => {
   const payload = new FormData();
@@ -53,12 +58,23 @@ export const toFormData = (body: Record<string, unknown>): FormData => {
     }
 
     if (Array.isArray(value)) {
-      value.forEach((item) => appendValue(`${key}[]`, item));
+      value.forEach((item, index) => appendValue(`${key}[${index}]`, item));
       return;
     }
 
     if (typeof value === "object") {
-      payload.append(key, JSON.stringify(value));
+      const entries = Object.entries(value as Record<string, unknown>);
+
+      /*
+       * Un objeto vacío no tiene claves que recorrer: sin esto el campo no
+       * viajaría y un `nullable` obligatorio del backend fallaría.
+       */
+      if (!entries.length) {
+        payload.append(key, "{}");
+        return;
+      }
+
+      entries.forEach(([name, item]) => appendValue(`${key}[${name}]`, item));
       return;
     }
 

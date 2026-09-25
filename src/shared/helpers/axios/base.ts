@@ -91,6 +91,37 @@ export class ApiRequest {
     );
   }
 
+  /**
+   * Identidad de una petición para deduplicarla.
+   *
+   * ⚠️ Incluye los PARÁMETROS, no solo método y ruta. Sin ellos, dos consultas
+   * distintas al mismo endpoint comparten clave y la segunda **aborta** a la
+   * primera: `teacher/sessions` (todas, del buscador) y
+   * `teacher/sessions?offer_course_id=N` (las de un curso) se cancelaban entre
+   * sí, y el aula del docente se llenaba de `Error: null` en consola con
+   * secciones que quedaban vacías.
+   *
+   * El orden de las claves se normaliza para que `{a,b}` y `{b,a}` sean la
+   * misma petición y sigan deduplicándose.
+   */
+  private requestKey(
+    method: Method,
+    url: string,
+    config?: AxiosRequestConfig
+  ): string {
+    const params = config?.params as Record<string, unknown> | undefined;
+
+    if (!params) return `${method}:${url}`;
+
+    const query = Object.keys(params)
+      .filter((name) => params[name] !== undefined && params[name] !== null)
+      .sort()
+      .map((name) => `${name}=${String(params[name])}`)
+      .join("&");
+
+    return query ? `${method}:${url}?${query}` : `${method}:${url}`;
+  }
+
   private getController(key: string): AbortController {
     // Si existe una request previa → cancelar
     if (this.controllers.has(key)) {
@@ -103,6 +134,21 @@ export class ApiRequest {
     return controller;
   }
 
+  /**
+   * Suelta el controlador SOLO si sigue siendo el de esta petición.
+   *
+   * ⚠️ Una petición abortada termina DESPUÉS de que la nueva registró el suyo
+   * (el `catch` corre en un tick posterior al `abort()`), así que un
+   * `delete(key)` a ciegas borraba el controlador de la que la reemplazó: la
+   * siguiente petición ya no encontraba a quién cancelar y la deduplicación se
+   * saltaba una de cada dos.
+   */
+  private releaseController(key: string, controller: AbortController): void {
+    if (this.controllers.get(key) === controller) {
+      this.controllers.delete(key);
+    }
+  }
+
   // =======================================================
   // 🔥 MÉTODO BASE — Centraliza errores y respuesta tipada
   // =======================================================
@@ -112,7 +158,7 @@ export class ApiRequest {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {
-    const key = `${method}:${url}`;
+    const key = this.requestKey(method, url, config);
     const controller = this.getController(key);
     try {
       const response = await this.axios.request<ApiResponse<T>>({
@@ -134,7 +180,7 @@ export class ApiRequest {
 
       throw error;
     } finally {
-      this.controllers.delete(key);
+      this.releaseController(key, controller);
     }
   }
 
