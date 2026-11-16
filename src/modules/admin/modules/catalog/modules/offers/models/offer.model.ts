@@ -6,7 +6,15 @@ export interface OfferSchedule {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
+  /**
+   * Duración de la clase en minutos. SOLO de pantalla: la API recibe inicio y
+   * fin (`toCourseItems` no la envía). Enlaza los dos: cambiarla mueve el fin.
+   */
+  durationMin?: number | null;
 }
+
+/** Unidad de la duración de un curso en el formulario. */
+export type CourseDurationUnit = "weeks" | "months";
 
 export interface OfferCourseItem {
   id?: number;
@@ -24,6 +32,14 @@ export interface OfferCourseItem {
   endDate: string | null;
   meetLink: string | null;
   schedules: OfferSchedule[];
+  /*
+   * Campos SOLO del formulario de alta (no viajan a la API): con la duración
+   * de cada curso se calculan sus fechas en cascada desde el inicio de clases.
+   * `datesEdited` marca que el admin tocó las fechas a mano y ya no se recalculan.
+   */
+  durationValue?: number | null;
+  durationUnit?: CourseDurationUnit;
+  datesEdited?: boolean;
 }
 
 export interface Offer {

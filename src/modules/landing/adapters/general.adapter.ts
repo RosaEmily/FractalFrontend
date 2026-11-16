@@ -20,8 +20,18 @@ export const GeneralAdapter = {
   one: (dto: GeneralDTO): General => ({
     logo: dto.logo,
     banner: dto.banner.map((b, i) => ({
-      ...b,
-      image_alt: `Banner número ${i + 1}`,
+      id: b.id,
+      desktop: b.desktop,
+      mobile: b.mobile,
+      image_alt: b.alt_desktop || `Banner número ${i + 1}`,
+      tag: b.tag,
+      kicker: b.kicker,
+      title: b.title,
+      sub: b.sub,
+      cta: b.cta,
+      cta2: b.cta2,
+      dark: b.dark,
+      meta: b.meta,
     })),
     kpis: dto.kpis.map((k, i) => ({
       id: String(k.id),
@@ -36,5 +46,14 @@ export const GeneralAdapter = {
       image_url: p.image,
       image_alt: p.name,
     })),
+    contact: (dto.contact ?? []).map((c) => ({
+      type: c.type,
+      label: c.description,
+      value: c.value,
+    })),
+    social_networks: (dto.social_networks ?? []).map((n) => ({ name: n.name, url: n.url })),
+    faqs: dto.faqs ?? [],
+    complaints_book: dto.complaints_book ?? null,
+    whatsapp: dto.whatsapp ?? null,
   }),
 };

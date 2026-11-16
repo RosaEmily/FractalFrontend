@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { LabelCore, ImageCore } from "@/shared/components";
+import { LabelCore, ImageCore, MessageCore } from "@/shared/components";
 import { useToastStore } from "@/shared/stores/useToastStore";
 
 interface Props {
@@ -19,12 +19,21 @@ interface Props {
   variant?: "wide" | "avatar";
   /** Iniciales del nombre, para el hueco del avatar cuando no hay foto. */
   fallbackText?: string;
+  /**
+   * Igual que `InputTextCore`/`SelectCore`: sin esto, un 422 del backend
+   * sobre este campo (imagen obligatoria, URL inválida) no tenía dónde
+   * mostrarse — el formulario "no hacía nada" al enviar sin decir por qué.
+   */
+  invalid?: boolean;
+  messageError?: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxKb: 800,
   accept: "image/jpeg,image/png,image/webp,image/svg+xml",
   variant: "wide",
+  invalid: false,
+  messageError: null,
 });
 
 const emit = defineEmits<{
@@ -82,7 +91,7 @@ const onDrop = (event: DragEvent) => {
 
     <div
       class="border-2 border-dashed rounded-adm-md px-6 py-5 flex flex-col items-center gap-2.5 bg-admin-bg transition-colors"
-      :class="dragging ? 'border-primary-500' : 'border-line'"
+      :class="dragging ? 'border-primary-500' : props.invalid ? 'border-danger-DEFAULT' : 'border-line'"
       @dragover.prevent="dragging = true"
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
@@ -155,6 +164,13 @@ const onDrop = (event: DragEvent) => {
       :accept="accept"
       class="hidden"
       @change="onChange"
+    />
+
+    <MessageCore
+      v-if="props.invalid && props.messageError"
+      :text="props.messageError"
+      severity="error"
+      variant="simple"
     />
   </div>
 </template>

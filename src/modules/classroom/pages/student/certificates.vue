@@ -7,12 +7,14 @@ import {
   mdiCertificateOutline,
   mdiCheckCircleOutline,
   mdiClockOutline,
+  mdiStar,
 } from "@mdi/js";
 import studentService from "../../services/student.service";
 import type {
   StudentCertificate,
   StudentCourse,
 } from "../../models/classroom.model";
+import type { StudentTestimonial } from "../../models/testimonial.model";
 import {
   AulaCard,
   AulaEmpty,
@@ -22,12 +24,59 @@ import {
   AulaPill,
   AulaStat,
 } from "../../components/ui";
+import AulaTestimonialModal from "../../components/aula-testimonial-modal.vue";
 import { formatDate, formatScore } from "../../utils/format";
 
 const router = useRouter();
 
 const certificates = ref<StudentCertificate[]>([]);
 const courses = ref<StudentCourse[]>([]);
+
+/**
+ * Testimonio propio por `enrollment_course_id`. Se resuelve uno por
+ * certificado al cargar la pantalla (mismo patrón que `student2.jsx`, que
+ * hoy lo simula con `localStorage['aula_testimonios']`), acá contra el
+ * endpoint real.
+ */
+const testimonials = ref<Record<number, StudentTestimonial | null>>({});
+const testimonialOffer = ref<{
+  enrollmentCourseId: number;
+  name: string;
+  existing: StudentTestimonial | null;
+} | null>(null);
+
+async function loadTestimonials(list: StudentCertificate[]) {
+  const results = await Promise.all(
+    list.map((certificate) =>
+      safeRequest(
+        () =>
+          studentService.testimonial({
+            enrollmentCourseId: certificate.enrollmentCourseId,
+          }),
+        { showAlert: false },
+      ),
+    ),
+  );
+
+  results.forEach((result, index) => {
+    const certificate = list[index];
+    if (certificate) testimonials.value[certificate.enrollmentCourseId] = result.data;
+  });
+}
+
+function openTestimonial(certificate: StudentCertificate) {
+  testimonialOffer.value = {
+    enrollmentCourseId: certificate.enrollmentCourseId,
+    name: certificate.courseName,
+    existing: testimonials.value[certificate.enrollmentCourseId] ?? null,
+  };
+}
+
+function onTestimonialSaved(testimonial: StudentTestimonial) {
+  if (testimonial.enrollmentCourseId !== null) {
+    testimonials.value[testimonial.enrollmentCourseId] = testimonial;
+  }
+}
 const loading = ref(true);
 
 const approved = computed(
@@ -58,6 +107,8 @@ onMounted(async () => {
   certificates.value = certs.data ?? [];
   courses.value = list.data ?? [];
   loading.value = false;
+
+  await loadTestimonials(certificates.value);
 });
 </script>
 
@@ -146,6 +197,40 @@ onMounted(async () => {
                     {{ formatDate(certificate.issuedDate, true) }}
                   </AulaPill>
                 </div>
+
+                <div class="mt-3 flex items-center gap-2.5">
+                  <span
+                    v-if="testimonials[certificate.enrollmentCourseId]"
+                    class="inline-flex items-center gap-1 text-amber-DEFAULT"
+                  >
+                    <HeroCore
+                      v-for="star in 5"
+                      :key="star"
+                      :path="mdiStar"
+                      class="size-3"
+                      :class="
+                        star <=
+                        Math.round(
+                          testimonials[certificate.enrollmentCourseId]!.rating,
+                        )
+                          ? 'text-amber-DEFAULT'
+                          : 'text-line'
+                      "
+                    />
+                  </span>
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center gap-1.5 text-adm-xs font-semibold text-primary-600"
+                    @click="openTestimonial(certificate)"
+                  >
+                    <HeroCore :path="mdiStar" class="size-3" />
+                    {{
+                      testimonials[certificate.enrollmentCourseId]
+                        ? "Editar testimonio"
+                        : "Deja tu testimonio"
+                    }}
+                  </button>
+                </div>
               </div>
             </div>
           </AulaCard>
@@ -190,5 +275,11 @@ onMounted(async () => {
         sub="Cuando apruebes un curso y el docente cierre el acta, tu certificado aparecerá acá con su código verificable."
       />
     </template>
+
+    <AulaTestimonialModal
+      :offer="testimonialOffer"
+      @close="testimonialOffer = null"
+      @saved="onTestimonialSaved"
+    />
   </div>
 </template>

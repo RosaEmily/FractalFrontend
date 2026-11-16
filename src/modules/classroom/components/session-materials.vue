@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { HeroCore } from "@/shared/components";
+import { ButtonCore, HeroCore } from "@/shared/components";
 import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
 import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
@@ -46,21 +46,54 @@ const load = async () => {
   loading.value = false;
 };
 
-const upload = async (files: FileList | null) => {
+/*
+ * Los archivos elegidos NO se suben al instante: quedan en esta lista para que
+ * el docente pueda quitar el que eligió por error antes de publicarlo, y se
+ * suben todos juntos con "Guardar".
+ */
+const pending = ref<File[]>([]);
+
+const addFiles = (files: FileList | null) => {
   if (!files?.length) return;
+  const known = new Set(pending.value.map((f) => `${f.name}:${f.size}`));
+  pending.value = [
+    ...pending.value,
+    ...Array.from(files).filter((f) => !known.has(`${f.name}:${f.size}`)),
+  ];
+  // Reiniciar el input: sin esto, volver a elegir el mismo archivo no dispara `change`.
+  if (fileInput.value) fileInput.value.value = "";
+};
+
+const removePending = (index: number) => {
+  pending.value = pending.value.filter((_, i) => i !== index);
+};
+
+const extensionOf = (name: string) => name.split(".").pop()?.slice(0, 4) ?? "";
+
+const saveAll = async () => {
+  if (!pending.value.length || uploading.value) return;
 
   uploading.value = true;
-  for (const file of Array.from(files)) {
-    await safeRequest(() =>
+  const failed: File[] = [];
+  for (const file of pending.value) {
+    const { status } = await safeRequest(() =>
       teacherService.uploadMaterial(props.classSessionId, file, {
         visibleFrom: scheduled.value ? props.sessionDate : null,
       }),
     );
+    if (!status) failed.push(file);
   }
   uploading.value = false;
 
-  toastStore.showToastSuccess({ detail: "Material subido." });
-  await load();
+  // Los que fallaron se quedan en la lista para reintentar o quitarlos.
+  const saved = pending.value.length - failed.length;
+  pending.value = failed;
+  if (saved) {
+    toastStore.showToastSuccess({
+      detail: saved === 1 ? "Material subido." : `${saved} archivos subidos.`,
+    });
+    await load();
+  }
 };
 
 const remove = async (materialId: number) => {
@@ -75,7 +108,7 @@ const remove = async (materialId: number) => {
 
 const onDrop = (event: DragEvent) => {
   dragging.value = false;
-  upload(event.dataTransfer?.files ?? null);
+  addFiles(event.dataTransfer?.files ?? null);
 };
 
 /*
@@ -182,6 +215,33 @@ onMounted(load);
       </button>
     </div>
 
+    <!-- Por subir: todavía no están en el servidor; se pueden quitar. -->
+    <div
+      v-for="(file, index) in pending"
+      :key="`${file.name}:${file.size}`"
+      class="flex items-center gap-3 px-3.5 py-3 mx-2 mb-2 rounded-adm-md bg-surface-paper border border-dashed border-primary-500/40"
+    >
+      <span
+        class="size-9 shrink-0 grid place-items-center rounded-adm-sm bg-accent-soft border border-line font-mono text-[0.563rem] font-bold text-primary-600 uppercase"
+      >
+        {{ extensionOf(file.name) }}
+      </span>
+      <div class="flex-1 min-w-0">
+        <p class="text-adm-base font-semibold text-secondary-900 truncate">{{ file.name }}</p>
+        <p class="font-mono text-adm-xs text-secondary-400 truncate mt-0.5">{{ formatBytes(file.size) }}</p>
+      </div>
+      <AulaPill tone="accent" size="sm">Por subir</AulaPill>
+      <button
+        type="button"
+        class="cursor-pointer shrink-0 text-secondary-400 hover:text-danger-DEFAULT disabled:opacity-40"
+        aria-label="Quitar archivo"
+        :disabled="uploading"
+        @click="removePending(index)"
+      >
+        <HeroCore :path="mdiClose" class="size-4" />
+      </button>
+    </div>
+
     <!-- Dropzone -->
     <div
       class="mx-2 mb-2 flex flex-col items-center justify-center py-5.5 px-5 border-[1.5px] border-dashed rounded-adm-md cursor-pointer transition-colors"
@@ -201,7 +261,7 @@ onMounted(load);
         :class="dragging ? 'text-primary-500' : 'text-secondary-400'"
       />
       <p class="text-adm-base font-semibold text-secondary-900 mt-2">
-        {{ uploading ? "Subiendo…" : "Arrastra archivos o haz clic para subir" }}
+        Arrastra archivos o haz clic para elegirlos
       </p>
       <p class="text-adm-sm text-secondary-500 mt-1 text-center">
         PDF, Word, diapositivas, Excel, Revit, AutoCAD o ZIP · hasta 50 MB por archivo
@@ -211,7 +271,28 @@ onMounted(load);
         type="file"
         multiple
         class="hidden"
-        @change="upload(($event.target as HTMLInputElement).files)"
+        @change="addFiles(($event.target as HTMLInputElement).files)"
+      />
+    </div>
+
+    <div
+      v-if="pending.length"
+      class="flex items-center justify-end gap-2.5 flex-wrap px-2 pt-1"
+    >
+      <ButtonCore
+        label="Descartar"
+        size="small"
+        text
+        class="!w-auto"
+        :disabled="uploading"
+        @click="pending = []"
+      />
+      <ButtonCore
+        :label="uploading ? 'Subiendo…' : pending.length === 1 ? 'Guardar archivo' : `Guardar ${pending.length} archivos`"
+        size="small"
+        class="!w-auto"
+        :loading="uploading"
+        @click="saveAll"
       />
     </div>
 

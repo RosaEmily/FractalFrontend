@@ -2,42 +2,54 @@
 import LandingButton from './ui/LandingButton.vue'
 import LandingEyebrow from './ui/LandingEyebrow.vue'
 import { InputTextCore } from '@/shared/components'
+import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useSiteContact } from '../composables/useSiteContact'
 
-const socialLinks = [
-  { name: 'facebook',  href: 'https://www.facebook.com/fractalstudio.arq/' },
-  { name: 'instagram', href: 'https://www.instagram.com/fractalstudio.pe/' },
-  { name: 'linkedin',  href: 'https://www.linkedin.com/company/fractal-studio-arq/' },
-  { name: 'youtube',   href: '#' },
-]
+const {
+  email, phone, address, mailHref, telHref, whatsappHref, socialNetworks, complaintsBook,
+} = useSiteContact()
 
-const footerCols = [
-  {
-    title: 'Contacto',
-    items: [
-      { icon: 'mail',     label: 'contacto@proyectofractal.com', href: 'mailto:contacto@proyectofractal.com' },
-      { icon: 'phone',    label: '+51 987 654 321',              href: 'tel:+51987654321' },
-      { icon: 'pin',      label: 'Av. Ejemplo 123, Lima — Perú', href: '#' },
-      { icon: 'whatsapp', label: 'WhatsApp · Atención 24/7',     href: '#' },
-    ],
-  },
-  {
-    title: 'Información',
-    items: [
-      { label: 'Preguntas frecuentes', href: '/contact' },
-      { label: 'Comunidad de egresados', href: '#' },
-      { label: 'Cursos corporativos',    href: '#' },
-      { label: 'Becas y financiamiento', href: '#' },
-    ],
-  },
-  {
-    title: 'Compañía',
-    items: [
-      { label: 'Política de privacidad',  href: '#' },
-      { label: 'Términos y condiciones',  href: '#' },
-      { label: 'Libro de reclamaciones',  href: 'https://www.proyectofractal.com/libro-reclamaciones', external: true },
-    ],
-  },
-]
+/* Las redes y los canales son los que cargó el panel: sin dato, no se pinta. */
+const socialLinks = computed(() =>
+  socialNetworks.value.map((n) => ({ name: n.name.toLowerCase(), href: n.url })),
+)
+
+type FooterItem = { label: string; href: string; icon?: string; external?: boolean }
+
+const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
+  const wa = whatsappHref()
+  const channels: (FooterItem | null)[] = [
+    email.value && mailHref.value ? { icon: 'mail', label: email.value, href: mailHref.value } : null,
+    phone.value && telHref.value ? { icon: 'phone', label: phone.value, href: telHref.value } : null,
+    address.value ? { icon: 'pin', label: address.value, href: '/contact' } : null,
+    wa ? { icon: 'whatsapp', label: 'WhatsApp · Atención 24/7', href: wa, external: true } : null,
+  ]
+  const contact = channels.filter((i): i is FooterItem => i !== null)
+
+  return [
+    { title: 'Contacto', items: contact },
+    {
+      title: 'Información',
+      items: [
+        { label: 'Preguntas frecuentes', href: '/contact' },
+        { label: 'Comunidad de egresados', href: '#' },
+        { label: 'Cursos corporativos', href: '#' },
+        { label: 'Becas y financiamiento', href: '#' },
+      ],
+    },
+    {
+      title: 'Compañía',
+      items: [
+        { label: 'Política de privacidad', href: '#' },
+        { label: 'Términos y condiciones', href: '#' },
+        ...(complaintsBook.value
+          ? [{ label: 'Libro de reclamaciones', href: complaintsBook.value, external: true }]
+          : []),
+      ],
+    },
+  ]
+})
 </script>
 
 <template>
@@ -78,9 +90,9 @@ const footerCols = [
         <p class="font-body text-[0.875rem] leading-relaxed text-secondary-500 mt-6 mb-6 max-w-xs">
           Centro Autodesk Authorized Training Center en Perú. Formación técnica especializada en BIM, AutoCAD y herramientas digitales para arquitectura, ingeniería y construcción.
         </p>
-        <p class="font-mono text-[0.625rem] text-secondary-400 tracking-widest uppercase mb-3">Síguenos</p>
+        <p v-if="socialLinks.length" class="font-mono text-[0.625rem] text-secondary-400 tracking-widest uppercase mb-3">Síguenos</p>
         <div class="flex gap-2">
-          <a v-for="s in socialLinks" :key="s.name" :href="s.href" target="_blank"
+          <a v-for="s in socialLinks" :key="s.name" :href="s.href" target="_blank" rel="noopener"
             class="w-9 h-9 rounded-full bg-surface-paper border border-line text-secondary-900 inline-flex items-center justify-center hover:-translate-y-0.5 transition-transform duration-200">
             <!-- Facebook -->
             <svg v-if="s.name === 'facebook'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -109,15 +121,21 @@ const footerCols = [
         <p class="font-mono text-[0.625rem] text-secondary-400 tracking-widest uppercase mb-4">{{ col.title }}</p>
         <ul class="flex flex-col gap-2.5">
           <li v-for="item in col.items" :key="item.label">
-            <a :href="item.href" :target="item.external ? '_blank' : '_self'"
+            <!-- Internas con RouterLink: un <a href="/contact"> ignora la base
+                 `/FractalFrontend/` del router y da 404. -->
+            <component
+              :is="item.href.startsWith('/') ? RouterLink : 'a'"
+              v-bind="item.href.startsWith('/')
+                ? { to: item.href }
+                : { href: item.href, target: item.external ? '_blank' : '_self', rel: item.external ? 'noopener' : undefined }"
               class="font-body text-[0.844rem] text-secondary-900 inline-flex items-center gap-2 hover:opacity-60 transition-opacity">
               <!-- icon -->
-              <svg v-if="item.icon === 'mail'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e94e1b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/></svg>
-              <svg v-else-if="item.icon === 'phone'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e94e1b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C20 21 19 21 18 21C10 21 3 14 3 6C3 5 3 4 3 4Z"/></svg>
-              <svg v-else-if="item.icon === 'pin'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e94e1b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22S20 14 20 9A8 8 0 1 0 4 9C4 14 12 22 12 22Z"/><circle cx="12" cy="9" r="3"/></svg>
-              <svg v-else-if="item.icon === 'whatsapp'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e94e1b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z"/></svg>
+              <svg v-if="item.icon === 'mail'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/></svg>
+              <svg v-else-if="item.icon === 'phone'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C20 21 19 21 18 21C10 21 3 14 3 6C3 5 3 4 3 4Z"/></svg>
+              <svg v-else-if="item.icon === 'pin'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22S20 14 20 9A8 8 0 1 0 4 9C4 14 12 22 12 22Z"/><circle cx="12" cy="9" r="3"/></svg>
+              <svg v-else-if="item.icon === 'whatsapp'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z"/></svg>
               {{ item.label }}
-            </a>
+            </component>
           </li>
         </ul>
       </div>

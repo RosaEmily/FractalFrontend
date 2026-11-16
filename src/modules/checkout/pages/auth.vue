@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
 import { hasSession } from "@/shared/utils/session";
 import CheckoutLayout from "../layouts/main.vue";
 import StepLayout from "../components/StepLayout.vue";
 import { useCartStore } from "../stores/useCartStore";
+import { useSiteContact } from "@/modules/landing/composables/useSiteContact";
 
 const router = useRouter();
 const cart = useCartStore();
+const { advisorHref } = useSiteContact();
 const authenticated = ref(false);
 
 /*
@@ -31,11 +32,12 @@ const goLogin = () =>
 </script>
 
 <template>
-  <CheckoutLayout step="auth">
+  <CheckoutLayout step="auth" primary="Iniciar sesión" @primary="goLogin">
     <StepLayout
-      eyebrow="Paso 2 de 4"
-      title="Ingresa a tu cuenta"
-      sub="Necesitamos identificarte para asociar la matrícula a tu usuario y darte acceso al aula virtual."
+      :index="2"
+      eyebrow="Cuenta"
+      title="Inicia sesión para continuar."
+      sub="Necesitas una cuenta para acceder al aula virtual, tus certificados y el historial de compras."
       @back="router.push({ name: 'checkout-cart' })"
     >
       <div class="rounded-adm-lg border border-line bg-surface-paper p-6">
@@ -43,10 +45,6 @@ const goLogin = () =>
           Usa el correo con el que te matriculaste. Si es tu primera compra,
           escríbenos y creamos tu acceso.
         </p>
-
-        <LandingButton variant="primary" size="lg" class="mt-5 w-full justify-center" @click="goLogin">
-          Iniciar sesión
-        </LandingButton>
 
         <!--
           El registro autónomo no existe todavía: `auth/register` pide campos que
@@ -56,7 +54,7 @@ const goLogin = () =>
         -->
         <p class="mt-4 border-t border-line pt-4 text-[0.813rem] leading-relaxed text-secondary-400">
           ¿Aún no tienes cuenta? El acceso se crea con tu matrícula.
-          <a href="https://wa.me/51987654321" target="_blank" rel="noopener" class="font-medium text-primary-500 underline">
+          <a :href="advisorHref()" target="_blank" rel="noopener" class="font-medium text-primary-500 underline">
             Escríbenos por WhatsApp
           </a>
           y te ayudamos.

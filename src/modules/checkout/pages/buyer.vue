@@ -37,15 +37,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <CheckoutLayout step="buyer">
+  <CheckoutLayout
+    step="buyer"
+    primary="Continuar al pago"
+    :primary-disabled="loading"
+    @primary="router.push({ name: 'checkout-method' })"
+  >
     <StepLayout
-      eyebrow="Paso 3 de 4"
-      title="Confirma tus datos"
-      sub="La matrícula y el comprobante se emiten a nombre de esta cuenta."
-      primary="Continuar al pago"
-      :primary-disabled="loading"
+      :index="3"
+      eyebrow="Datos del comprador"
+      title="¿A nombre de quién va?"
+      sub="Usaremos estos datos para tu comprobante de pago, que quedará disponible para descargar en tu cuenta."
       @back="router.push({ name: 'checkout-cart' })"
-      @primary="router.push({ name: 'checkout-method' })"
     >
       <div class="rounded-adm-lg border border-line bg-surface-paper p-6">
         <dl class="space-y-4">

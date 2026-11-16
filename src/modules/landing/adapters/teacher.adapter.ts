@@ -1,21 +1,12 @@
-import type { TeacherDTO } from "../dto/teacher.dto";
-import type { Teacher, TeacherList } from "../models/teacher.model";
-
-const TEACHER_PHRASES: string[] = [
-  "Transformación Digital en AEC",
-  "Urbanismo Sostenible",
-  "Gestión de la Construcción",
-  "Innovación en Infraestructura",
-  "Programación Dynamo BIM",
-];
+import type { TeacherDetailDTO, TeacherDTO } from "../dto/teacher.dto";
+import type { Teacher, TeacherDetail, TeacherList } from "../models/teacher.model";
 
 export const TeacherAdapter = {
-  one: (dto: TeacherDTO, index = 0): Teacher => ({
-    ...dto,
-    phrase: TEACHER_PHRASES[index % TEACHER_PHRASES.length] ?? "Fractal Studio",
-  }),
+  one: (dto: TeacherDTO): Teacher => ({ ...dto }),
 
   many: (dto: TeacherDTO[]): TeacherList => ({
-    teachers: dto.map((t, i) => TeacherAdapter.one(t, i)),
+    teachers: dto.map((t) => TeacherAdapter.one(t)),
   }),
+
+  detail: (dto: TeacherDetailDTO): TeacherDetail => ({ ...dto }),
 };

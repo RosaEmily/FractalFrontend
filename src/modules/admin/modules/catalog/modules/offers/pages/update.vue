@@ -1,5 +1,22 @@
 <script setup lang="ts">
+/**
+ * Editar programa: mismo diseño que el alta (`create.vue`) — pasos Origen,
+ * Datos de la cohorte, Calendario y Cursos, con el resumen fijo a la derecha.
+ *
+ * Diferencias con el alta, todas para no pisar lo que ya está guardado:
+ * - el ORIGEN no se cambia: cambiarlo reemplazaría los cursos con su trabajo;
+ * - nombre y prefijo NO se recalculan solos;
+ * - la matrícula guardada se respeta hasta que se toque el inicio de clases o
+ *   los días de anticipación;
+ * - las fechas de los cursos se recalculan en cascada solo cuando se edita algo
+ *   que las mueve (inicio, duración, horarios, orden), no al abrir;
+ * - "el inicio debe ser futuro" solo aplica si se CAMBIA el inicio: un programa
+ *   en curso tiene su inicio en el pasado y debe poder editarse;
+ * - la imagen viaja solo si se elige una nueva: mandar `null` la borraba.
+ */
 import { z } from "zod";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import {
   InputTextCore,
   InputNumberCore,
@@ -7,89 +24,73 @@ import {
   DatePicketCore,
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
-import OfferCoursesField from "../components/OfferCoursesField.vue";
+import FormSkeleton from "@/modules/admin/components/ui/form-skeleton.vue";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
+import StepCard from "../components/StepCard.vue";
+import OfferCourseTimeline from "../components/OfferCourseTimeline.vue";
+import ProgramSummary from "../components/ProgramSummary.vue";
 import { FilterMatchMode } from "@primevue/core";
-import { onMounted, ref, computed } from "vue";
-import { useRoute } from "vue-router";
 
 import offerService, { toCourseItems } from "../services/offer.service";
-import courseService from "../../courses/services/course.service";
 import teacherService from "../../teachers/services/teacher.service";
 import learningPathService from "../../learning-paths/services/learning-path.service";
 import currencyService from "../../currencies/services/currency.service";
-import { OFFER_TYPE_OPTIONS } from "../constants/offer.constant";
 import { safeRequest } from "@/shared/utils/request";
 import {
+  addDays,
+  cascadeCourseDates,
+  dayLabel,
   dayOf,
-  enrollmentStartAsDate,
-  timeOf,
+  firstClassDay,
+  firstClassMoment,
+  lastClassDay,
+  parseDay,
   validateCourseItems,
+  weeksSpan,
   withTime,
 } from "../utils/offer-form";
 
-import type { Course } from "../../courses/models/course.model";
+import type { Currency } from "../../currencies/models/currency.model";
+import type { LearningPath } from "../../learning-paths/models/learning-path.model";
 import type { Teacher } from "../../teachers/models/teacher.model";
 import type { OfferCourseItem } from "../models/offer.model";
+
+type Fields = Record<string, { value: unknown }>;
 
 const activeOnly = {
   filters: { status: { value: 1, matchMode: FilterMatchMode.EQUALS } },
 };
 
-const courses = ref<Course[]>([]);
+const route = useRoute();
+const identifier = String(route.params.id);
+
 const teachers = ref<Teacher[]>([]);
+const learningPaths = ref<LearningPath[]>([]);
+const currencies = ref<Currency[]>([]);
 const courseItems = ref<OfferCourseItem[]>([]);
 
-/*
- * La imagen viaja como `File`: `BaseRepository` detecta el archivo y arma el
- * multipart solo.
- */
-const image = ref<File | null>(null);
+const loadingData = ref(true);
+const isLearningPath = ref(false);
+const learningPathId = ref<number | null>(null);
 
-/** Imagen ya guardada: el campo la muestra hasta que se elija otra. */
+/** Imagen guardada; `image` solo si el admin elige una nueva. */
 const currentImage = ref<string | null>(null);
+const image = ref<File | null>(null);
+const advancedOpen = ref(false);
 
-/** Problemas de la tabla de cursos, calculados al enviar. */
-const courseProblems = ref<string[]>([]);
+/** Avisos visibles solo tras intentar guardar, igual que al crear. */
+const submitted = ref(false);
 
-/*
- * Matrícula como UN campo de rango, igual que al crear: el picker no deja
- * marcar un fin anterior al inicio, así que ese error deja de existir en vez de
- * tener que validarse. Se parte en los dos campos que espera la API.
- */
-const enrollmentRange = ref<(string | null)[] | null>(null);
+/* ─── Calendario ────────────────────────────────────────────────────────── */
 
-/*
- * Las horas van aparte: el rango de PrimeVue usa UN solo reloj para los dos
- * extremos, así que ahí no se pueden fijar por separado. Al editar se precargan
- * con las que ya tiene el programa, no con el día completo.
- */
-const enrollmentStartTime = ref<string>("00:00:00");
-const enrollmentEndTime = ref<string>("23:59:59");
+const classStart = ref<string | null>(null);
+/** Inicio con el que se abrió: si no cambia, no se valida que sea futuro. */
+const savedClassStart = ref<string | null>(null);
 
-type Fields = Record<string, { value: unknown } | undefined>;
-
-/** Escribe los dos campos de la API a partir del rango y las horas. */
-const syncEnrollmentRange = (fields: Fields, value?: unknown) => {
-  if (value !== undefined) {
-    enrollmentRange.value = Array.isArray(value)
-      ? (value as (string | null)[])
-      : null;
-  }
-
-  const range = enrollmentRange.value ?? [];
-  fields.enrollment_start_date!.value = withTime(
-    range[0],
-    enrollmentStartTime.value,
-  );
-  fields.enrollment_end_date!.value = withTime(
-    range[1],
-    enrollmentEndTime.value,
-  );
-};
-
-const route = useRoute();
-const identifier = ref<string>(String(route.params.id));
+const enrollmentDaysBefore = ref(21);
+const enrollmentDaysOpen = ref(false);
+/** Se tocó algo que redefine la matrícula: desde ahí se calcula como al crear. */
+const enrollmentDirty = ref(false);
 
 const initialValues = ref({
   name: null as string | null,
@@ -104,8 +105,61 @@ const initialValues = ref({
   currency_id: null as number | null,
 });
 
-const selectedType = ref<string | number | null>(null);
-const isLearningPath = computed(() => selectedType.value === "learning_path");
+/** Nombre del origen (línea o curso), solo para la tarjeta del paso 1. */
+const originName = computed(() => {
+  if (!isLearningPath.value) return courseItems.value[0]?.name ?? "";
+  return learningPaths.value.find((path) => path.id === learningPathId.value)?.name ?? "";
+});
+
+const recalc = (fields: Fields) => {
+  cascadeCourseDates(courseItems.value, classStart.value, isLearningPath.value);
+  if (!enrollmentDirty.value || !classStart.value) return;
+  fields.enrollment_start_date!.value = withTime(
+    addDays(classStart.value, -(enrollmentDaysBefore.value || 0)),
+    "00:00:00",
+  );
+  fields.enrollment_end_date!.value = withTime(addDays(classStart.value, -1), "23:59:59");
+};
+
+const onClassStart = (value: unknown, fields: Fields) => {
+  classStart.value = typeof value === "string" && value ? value.slice(0, 10) : null;
+  enrollmentDirty.value = true;
+  recalc(fields);
+};
+
+const onDaysBefore = (value: unknown, fields: Fields) => {
+  enrollmentDaysBefore.value = Number(value) || 0;
+  enrollmentDirty.value = true;
+  recalc(fields);
+};
+
+/* ─── Validación y resumen ──────────────────────────────────────────────── */
+
+const CLASS_START_PAST = "El inicio de clases debe ser posterior a la fecha y hora actual.";
+const classStartInPast = () => {
+  if (classStart.value === savedClassStart.value) return false;
+  const first = firstClassMoment(courseItems.value);
+  return !!first && first.getTime() <= Date.now();
+};
+const classStartError = computed(() =>
+  classStart.value && classStartInPast() ? CLASS_START_PAST : null,
+);
+const today = new Date(new Date().setHours(0, 0, 0, 0));
+
+const courseProblems = (fields: Fields): string[] =>
+  submitted.value
+    ? validateCourseItems(courseItems.value, dayOf(fields.enrollment_start_date?.value as string), {
+        sequential: isLearningPath.value,
+        enrollmentEnd: dayOf(fields.enrollment_end_date?.value as string),
+      })
+    : [];
+
+const currencySymbol = (currencyId: unknown) => {
+  const currency = currencies.value.find((c) => c.id === Number(currencyId));
+  return currency?.symbol || currency?.code || "";
+};
+
+const programWeeks = computed(() => weeksSpan(classStart.value, lastClassDay(courseItems.value)));
 
 const formSchema = z
   .object({
@@ -122,10 +176,10 @@ const formSchema = z
     }),
     learning_path_id: z.number().nullable().optional(),
     enrollment_start_date: z.string({
-      message: "La fecha de inicio de matrícula es obligatoria",
+      message: "Elige el inicio de clases para calcular la matrícula",
     }),
     enrollment_end_date: z.string({
-      message: "La fecha de fin de matrícula es obligatoria",
+      message: "Elige el inicio de clases para calcular la matrícula",
     }),
     min_students: z
       .number({ message: "El cupo mínimo es obligatorio" })
@@ -142,7 +196,7 @@ const formSchema = z
     path: ["max_students"],
   })
   .refine((data) => data.enrollment_end_date > data.enrollment_start_date, {
-    message: "La fecha de fin debe ser posterior a la de inicio",
+    message: "La matrícula debe cerrar después de abrir",
     path: ["enrollment_end_date"],
   })
   .refine((data) => data.type !== "learning_path" || !!data.learning_path_id, {
@@ -151,42 +205,72 @@ const formSchema = z
   });
 
 const onSubmit = (body: Record<string, unknown>) => {
-  /*
-   * Mismas reglas que al crear (viven en `utils/offer-form`): curso sin
-   * repetir, docente sí puede repetirse, fechas coherentes y un día por
-   * horario.
-   */
-  courseProblems.value = validateCourseItems(
+  submitted.value = true;
+  if (classStartInPast()) {
+    return Promise.reject(new Error(CLASS_START_PAST));
+  }
+  const problems = validateCourseItems(
     courseItems.value,
     body.enrollment_start_date as string | null,
+    {
+      sequential: isLearningPath.value,
+      enrollmentEnd: body.enrollment_end_date as string | null,
+    },
   );
 
-  if (courseProblems.value.length) {
-    return Promise.reject(new Error(courseProblems.value[0]));
+  if (problems.length) {
+    return Promise.reject(new Error(problems[0]));
   }
 
-  return offerService.update(identifier.value, {
+  return offerService.update(identifier, {
     ...body,
-    image_url: image.value,
+    ...(image.value ? { image_url: image.value } : {}),
     courses: toCourseItems(courseItems.value),
   } as never);
 };
 
-const loadingData = ref<boolean>(true);
-
 onMounted(async () => {
-  const [coursesResp, teachersResp] = await Promise.all([
-    safeRequest(() => courseService.all(activeOnly), { showAlert: false }),
+  const [teachersResp, pathsResp, currenciesResp] = await Promise.all([
     safeRequest(() => teacherService.all(activeOnly), { showAlert: false }),
+    safeRequest(() => learningPathService.all(), { showAlert: false }),
+    safeRequest(() => currencyService.all(activeOnly), { showAlert: false }),
   ]);
-  if (coursesResp.status) courses.value = coursesResp.data ?? [];
   if (teachersResp.status) teachers.value = teachersResp.data ?? [];
+  if (pathsResp.status) learningPaths.value = pathsResp.data ?? [];
+  if (currenciesResp.status) currencies.value = (currenciesResp.data ?? []) as Currency[];
 
-  const offer = await offerService.edit(identifier.value);
+  const offer = await offerService.edit(identifier);
   loadingData.value = false;
   if (!offer) return;
 
-  selectedType.value = offer.type;
+  isLearningPath.value = offer.type === "learning_path";
+  learningPathId.value = offer.learningPathId;
+  currentImage.value = offer.imageUrl;
+
+  /*
+   * En su orden de dictado, con la duración deducida de sus fechas: así la
+   * cascada, si se dispara, reproduce lo guardado en vez de moverlo.
+   */
+  courseItems.value = [...(offer.courseItems ?? [])]
+    .sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)))
+    .map((item) => ({
+      ...item,
+      durationValue: weeksSpan(item.startDate, item.endDate) ?? 4,
+      durationUnit: "weeks" as const,
+    }));
+
+  classStart.value = firstClassDay(courseItems.value);
+  savedClassStart.value = classStart.value;
+
+  const opens = parseDay(offer.enrollmentStartDate);
+  const starts = parseDay(classStart.value);
+  if (opens && starts) {
+    enrollmentDaysBefore.value = Math.max(
+      0,
+      Math.round((starts.getTime() - opens.getTime()) / 86_400_000),
+    );
+  }
+
   initialValues.value = {
     name: offer.name,
     prefix: offer.prefix,
@@ -199,213 +283,243 @@ onMounted(async () => {
     price: offer.priceRaw,
     currency_id: offer.currencyId,
   };
-  courseItems.value = offer.courseItems ?? [];
-  currentImage.value = offer.imageUrl;
-
-  /*
-   * El rango y las horas se derivan de lo guardado: el picker trabaja con los
-   * días y los dos relojes con la hora real del programa, no con el día
-   * completo. Sin esto, abrir a editar y guardar sin tocar nada moverÍa la
-   * matrícula a 00:00 / 23:59.
-   */
-  enrollmentRange.value = [
-    dayOf(offer.enrollmentStartDate),
-    dayOf(offer.enrollmentEndDate),
-  ];
-  enrollmentStartTime.value = timeOf(offer.enrollmentStartDate, "00:00:00");
-  enrollmentEndTime.value = timeOf(offer.enrollmentEndDate, "23:59:59");
 });
 </script>
+
 <template>
   <CrudForm
-    title="Actualizar Programa"
+    bare
+    title="Editar programa"
     :schema="formSchema"
     :initialValues="initialValues"
     redirect="offers.list"
     :service="onSubmit"
-    :loading-data="loadingData"
-    :skeleton-fields="6"
-    submit-label="Actualizar"
   >
-    <template #default="{ fields, errors }">
-      <!-- Mismo orden que al crear: tipo → qué se dicta → nombre → prefijo. -->
-      <SelectCore
-        v-model="fields.type.value"
-        label="Tipo"
-        required
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Seleccione el tipo"
-        :options="OFFER_TYPE_OPTIONS"
-        :invalid="!!errors.type"
-        :message-error="errors.type"
-        @update:model-value="selectedType = $event"
-      />
-
-      <SelectCore
-        v-if="isLearningPath"
-        v-model="fields.learning_path_id.value"
-        label="Línea de carrera"
-        required
-        hint-label="Define qué cursos y en qué orden trae el programa."
-        filter
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Seleccione la línea de carrera"
-        :invalid="!!errors.learning_path_id"
-        :message-error="errors.learning_path_id"
-        autoLoad
-        :service="() => learningPathService.all(activeOnly)"
-      />
-
-      <InputTextCore
-        v-model="fields.name.value"
-        label="Nombre del programa"
-        required
-        :invalid="!!errors.name"
-        :message-error="errors.name"
-        :messages-info="['Incluye la cohorte, ej: · Cohorte 2026-I']"
-      />
-
-      <InputTextCore
-        v-model="fields.prefix.value"
-        label="Prefijo"
-        required
-        :invalid="!!errors.prefix"
-        :message-error="errors.prefix"
-        :messages-info="['Código corto interno.']"
-      />
-
-      <!--
-        Mismo campo que al crear: un rango + las dos horas aparte.
-        ⚠️ Sin `:min-date`/`:max-date` de ±60 días, a diferencia del alta: un
-        programa ya creado puede tener la matrícula fuera de esa ventana y
-        acotarla impediría editarlo.
-      -->
-      <div class="grid gap-4 md:grid-cols-[1.6fr_1fr_1fr]">
-        <DatePicketCore
-          v-model="enrollmentRange"
-          label="Matrícula"
-          required
-          selection-mode="range"
-          :number-of-months="2"
-          dayjs-format-value="YYYY-MM-DD"
-          dayjs-format-input="DD/MM/YYYY"
-          :show-time="false"
-          :invalid="
-            !!errors.enrollment_start_date || !!errors.enrollment_end_date
-          "
-          :message-error="
-            errors.enrollment_start_date || errors.enrollment_end_date
-          "
-          @update:model-value="syncEnrollmentRange(fields, $event)"
-        />
-        <DatePicketCore
-          v-model="enrollmentStartTime"
-          label="Hora de apertura"
-          hint-label="Por defecto, al inicio del día."
-          time-only
-          hour-format="24"
-          dayjs-format-value="HH:mm:ss"
-          dayjs-format-input="HH:mm"
-          @update:model-value="syncEnrollmentRange(fields)"
-        />
-        <DatePicketCore
-          v-model="enrollmentEndTime"
-          label="Hora de cierre"
-          hint-label="Por defecto, al final del día."
-          time-only
-          hour-format="24"
-          dayjs-format-value="HH:mm:ss"
-          dayjs-format-input="HH:mm"
-          @update:model-value="syncEnrollmentRange(fields)"
-        />
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-3">
-        <InputNumberCore
-          v-model="fields.min_students.value"
-          label="Cupo mínimo"
-          required
-          :min="1"
-          :invalid="!!errors.min_students"
-          :message-error="errors.min_students"
-        />
-        <InputNumberCore
-          v-model="fields.max_students.value"
-          label="Cupo máximo"
-          required
-          hint-label="No puede ser menor al mínimo"
-          :min="1"
-          :invalid="!!errors.max_students"
-          :message-error="errors.max_students"
-        />
-        <InputNumberCore
-          v-model="fields.price.value"
-          label="Precio"
-          required
-          hint-label="IGV incluido."
-          :min="0"
-          :min-fraction-digits="2"
-          :max-fraction-digits="2"
-          placeholder="0.00"
-          :invalid="!!errors.price"
-          :message-error="errors.price"
-        />
-      </div>
-
-      <SelectCore
-        v-model="fields.currency_id.value"
-        label="Moneda"
-        required
-        optionLabel="label"
-        optionValue="id"
-        placeholder="Seleccione la moneda"
-        :invalid="!!errors.currency_id"
-        :message-error="errors.currency_id"
-        autoLoad
-        :service="() => currencyService.all(activeOnly)"
-      />
-
-      <ImageField
-        label="Imagen"
-        hint="JPG, PNG o WEBP. Máximo 500 KB."
-        accept="image/jpeg,image/png,image/webp"
-        :max-kb="500"
-        :current="currentImage"
-        @select="(file) => (image = file)"
-      />
-
-      <div>
-        <p class="mb-2 text-adm-md font-semibold text-secondary-900">
-          Cursos, docentes y horarios
+    <template #default="{ fields, errors, submit, loading }">
+      <header class="mb-[1.375rem]">
+        <p class="font-mono text-adm-xs uppercase tracking-[0.08em] text-secondary-400">
+          Programas
         </p>
-        <ul
-          v-if="courseProblems.length"
-          class="mb-3 space-y-1 rounded-adm-md border border-danger-DEFAULT/40 bg-danger-soft px-4 py-3"
-        >
-          <li
-            v-for="problem in courseProblems"
-            :key="problem"
-            class="text-adm-sm text-danger-DEFAULT"
-          >
-            {{ problem }}
-          </li>
-        </ul>
+        <h1 class="mt-1 font-display text-[1.625rem] font-bold text-secondary-900">
+          Editar programa
+        </h1>
+      </header>
 
-        <!--
-          Al EDITAR los cursos sí se pueden tocar: el programa ya existe y puede
-          necesitar un curso más. Lo que no se prellena es nada — sobrescribir
-          lo guardado con los datos de la línea perdería el trabajo hecho.
-        -->
-        <OfferCoursesField
-          v-model="courseItems"
-          :enrollment-start-date="
-            enrollmentStartAsDate(fields.enrollment_start_date.value)
-          "
-          :courses="courses"
-          :teachers="teachers"
-        />
+      <FormSkeleton v-if="loadingData" :fields="6" />
+
+      <div v-else class="flex flex-col items-start gap-6 lg:flex-row">
+        <div class="flex w-full min-w-0 flex-1 flex-col gap-5">
+          <!-- 1 · ORIGEN (fijo al editar) -->
+          <StepCard step="1" title="Origen">
+            <div
+              class="flex items-center gap-3 rounded-adm-sm border border-line bg-admin-bg px-3.5 py-2.5"
+            >
+              <img
+                v-if="currentImage"
+                :src="currentImage"
+                alt=""
+                class="h-9 w-13 shrink-0 rounded-md bg-line object-cover"
+              />
+              <span v-else class="h-9 w-13 shrink-0 rounded-md bg-line" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-adm-base font-bold text-secondary-900">
+                  {{ originName || "—" }}
+                </p>
+                <p class="text-adm-sm text-secondary-400">
+                  {{ isLearningPath ? `Línea de carrera · ${courseItems.length} cursos` : "Curso individual" }}
+                </p>
+              </div>
+            </div>
+          </StepCard>
+
+          <!-- 2 · DATOS DE LA COHORTE -->
+          <StepCard step="2" title="Datos de la cohorte">
+            <InputTextCore
+              v-model="fields.name.value"
+              label="Nombre del programa"
+              required
+              :invalid="!!errors.name"
+              :message-error="errors.name"
+            />
+
+            <div class="grid grid-cols-2 gap-3.5">
+              <InputNumberCore
+                v-model="fields.min_students.value"
+                label="Cupo mínimo"
+                required
+                :min="1"
+                :invalid="!!errors.min_students"
+                :message-error="errors.min_students"
+              />
+              <InputNumberCore
+                v-model="fields.max_students.value"
+                label="Cupo máximo"
+                required
+                :min="Number(fields.min_students.value) || 1"
+                :invalid="!!errors.max_students"
+                :message-error="errors.max_students"
+              />
+            </div>
+
+            <div class="grid grid-cols-[1fr_14rem] gap-3.5">
+              <InputNumberCore
+                v-model="fields.price.value"
+                label="Precio"
+                required
+                hint-label="Incluye IGV."
+                :min="0"
+                :min-fraction-digits="2"
+                :max-fraction-digits="2"
+                placeholder="0.00"
+                :invalid="!!errors.price"
+                :message-error="errors.price"
+              />
+              <SelectCore
+                v-model="fields.currency_id.value"
+                label="Moneda"
+                required
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Moneda"
+                :options="currencies"
+                :invalid="!!errors.currency_id"
+                :message-error="errors.currency_id"
+              />
+            </div>
+
+            <button
+              type="button"
+              class="inline-flex cursor-pointer items-center gap-1.5 self-start text-adm-sm font-semibold text-primary-600"
+              @click="advancedOpen = !advancedOpen"
+            >
+              <span class="inline-block transition-transform" :class="advancedOpen ? 'rotate-90' : ''">›</span>
+              Opciones avanzadas
+            </button>
+            <div v-if="advancedOpen" class="flex flex-col gap-3.5 border-t border-line-soft pt-3.5">
+              <InputTextCore
+                v-model="fields.prefix.value"
+                label="Prefijo"
+                hint-label="Código corto interno, formato SIGLAS-AÑO-COHORTE."
+                :invalid="!!errors.prefix"
+                :message-error="errors.prefix"
+              />
+              <ImageField
+                label="Imagen"
+                :current="currentImage"
+                :hint="
+                  currentImage && !image
+                    ? 'Se mantiene la imagen actual. Sube una si quieres cambiarla.'
+                    : 'JPG, PNG o WEBP. Máximo 500 KB.'
+                "
+                accept="image/jpeg,image/png,image/webp"
+                :max-kb="500"
+                @select="(file) => (image = file)"
+                @clear="image = null"
+              />
+            </div>
+          </StepCard>
+
+          <!-- 3 · CALENDARIO -->
+          <StepCard step="3" title="Calendario">
+            <DatePicketCore
+              :model-value="classStart"
+              label="Inicio de clases"
+              required
+              hint-label="Ancla del cronograma: todo lo demás se calcula desde aquí."
+              dayjs-format-value="YYYY-MM-DD"
+              dayjs-format-input="DD/MM/YYYY"
+              :show-time="false"
+              :min-date="today"
+              :invalid="!!classStartError"
+              :message-error="classStartError"
+              @update:model-value="onClassStart($event, fields)"
+            />
+
+            <div
+              v-if="classStart"
+              class="rounded-adm-sm border border-line-soft bg-admin-bg px-3.5 py-2.5 text-adm-sm text-secondary-500"
+            >
+              <p>
+                La matrícula abre el
+                <strong class="text-secondary-900">
+                  {{ dayLabel(dayOf(fields.enrollment_start_date.value as string)) }}
+                </strong>
+                y cierra el
+                <strong class="text-secondary-900">
+                  {{ dayLabel(dayOf(fields.enrollment_end_date.value as string)) }}
+                </strong>.
+                <button
+                  type="button"
+                  class="ml-1 cursor-pointer font-semibold text-primary-600"
+                  @click="enrollmentDaysOpen = !enrollmentDaysOpen"
+                >
+                  {{ enrollmentDaysOpen ? "Listo" : "Cambiar" }}
+                </button>
+              </p>
+              <div v-if="enrollmentDaysOpen" class="mt-2 flex items-center gap-2">
+                <span>Abre</span>
+                <InputNumberCore
+                  class="w-20"
+                  :model-value="enrollmentDaysBefore"
+                  :min="0"
+                  :max="120"
+                  @update:model-value="onDaysBefore($event, fields)"
+                />
+                <span>días antes del inicio de clases</span>
+              </div>
+              <p
+                v-if="errors.enrollment_start_date || errors.enrollment_end_date"
+                class="mt-1 text-danger-DEFAULT"
+              >
+                {{ errors.enrollment_start_date || errors.enrollment_end_date }}
+              </p>
+            </div>
+
+            <div v-if="classStart" class="flex flex-wrap gap-[1.125rem] pt-1">
+              <div>
+                <p class="font-mono text-[0.594rem] uppercase tracking-[0.05em] text-secondary-400">Clases</p>
+                <p class="mt-0.5 text-adm-base font-bold text-secondary-900">
+                  {{ dayLabel(classStart) }} – {{ dayLabel(lastClassDay(courseItems)) }}
+                </p>
+              </div>
+              <div>
+                <p class="font-mono text-[0.594rem] uppercase tracking-[0.05em] text-secondary-400">
+                  Duración total
+                </p>
+                <p class="mt-0.5 text-adm-base font-bold text-secondary-900">
+                  {{ programWeeks ? `${programWeeks} semanas` : "—" }}
+                </p>
+              </div>
+            </div>
+          </StepCard>
+
+          <!-- 4 · CURSOS -->
+          <StepCard step="4" :title="isLearningPath ? 'Cursos de la línea' : 'Curso'">
+            <OfferCourseTimeline
+              v-model="courseItems"
+              :teachers="teachers"
+              @recalc="recalc(fields)"
+            />
+          </StepCard>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="w-full shrink-0 lg:sticky lg:top-5 lg:w-80">
+          <ProgramSummary
+            :name="String(fields.name.value ?? originName)"
+            :items="courseItems"
+            :min-students="(fields.min_students.value as number | null) ?? null"
+            :max-students="(fields.max_students.value as number | null) ?? null"
+            :price="(fields.price.value as number | null) ?? null"
+            :currency-symbol="currencySymbol(fields.currency_id.value)"
+            :enrollment-start="dayOf(fields.enrollment_start_date.value as string)"
+            :enrollment-end="dayOf(fields.enrollment_end_date.value as string)"
+            :loading="loading"
+            :problems="courseProblems(fields)"
+            submit-label="Guardar cambios"
+            @submit="submit()"
+          />
+        </div>
       </div>
     </template>
   </CrudForm>

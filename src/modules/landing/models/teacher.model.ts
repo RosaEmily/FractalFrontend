@@ -1,5 +1,6 @@
 export interface Teacher {
   id?: string;
+  document_number: string;
   first_name: string;
   last_name: string;
   photo_url: string;
@@ -14,9 +15,43 @@ export interface Teacher {
     linkedin: string | null;
     instagram: string | null;
   };
-  phrase: string;
 }
 
 export interface TeacherList {
   teachers: Teacher[];
+}
+
+export interface TeacherDetailSchedule {
+  day: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface TeacherDetailCourse {
+  program_name: string | null;
+  program_prefix: string | null;
+  name: string;
+  tags: string[];
+  start_date: string;
+  end_date: string;
+  schedules: TeacherDetailSchedule[];
+}
+
+export interface TeacherDetail {
+  document_number: string;
+  first_name: string;
+  last_name: string;
+  photo_url: string;
+  academic_degree_name: string;
+  specialty: string;
+  experience_years: number;
+  description: string;
+  social_networks: {
+    other: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+  };
+  courses: TeacherDetailCourse[];
+  courses_count: number;
+  programs_count: number;
 }

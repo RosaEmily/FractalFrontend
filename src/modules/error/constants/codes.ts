@@ -114,4 +114,3 @@ export const ERROR_CODES: Record<number, ErrorState> = {
 /** Los de servidor muestran un ID de referencia para pasarlo a soporte. */
 export const SERVER_CODES = [500, 502, 503, 504];
 
-export const SUPPORT_WHATSAPP = "https://wa.me/51987654321";

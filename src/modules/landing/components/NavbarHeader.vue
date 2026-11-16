@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import Drawer from "primevue/drawer";
 import LandingButton from "./ui/LandingButton.vue";
+import { useSiteContact } from "../composables/useSiteContact";
 import { hasSession } from "@/shared/utils/session";
 import {
   syncClassroomUser,
@@ -11,6 +12,16 @@ import {
 import { CLASSROOM_ROLE_HOME } from "@/modules/classroom/constants/menu";
 
 const route = useRoute();
+const { phone, email, telHref, mailHref, whatsappHref } = useSiteContact();
+
+/** "Contacto rápido" del menú móvil: WhatsApp y correo, si el panel los tiene. */
+const quickContacts = computed(() => {
+  const wa = whatsappHref();
+  return [
+    wa && phone.value ? { icon: "whatsapp", label: "WhatsApp", value: phone.value, href: wa, external: true } : null,
+    email.value && mailHref.value ? { icon: "mail", label: "Email", value: email.value, href: mailHref.value, external: false } : null,
+  ].filter((c): c is NonNullable<typeof c> => c !== null);
+});
 const mobileOpen = ref(false);
 
 /**
@@ -66,7 +77,8 @@ function isActive(to: string) {
     </span>
     <span class="flex gap-6 opacity-70">
       <a
-        href="tel:+51987654321"
+        v-if="phone && telHref"
+        :href="telHref"
         class="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
       >
         <svg
@@ -83,10 +95,11 @@ function isActive(to: string) {
             d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C20 21 19 21 18 21C10 21 3 14 3 6C3 5 3 4 3 4Z"
           />
         </svg>
-        +51 987 654 321
+        {{ phone }}
       </a>
       <a
-        href="mailto:contacto@proyectofractal.com"
+        v-if="email && mailHref"
+        :href="mailHref"
         class="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
       >
         <svg
@@ -102,14 +115,14 @@ function isActive(to: string) {
           <rect x="2" y="4" width="20" height="16" rx="2" />
           <path d="M2 7L12 13L22 7" />
         </svg>
-        contacto@proyectofractal.com
+        {{ email }}
       </a>
     </span>
   </div>
 
   <!-- Main nav -->
   <header
-    class="sticky top-0 z-50 bg-surface-page/85 backdrop-blur-md border-b border-line px-6 md:px-16 py-4 flex justify-between items-center"
+    class="bg-surface-page/85 backdrop-blur-md border-b border-line px-6 md:px-16 py-4 flex justify-between items-center"
   >
     <!-- Logo -->
     <RouterLink to="/" class="flex items-center shrink-0">
@@ -193,13 +206,13 @@ function isActive(to: string) {
 
     <!-- Mobile hamburger -->
     <button
-      class="md:hidden p-2 text-secondary-900"
+      class="md:hidden grid size-10 place-items-center rounded-full border border-line bg-surface-paper text-secondary-900"
       @click="mobileOpen = true"
       aria-label="Abrir menú"
     >
       <svg
-        width="22"
-        height="22"
+        width="18"
+        height="18"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -211,73 +224,99 @@ function isActive(to: string) {
     </button>
   </header>
 
-  <!-- Mobile drawer (PrimeVue) -->
-  <Drawer
-    v-model:visible="mobileOpen"
-    position="left"
-    class="w-72! bg-surface-page!"
-  >
-    <template #header>
-      <img src="@/assets/fractal.png" alt="Fractal Studio" class="h-9 w-auto" />
+  <!-- Menú móvil a pantalla completa (diseño v4 `V3MobMenu`). -->
+  <Drawer v-model:visible="mobileOpen" position="full" :block-scroll="true">
+    <template #container="{ closeCallback }">
+      <div class="flex h-full flex-col overflow-y-auto bg-surface-page text-secondary-900">
+        <div class="flex items-center justify-between border-b border-line px-[1.125rem] py-3.5">
+          <img src="@/assets/fractal.png" alt="Fractal Studio" class="h-9 w-auto" />
+          <button
+            type="button"
+            class="grid size-10 place-items-center rounded-full bg-secondary-900 text-white"
+            aria-label="Cerrar menú"
+            @click="closeCallback"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="flex flex-col px-5 py-6">
+          <RouterLink
+            v-for="item in navItems"
+            :key="item.key"
+            :to="item.to"
+            @click="mobileOpen = false"
+            :class="[
+              'flex items-center justify-between border-b border-line py-5 font-display text-[1.75rem] font-bold tracking-[-0.02em]',
+              isActive(item.to) ? 'text-primary-500' : 'text-secondary-900',
+            ]"
+          >
+            {{ item.label }}
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8H13M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </RouterLink>
+        </nav>
+
+        <div class="flex flex-col gap-2 border-t-4 border-surface-cream px-5 py-6">
+          <template v-if="isLoggedIn">
+            <RouterLink :to="{ name: classroomHomeRoute }" @click="mobileOpen = false">
+              <LandingButton size="lg" class="w-full justify-between!">Mi aula</LandingButton>
+            </RouterLink>
+            <!-- Atajo al perfil, igual que el chip del desktop. -->
+            <RouterLink
+              :to="{ name: 'classroom-account' }"
+              class="flex items-center justify-center gap-2.5 py-2.5 font-body text-[0.9375rem] font-medium"
+              @click="mobileOpen = false"
+            >
+              <span class="grid size-7 shrink-0 place-items-center rounded-full bg-primary-500 font-display text-[0.8125rem] font-bold text-white">
+                {{ initials }}
+              </span>
+              {{ firstName }}
+            </RouterLink>
+          </template>
+          <template v-else>
+            <RouterLink to="/programs" @click="mobileOpen = false">
+              <LandingButton size="lg" class="w-full justify-between!">Postular ahora</LandingButton>
+            </RouterLink>
+            <RouterLink :to="{ name: 'classroom-login' }" @click="mobileOpen = false">
+              <LandingButton variant="ghost" size="md" :arrow="false" class="w-full justify-center">
+                Iniciar sesión
+              </LandingButton>
+            </RouterLink>
+          </template>
+        </div>
+
+        <!-- Solo los canales que cargó el panel; sin ninguno, no hay bloque. -->
+        <div v-if="quickContacts.length" class="border-t border-line px-5 py-6">
+          <p class="mb-3.5 font-mono text-[0.688rem] tracking-[0.08em] text-secondary-400 uppercase">Contacto rápido</p>
+          <div class="flex flex-col gap-2.5">
+            <a
+              v-for="c in quickContacts"
+              :key="c.label"
+              :href="c.href"
+              :target="c.external ? '_blank' : undefined"
+              :rel="c.external ? 'noopener' : undefined"
+              class="flex items-center gap-3 rounded-adm-md border border-line bg-surface-paper px-4 py-3.5"
+            >
+              <span class="grid size-9 shrink-0 place-items-center rounded-adm-sm bg-accent-soft text-primary-500">
+                <svg v-if="c.icon === 'whatsapp'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z" />
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 7L12 13L22 7" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block text-[0.813rem] text-secondary-500">{{ c.label }}</span>
+                <span class="mt-0.5 block truncate font-display text-[0.938rem] font-bold">{{ c.value }}</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
     </template>
-
-    <nav class="flex flex-col gap-1 mt-4">
-      <RouterLink
-        v-for="item in navItems"
-        :key="item.key"
-        :to="item.to"
-        @click="mobileOpen = false"
-        :class="[
-          'px-3 py-2.5 rounded-xl font-body text-[0.9375rem] font-medium transition-colors',
-          isActive(item.to)
-            ? 'text-primary-500 bg-accent-soft'
-            : 'text-secondary-900 hover:bg-surface-cream',
-        ]"
-      >
-        {{ item.label }}
-      </RouterLink>
-    </nav>
-
-    <div class="mt-6 pt-6 border-t border-line flex flex-col gap-3">
-      <template v-if="isLoggedIn">
-        <RouterLink
-          :to="{ name: classroomHomeRoute }"
-          class="px-3 py-2.5 font-body text-[0.9375rem] font-medium text-secondary-900 hover:bg-surface-cream rounded-xl transition-colors"
-          @click="mobileOpen = false"
-        >
-          Mi aula
-        </RouterLink>
-        <!--
-          Segundo enlace, aparte de "Mi aula": es el mismo atajo al perfil
-          que el chip del desktop, no un adorno con el nombre repetido.
-        -->
-        <RouterLink
-          :to="{ name: 'classroom-account' }"
-          class="flex items-center gap-2.5 px-3 py-2.5 font-body text-[0.9375rem] font-medium text-secondary-900 hover:bg-surface-cream rounded-xl transition-colors"
-          @click="mobileOpen = false"
-        >
-          <span
-            class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-500 font-display text-[0.8125rem] font-bold text-white"
-          >
-            {{ initials }}
-          </span>
-          {{ firstName }}
-        </RouterLink>
-      </template>
-      <template v-else>
-        <RouterLink
-          :to="{ name: 'classroom-login' }"
-          class="px-3 py-2.5 font-body text-[0.9375rem] font-medium text-secondary-900 hover:bg-surface-cream rounded-xl transition-colors"
-          @click="mobileOpen = false"
-        >
-          Iniciar sesión
-        </RouterLink>
-        <RouterLink to="/programs" @click="mobileOpen = false">
-          <LandingButton size="md" class="w-full justify-center"
-            >Postular ahora</LandingButton
-          >
-        </RouterLink>
-      </template>
-    </div>
   </Drawer>
 </template>

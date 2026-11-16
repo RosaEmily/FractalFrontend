@@ -101,7 +101,7 @@ const formSchema = z.object({
       <SelectCore
         v-model="fields.currency_id.value"
         label="Moneda"
-        optionLabel="label"
+        optionLabel="name"
         optionValue="id"
         placeholder="Seleccione la moneda"
         :invalid="!!errors.currency_id"

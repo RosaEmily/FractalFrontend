@@ -11,6 +11,11 @@ export interface OfferCourse {
   teacher: string;
   /** Datos del docente que guarda `teachers`; null si el curso no lo tiene. */
   teacher_detail: {
+    document_number: string;
+    first_name: string | null;
+    last_name: string | null;
+    social_networks: { linkedin?: string | null; other?: string | null; instagram?: string | null } | null;
+    cv: string | null;
     specialty: string | null;
     experience_years: number | null;
     description: string | null;
@@ -39,6 +44,8 @@ export interface Offer {
   enrolled_students_count: number;
   duration_days: number | null;
   duration_months: number | null;
+  /** Para MOSTRAR ("1 mes y 3 semanas"); `duration_months` es para ordenar. */
+  duration_label: string | null;
   /** Formateado por la API. Solo para MOSTRAR — `Number()` sobre esto da NaN. */
   price: string;
   /** Valor crudo, el que se usa para calcular. */
@@ -57,8 +64,49 @@ export interface OfferList {
 
 export interface OfferFilterState {
   types: string[];
-  tags: string[];
+  tags: number[];
   teachers: string[];
+  currencies: number[];
   priceRange: [number, number];
   durationRange: [number, number];
+}
+
+export interface OfferFilterOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
+export interface OfferFilterTagOption {
+  id: number;
+  name: string;
+  count: number;
+}
+
+export interface OfferFilterTeacherOption {
+  documentNumber: string;
+  name: string;
+  count: number;
+}
+
+export interface OfferFilterCurrencyOption {
+  id: number;
+  code: string;
+  symbol: string;
+  name: string;
+  count: number;
+}
+
+export interface OfferFilterRange {
+  min: number;
+  max: number;
+}
+
+export interface OfferFilters {
+  types: OfferFilterOption[];
+  tags: OfferFilterTagOption[];
+  teachers: OfferFilterTeacherOption[];
+  currencies: OfferFilterCurrencyOption[];
+  priceRange: OfferFilterRange;
+  durationRange: OfferFilterRange;
 }

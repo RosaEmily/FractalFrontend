@@ -56,7 +56,7 @@ export const CartItemAdapter = {
        */
       meta: [
         isPath ? `${courseCount} cursos` : null,
-        months ? `${months} ${months === 1 ? "mes" : "meses"}` : null,
+        offer.duration_label,
         isPath
           ? null
           : `${offer.courses?.[0]?.schedules?.length ?? 0} días/sem`,

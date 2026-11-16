@@ -9,6 +9,7 @@ import {
   MultiselectCore,
 } from "@/shared/components";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
+import CourseOrderList from "../components/CourseOrderList.vue";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { FilterMatchMode } from "@primevue/core";
 
@@ -109,7 +110,7 @@ const onSubmit = (body: Record<string, unknown>) =>
       <SelectCore
         v-model="fields.currency_id.value"
         label="Moneda"
-        optionLabel="label"
+        optionLabel="name"
         optionValue="id"
         placeholder="Seleccione la moneda"
         :invalid="!!errors.currency_id"
@@ -119,7 +120,8 @@ const onSubmit = (body: Record<string, unknown>) =>
       />
       <MultiselectCore
         v-model="fields.courses.value"
-        label="Cursos de la línea · se desbloquean en el orden en que los selecciones"
+        label="Cursos de la línea"
+        hint-label="Elígelos aquí y ordénalos abajo."
         filter
         optionLabel="name"
         optionValue="id"
@@ -128,6 +130,10 @@ const onSubmit = (body: Record<string, unknown>) =>
         :message-error="errors.courses"
         autoLoad
         :service="() => courseService.all(activeOnly)"
+      />
+      <CourseOrderList
+        :model-value="fields.courses.value as unknown as number[]"
+        @update:model-value="fields.courses.value = $event as never"
       />
     </template>
   </CrudForm>

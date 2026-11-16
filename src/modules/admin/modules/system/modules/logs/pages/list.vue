@@ -101,20 +101,28 @@ const columns: GridUiColumnProps<Log>[] = [
     header: "Mensaje",
     showFilterMenu: false,
     type: "custom",
-    /*
-     * Segunda línea: `details` como pide el diseño, con `userName` de respaldo.
-     *
-     * ⚠️ Hoy NINGÚN log escribe `details` (la columna existe y está vacía en
-     * los 28 registros), así que en la práctica se ve el usuario. El fallback
-     * evita una segunda línea en blanco en el 100% de las filas.
-     */
+    // Segunda línea: solo `details`; quién lo hizo tiene su propia columna.
     render: (row: Log) =>
       h(StackedCell, {
         primary: row.message,
-        secondary: row.details ?? row.userName,
+        secondary: row.details,
         mono: false,
         plain: true,
       }),
+  },
+  {
+    /*
+     * Quién hizo la acción. Sin usuario (errores de rutas públicas, procesos
+     * del sistema) el diseño dice "Automático", atenuado, en vez de un guion.
+     */
+    field: "userName",
+    header: "Usuario",
+    showFilterMenu: false,
+    type: "custom",
+    render: (row: Log) =>
+      row.userName
+        ? h("span", { class: "text-adm-sm text-secondary-900 truncate" }, row.userName)
+        : h("span", { class: "text-adm-sm italic text-secondary-400" }, "Automático"),
   },
   {
     /*

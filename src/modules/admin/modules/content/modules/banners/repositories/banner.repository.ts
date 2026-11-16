@@ -16,8 +16,25 @@ class BannerRepository extends BaseRepository<BannerRepositoryTypes> {
     if (body.alt_desktop != null)
       payload.append("alt_desktop", body.alt_desktop);
     if (body.alt_mobile != null) payload.append("alt_mobile", body.alt_mobile);
-    if (body.desktop instanceof File) payload.append("desktop", body.desktop);
-    if (body.mobile instanceof File) payload.append("mobile", body.mobile);
+    if (body.tag != null) payload.append("tag", body.tag);
+    if (body.kicker != null) payload.append("kicker", body.kicker);
+    if (body.title != null) payload.append("title", body.title);
+    if (body.sub != null) payload.append("sub", body.sub);
+    if (body.cta != null) payload.append("cta", body.cta);
+    if (body.cta2 != null) payload.append("cta2", body.cta2);
+    payload.append("dark", body.dark ? "1" : "0");
+    // Siempre se manda: "" es la señal explícita de "sin oferta asociada"
+    // (FormData no puede llevar `null`, y omitir el campo dejaría la oferta
+    // guardada sin poder quitarla desde el formulario).
+    payload.append("offer_id", body.offer_id != null ? String(body.offer_id) : "");
+    if (body.order != null) payload.append("order", String(body.order));
+    // `string` = URL sugerida de la oferta (viaja tal cual); `File` = subida
+    // real del admin. Ambos casos se mandan, solo `null` se omite (edición
+    // sin tocar la imagen ya guardada).
+    if (body.desktop instanceof File || typeof body.desktop === "string")
+      payload.append("desktop", body.desktop);
+    if (body.mobile instanceof File || typeof body.mobile === "string")
+      payload.append("mobile", body.mobile);
     return payload;
   }
 

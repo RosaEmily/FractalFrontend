@@ -17,6 +17,12 @@ import {
 import { sessionAdapter } from "../adapters/classroom.adapter";
 import type { Session } from "../models/classroom.model";
 import type { SessionDTO } from "../dto/classroom.dto";
+import type {
+  StudentTestimonialBodyDTO,
+  StudentTestimonialDTO,
+} from "../dto/testimonial.dto";
+import type { StudentTestimonial } from "../models/testimonial.model";
+import { studentTestimonialAdapter } from "../adapters/testimonial.adapter";
 
 /**
  * Endpoints del alumno.
@@ -78,6 +84,42 @@ class StudentRepository {
     return {
       ...response,
       data: studentCertificateAdapter.many(response.data ?? []),
+    };
+  }
+
+  /**
+   * Testimonio propio de un curso o línea, o null si todavía no lo dejó.
+   * Exactamente uno de los dos ids: el backend rechaza mandar ambos.
+   */
+  async testimonial(
+    params: { enrollmentCourseId?: number; enrollmentItemId?: number },
+  ): Promise<ApiResponse<StudentTestimonial | null>> {
+    const response = await apiFractal.get<StudentTestimonialDTO | null>(
+      `${this.route}/testimonials`,
+      {
+        params: {
+          enrollment_course_id: params.enrollmentCourseId,
+          enrollment_item_id: params.enrollmentItemId,
+        },
+      },
+    );
+    return {
+      ...response,
+      data: response.data ? studentTestimonialAdapter(response.data) : null,
+    };
+  }
+
+  /** Crea o edita (upsert) el testimonio propio. */
+  async saveTestimonial(
+    body: StudentTestimonialBodyDTO,
+  ): Promise<ApiResponse<StudentTestimonial | null>> {
+    const response = await apiFractal.post<StudentTestimonialDTO>(
+      `${this.route}/testimonials`,
+      body,
+    );
+    return {
+      ...response,
+      data: response.data ? studentTestimonialAdapter(response.data) : null,
     };
   }
 }

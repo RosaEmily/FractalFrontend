@@ -1,30 +1,31 @@
 <template>
-  <Navbar class="sticky top-0 z-50" />
-  <main>
-    <slot />
-  </main>
-  <Footer
-    :contact="contact"
-    :social_networks="social_networks"
-    :information="information"
-    :company="company"
-  />
+  <!-- El navbar queda quieto arriba y el scroll vive DEBAJO de él, en su propio
+       contenedor: la barra de desplazamiento empieza bajo el header en vez de
+       recorrer la ventana entera por detrás. -->
+  <div class="flex h-dvh flex-col overflow-hidden">
+    <Navbar />
+    <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto">
+      <main>
+        <slot />
+      </main>
+      <Footer />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue'
+  import { ref, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import Navbar from '../components/NavbarHeader.vue'
   import Footer from '../components/FooterSection.vue'
-  import { useFooterStore } from '@/modules/landing/stores/useFooterStore'
 
-  const footerStore = useFooterStore()
+  const route = useRoute()
+  const scroller = ref<HTMLElement | null>(null)
 
-  const contact = computed(() => footerStore.data?.contact ?? [])
-  const social_networks = computed(() => footerStore.data?.social_networks ?? [])
-  const information = computed(() => footerStore.data?.information ?? [])
-  const company = computed(() => footerStore.data?.company ?? [])
-
-  onMounted(() => {
-    footerStore.load()
-  })
+  /*
+   * El `scrollBehavior` del router sube la VENTANA, que ya no se desplaza. Pasar
+   * de un programa a otro reutiliza esta página sin desmontarla, así que sin
+   * esto el detalle nuevo se abriría a media altura.
+   */
+  watch(() => route.path, () => scroller.value?.scrollTo({ top: 0 }))
 </script>

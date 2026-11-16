@@ -8,6 +8,8 @@ import type {
   StudentCertificate,
   StudentCourse,
 } from "../models/classroom.model";
+import type { StudentTestimonialBodyDTO } from "../dto/testimonial.dto";
+import type { StudentTestimonial } from "../models/testimonial.model";
 
 /**
  * Servicio del alumno.
@@ -45,6 +47,21 @@ class StudentService {
   async certificates(): Promise<StudentCertificate[]> {
     const response = await studentRepository.certificates();
     return response.data ?? [];
+  }
+
+  async testimonial(params: {
+    enrollmentCourseId?: number;
+    enrollmentItemId?: number;
+  }): Promise<StudentTestimonial | null> {
+    const response = await studentRepository.testimonial(params);
+    return response.data;
+  }
+
+  async saveTestimonial(
+    body: StudentTestimonialBodyDTO,
+  ): Promise<StudentTestimonial | null> {
+    const response = await studentRepository.saveTestimonial(body);
+    return response.data;
   }
 }
 

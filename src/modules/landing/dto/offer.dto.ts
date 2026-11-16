@@ -14,6 +14,11 @@ export interface OfferCourseDTO {
   teacher: string;
   /** Datos del docente que guarda `teachers`; null si el curso no lo tiene. */
   teacher_detail: {
+    document_number: string;
+    first_name: string | null;
+    last_name: string | null;
+    social_networks: { linkedin?: string | null; other?: string | null; instagram?: string | null } | null;
+    cv: string | null;
     specialty: string | null;
     experience_years: number | null;
     description: string | null;
@@ -38,6 +43,8 @@ export interface OfferDTO {
   enrolled_students_count: number;
   duration_days: number;
   duration_months: number | null;
+  /** Para MOSTRAR ("1 mes y 3 semanas"); `duration_months` es para ordenar. */
+  duration_label: string | null;
   /** Formateado por la API (`"$ 199.99"`). Solo para MOSTRAR. */
   price: string;
   /** Valor crudo (`"199.99"`). Es el que se usa para calcular. */

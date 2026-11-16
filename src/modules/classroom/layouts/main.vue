@@ -167,8 +167,7 @@ const logout = async () => {
 </script>
 
 <template>
-  <!-- `aula`: ancla del scrollbar crema del diseño (ver `style.css`). -->
-  <div class="aula h-dvh flex bg-surface-page">
+  <div class="h-dvh flex bg-surface-page">
     <!--
       Sidebar: el logo vive acá, no en la topbar. Fondo `paper` (blanco) para
       separarlo del lienzo cream de la página.

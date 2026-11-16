@@ -84,6 +84,17 @@ export interface CourseEvaluationDTO {
 }
 
 /** Respuesta del PATCH de nota aprobatoria: la vigente y de dónde sale. */
+/** Respuesta de "Un enlace para todo el curso": cuántas clases pendientes cambiaron. */
+export interface CourseMeetLinkDTO {
+  meet_link: string | null;
+  updated_sessions: number;
+}
+
+export interface SessionMeetLinkDTO {
+  class_session_id: number;
+  meet_link: string | null;
+}
+
 export interface PassingScoreDTO {
   passing_score: number | string | null;
   is_custom: boolean;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import { safeRequest } from '@/shared/utils/request'
 import { teacherService } from '@/modules/landing/services/teacher.service'
@@ -32,6 +33,21 @@ function specialtyList(t: Teacher): string[] {
   if (Array.isArray(t.specialty)) return t.specialty as unknown as string[]
   return (t.specialty as string ?? '').split(',').map((s: string) => s.trim()).filter(Boolean)
 }
+
+/*
+ * Las cifras del hero salen de los docentes cargados: eran 12 / 8 / 11 fijos.
+ * `specialty` es texto libre, así que se cuenta cada valor distinto.
+ */
+const stats = computed(() => {
+  if (loading.value) return { teachers: '—', specialties: '—', avgYears: '—' }
+  const specs = new Set(teachers.value.map((t) => String(t.specialty ?? '').trim().toLowerCase()).filter(Boolean))
+  const years = teachers.value.map((t) => t.experience_years).filter((y): y is number => typeof y === 'number' && y > 0)
+  return {
+    teachers: teachers.value.length,
+    specialties: specs.size,
+    avgYears: years.length ? Math.round(years.reduce((a, b) => a + b, 0) / years.length) : '—',
+  }
+})
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
@@ -74,7 +90,13 @@ function goPage(n: number) {
 
 onMounted(async () => {
   loading.value = true
-  const { data, status } = await safeRequest(() => teacherService.get(), { showAlert: false })
+  /*
+   * `favoritesOnly = false`: este listado (con búsqueda/paginación
+   * client-side) necesita TODOS los docentes activos, no solo los 5
+   * marcados como favoritos —de lo contrario "Ver perfil" solo podría
+   * enlazar a esos 5.
+   */
+  const { data, status } = await safeRequest(() => teacherService.get(false), { showAlert: false })
   if (status) teachers.value = data?.teachers ?? []
   loading.value = false
 })
@@ -102,9 +124,9 @@ onMounted(async () => {
         <div class="flex gap-4 flex-wrap">
           <div
             v-for="stat in [
-              { label: 'DOCENTES',      value: teachers.length || '12', icon: 'graduate' },
-              { label: 'ESPECIALIDADES', value: 8,                       icon: 'sparkle'  },
-              { label: 'AÑOS PROMEDIO',  value: 11,                      icon: 'clock'    },
+              { label: 'DOCENTES',      value: stats.teachers,    icon: 'graduate' },
+              { label: 'ESPECIALIDADES', value: stats.specialties, icon: 'sparkle'  },
+              { label: 'AÑOS PROMEDIO',  value: stats.avgYears,    icon: 'clock'    },
             ]"
             :key="stat.label"
             class="bg-surface-paper border border-line rounded-lg px-4 py-3.5 flex items-center gap-3 min-w-35 shadow-sm"
@@ -124,7 +146,7 @@ onMounted(async () => {
               </svg>
             </div>
             <div>
-              <div class="font-display font-bold text-[1.375rem] leading-none text-secondary-900">{{ stat.value }}+</div>
+              <div class="font-display font-bold text-[1.375rem] leading-none text-secondary-900">{{ stat.value }}{{ typeof stat.value === 'number' ? '+' : '' }}</div>
               <div class="font-mono text-[0.594rem] tracking-widest uppercase text-secondary-400 mt-1">{{ stat.label }}</div>
             </div>
           </div>
@@ -180,7 +202,7 @@ onMounted(async () => {
       <div v-else-if="paginated.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
         <article
           v-for="(teacher, i) in paginated"
-          :key="teacher.first_name + teacher.last_name"
+          :key="teacher.document_number"
           class="bg-surface-paper border border-line rounded-lg overflow-hidden shadow-sm hover:-translate-y-1 transition-transform duration-300 flex flex-col"
         >
           <!-- Photo / Placeholder -->
@@ -216,11 +238,11 @@ onMounted(async () => {
 
             <!-- Top chips -->
             <div class="absolute top-3.5 left-3.5 right-3.5 flex justify-between items-center z-20">
-              <span class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 truncate max-w-24">
-                {{ specialtyList(teacher)[0] || 'BIM' }}
+              <span v-if="specialtyList(teacher)[0]" class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 truncate max-w-24">
+                {{ specialtyList(teacher)[0] }}
               </span>
-              <span class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 flex items-center gap-1 shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#E94E1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <span v-if="teacher.experience_years != null" class="ml-auto font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 flex items-center gap-1 shrink-0">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" class="text-primary-500" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
                 {{ teacher.experience_years }}+ años
@@ -244,8 +266,8 @@ onMounted(async () => {
 
           <!-- Card body -->
           <div class="p-5 flex flex-col flex-1">
-            <p class="font-body text-[0.8125rem] text-secondary-500 mb-3">
-              {{ teacher.description?.split('.')[0] || 'Docente especializado en BIM y herramientas Autodesk.' }}
+            <p v-if="teacher.description" class="font-body text-[0.8125rem] text-secondary-500 mb-3">
+              {{ teacher.description.split('.')[0] }}
             </p>
 
             <!-- Specialty chips -->
@@ -289,12 +311,15 @@ onMounted(async () => {
                   <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/>
                 </svg>
               </a>
-              <a href="#" class="ml-auto font-body text-[0.781rem] font-semibold text-primary-500 flex items-center gap-1 hover:opacity-70 transition-opacity">
+              <RouterLink
+                :to="{ name: 'instructor-detail', params: { documentNumber: teacher.document_number } }"
+                class="ml-auto font-body text-[0.781rem] font-semibold text-primary-500 flex items-center gap-1 hover:opacity-70 transition-opacity"
+              >
                 Ver perfil
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 8H13M9 4L13 8L9 12"/>
                 </svg>
-              </a>
+              </RouterLink>
             </div>
           </div>
         </article>

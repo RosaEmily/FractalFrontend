@@ -1,37 +1,44 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Partner } from "@/modules/landing/models/general.model";
+import LandingEyebrow from "./ui/LandingEyebrow.vue";
 
 const props = defineProps<{ partners: Partner[]; skeleton: boolean }>();
 
 const SPONSOR_COLORS = ["#E94E1B", "#F5A623", "#2D9A7D", "#2D6FCF"];
 
-const colWidth = computed(() => {
-  const n = props.partners.length;
-  if (n >= 6) return "25%";
-  if (n === 5) return "33.333%";
-  if (n === 4) return "25%";
-  if (n === 3) return "33.333%";
-  if (n === 2) return "50%";
-  return "100%";
+/*
+ * 2 columnas en móvil, 3 en tablet y hasta 4 en escritorio (diseño v4), sin
+ * pasarse del número de empresas. Clases literales: Tailwind no ve las
+ * construidas en runtime.
+ */
+const COLS = {
+  base: ["grid-cols-1", "grid-cols-2"],
+  md: ["md:grid-cols-1", "md:grid-cols-2", "md:grid-cols-3"],
+  lg: ["lg:grid-cols-1", "lg:grid-cols-2", "lg:grid-cols-3", "lg:grid-cols-4"],
+} as const;
+
+const gridCols = computed(() => {
+  const n = Math.max(1, props.partners.length);
+  return [
+    COLS.base[Math.min(n, 2) - 1],
+    COLS.md[Math.min(n, 3) - 1],
+    COLS.lg[Math.min(n, 4) - 1],
+  ];
 });
 </script>
 
 <template>
-  <section class="bg-surface-paper py-20">
+  <section v-if="partners.length" class="bg-surface-paper py-20">
     <div class="px-6 md:px-16">
       <!-- Header row -->
       <div
         class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8"
       >
         <div>
-          <p
-            class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3"
-          >
-            PATROCINADORES · EMPRESAS QUE CONFÍAN
-          </p>
+          <LandingEyebrow :index="6">PATROCINADORES · EMPRESAS QUE CONFÍAN</LandingEyebrow>
           <h2
-            class="font-display font-bold text-[clamp(28px,3.5vw,36px)] leading-[1.1] tracking-tight text-secondary-900 max-w-lg"
+            class="mt-3.5 font-display font-bold text-[1.625rem] sm:text-[2rem] leading-[1.1] tracking-tight text-secondary-900 max-w-135"
           >
             Empresas que contratan a nuestros egresados.
           </h2>
@@ -39,19 +46,21 @@ const colWidth = computed(() => {
       </div>
 
       <!-- Sponsors grid — text names in bordered cells -->
-      <div class="border border-line rounded-lg overflow-hidden">
-        <div class="flex flex-wrap">
-          <div
-            v-for="(sponsor, i) in partners"
-            :key="sponsor.id"
-            class="bg-surface-paper flex items-center justify-center min-h-28 px-6 py-8 border-b border-r border-line"
-            :style="{ width: colWidth }"
-          >
-            <div class="flex items-center gap-2.5 font-display font-extrabold text-[1.25rem] text-secondary-900 tracking-tight opacity-70">
-              <span class="w-3.5 h-3.5 rotate-45 shrink-0" :style="{ background: SPONSOR_COLORS[i % 4] }" />
-              {{ sponsor.name }}
-            </div>
+      <!-- Líneas por celda (borde derecho e inferior) y la grilla corrida 1px
+           para que el marco exterior las tape: así los huecos de la última
+           fila quedan en blanco, no como un bloque del color de las líneas. -->
+      <div class="border border-line rounded-lg overflow-hidden bg-surface-paper">
+        <div class="grid -mr-px -mb-px" :class="gridCols">
+        <div
+          v-for="(sponsor, i) in partners"
+          :key="sponsor.id"
+          class="border-r border-b border-line flex items-center justify-center min-h-22 sm:min-h-28 px-4 py-6 sm:px-6 sm:py-9"
+        >
+          <div class="flex items-center gap-2.5 font-display font-extrabold text-base sm:text-[1.375rem] text-secondary-900 tracking-tight opacity-70 text-center">
+            <span class="size-3 sm:size-3.5 rotate-45 shrink-0" :style="{ background: SPONSOR_COLORS[i % 4] }" />
+            {{ sponsor.name }}
           </div>
+        </div>
         </div>
       </div>
 
