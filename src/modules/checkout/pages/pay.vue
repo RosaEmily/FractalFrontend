@@ -31,7 +31,7 @@ const total = computed(() => cart.totals?.total ?? cart.localTotal);
 const SUB: Record<PaymentMethod["type"], string> = {
   card: "Ingresa los datos de tu tarjeta. La transacción se valida con 3D Secure.",
   wallet: "Escanea el código con tu app y confirma el pago desde tu celular.",
-  redirect: "Serás redirigido a la pasarela segura para completar el pago.",
+  redirect: "Serás redirigido a la pasarela segura de {name} para completar el pago.",
 };
 
 onMounted(async () => {
@@ -53,9 +53,9 @@ onMounted(async () => {
 /**
  * Registra la matrícula.
  *
- * ⚠️ **No cobra.** Ninguna pasarela está integrada: sea tarjeta, QR o redirect,
- * lo que ocurre es lo mismo — se crea la matrícula con la transacción pendiente.
- * Por eso ninguna variante promete un cargo hecho.
+ * La API crea la matrícula y cobra con el método elegido (`PaymentGatewayService`,
+ * hoy simulado: siempre aprueba). `payment_status` de la respuesta dice cómo
+ * terminó; un cobro rechazado va a la pantalla de rechazo.
  */
 const pay = async () => {
   if (paying.value || !method.value) return;
@@ -74,7 +74,7 @@ const pay = async () => {
   );
   paying.value = false;
 
-  if (!data) {
+  if (!data || data.payment_status !== "paid") {
     // El rechazo tiene pantalla propia: explica los motivos y ofrece salidas.
     router.replace({
       name: "checkout-rejected",
@@ -91,9 +91,10 @@ const pay = async () => {
 <template>
   <CheckoutLayout step="card">
     <StepLayout
+      :index="4"
       :eyebrow="`MÉTODO · ${(method?.name ?? '').toUpperCase()}`"
       title="Completa tu pago."
-      :sub="method ? SUB[method.type] : ''"
+      :sub="method ? SUB[method.type].replace('{name}', method.name) : ''"
       @back="router.push({ name: 'checkout-method' })"
     >
       <div v-if="loading" class="h-64 max-w-140 animate-pulse rounded-adm-lg bg-surface-cream" />
@@ -145,9 +146,8 @@ const pay = async () => {
           </div>
 
           <p class="mt-4 rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-4 py-3 text-[0.813rem] leading-relaxed text-secondary-500">
-            El cobro con tarjeta todavía no está habilitado. Al continuar
-            registramos tu matrícula y coordinación te contacta para completar el
-            pago.
+            Pago de prueba: la pasarela todavía no está integrada, así que el
+            cobro se aprueba al continuar y tu acceso al aula queda activo.
           </p>
         </div>
 
@@ -163,8 +163,8 @@ const pay = async () => {
             Escanea con {{ method.name }} y paga {{ formatMoney(total) }}
           </p>
           <p class="mt-4 rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-4 py-3 text-left text-[0.813rem] leading-relaxed text-secondary-500">
-            Este código es de muestra: {{ method.name }} aún no está integrado.
-            Al continuar registramos tu matrícula y coordinación valida el pago.
+            Pago de prueba: {{ method.name }} aún no está integrado, así que el
+            cobro se aprueba al continuar y tu acceso al aula queda activo.
           </p>
         </div>
 
@@ -181,8 +181,9 @@ const pay = async () => {
           </p>
 
           <p class="mt-4 rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-4 py-3 text-left text-[0.813rem] leading-relaxed text-secondary-500">
-            La conexión con {{ method.name }} aún no está habilitada. Al continuar
-            registramos tu matrícula y coordinación valida el pago.
+            Pago de prueba: la conexión con {{ method.name }} aún no está
+            habilitada, así que el cobro se aprueba al continuar y tu acceso al
+            aula queda activo.
           </p>
         </div>
 

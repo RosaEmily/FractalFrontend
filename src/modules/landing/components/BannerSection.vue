@@ -3,88 +3,76 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import LandingBadge from './ui/LandingBadge.vue'
 import LandingButton from './ui/LandingButton.vue'
+import IsoTower from './ui/IsoTower.vue'
+import { parseBannerTitle } from '@/shared/utils/banner-title'
+import type { Banner } from '@/modules/landing/models/general.model'
 
-const SLIDES = [
-  {
-    tag: 'NUEVA COHORTE · JUL 2025',
-    kicker: '15 cupos disponibles',
-    titleParts: [
-      { text: 'Conviértete en el',  accent: false },
-      { text: 'modelador BIM',      accent: true  },
-      { text: 'que la industria busca.', accent: false },
-    ],
-    sub: 'Diplomado internacional de 6 meses con certificación Autodesk. Aprende Revit, Navisworks, Dynamo y gestión de proyectos en un solo programa.',
-    cta: 'Inscribirme ahora',
-    cta2: 'Ver malla curricular',
-    meta: [['Inicia', '15 JUL'], ['Duración', '6 meses'], ['Modalidad', 'En vivo'], ['Inversión', 'S/ 2,400']],
-    dark: false,
-  },
-  {
-    tag: 'CAMPAÑA · BECA AEC 2025',
-    kicker: '40 cupos · vence 30 JUN',
-    titleParts: [
-      { text: '25% de descuento',        accent: false },
-      { text: 'para profesionales',       accent: true  },
-      { text: 'del rubro AEC.',           accent: false },
-    ],
-    sub: 'Aplica a la beca Fractal × Autodesk en 2 minutos. Disponible para arquitectos, ingenieros y bachilleres con experiencia comprobable.',
-    cta: 'Aplicar a la beca',
-    cta2: 'Ver requisitos',
-    meta: [['Descuento', '25%'], ['Vence', '30 JUN'], ['Cupos', '40'], ['Aplica', 'BIM · CAD']],
-    dark: true,
-  },
-  {
-    tag: 'NUEVO · CIVIL 3D',
-    kicker: 'Inicia 20 AGO',
-    titleParts: [
-      { text: 'Especialización en', accent: false },
-      { text: 'infraestructura',    accent: true  },
-      { text: 'civil y vial.',      accent: false },
-    ],
-    sub: 'Diseña corredores y obras viales con Civil 3D. Caso real incluido: tramo Lima — Cañete, con datos reales del MTC.',
-    cta: 'Ver programa',
-    cta2: 'Hablar con asesor',
-    meta: [['Inicia', '20 AGO'], ['Duración', '4 meses'], ['Nivel', 'Intermedio'], ['Cert.', 'Autodesk']],
-    dark: false,
-  },
-]
+const props = defineProps<{ banner: Banner[]; skeleton: boolean }>()
 
 const idx = ref(0)
-const slide = computed(() => SLIDES[idx.value])
+const slide = computed(() => props.banner[idx.value] ?? null)
+const titleParts = computed(() => parseBannerTitle(slide.value?.title))
+const hasPhoto = computed(() => !!slide.value?.desktop)
 
-const prev = () => { idx.value = (idx.value - 1 + SLIDES.length) % SLIDES.length }
-const next = () => { idx.value = (idx.value + 1) % SLIDES.length }
+const metaEntries = computed<[string, string][]>(() => {
+  const meta = slide.value?.meta
+  if (!meta) return []
+  const { inicia, duracion, cupos, precio } = meta
+  const entries: [string, string][] = []
+  if (inicia) entries.push(['Inicia', inicia])
+  if (duracion) entries.push(['Duración', duracion])
+  if (cupos) entries.push(['Cupos', cupos])
+  if (precio) entries.push(['Precio', precio])
+  return entries
+})
+
+const prev = () => { idx.value = (idx.value - 1 + props.banner.length) % props.banner.length }
+const next = () => { idx.value = (idx.value + 1) % props.banner.length }
 
 let timer: ReturnType<typeof setInterval>
-onMounted(() => { timer = setInterval(next, 6000) })
+onMounted(() => {
+  timer = setInterval(() => { if (props.banner.length > 1) next() }, 6000)
+})
 onUnmounted(() => clearInterval(timer))
 </script>
 
 <template>
-  <section :class="['relative overflow-hidden transition-colors duration-500', slide.dark ? 'bg-primary-500' : 'bg-surface-cream']">
+  <section
+    v-if="props.skeleton || slide"
+    :class="['relative overflow-hidden transition-colors duration-500', slide?.dark ? 'bg-primary-500' : 'bg-surface-cream']"
+  >
     <!-- Círculo decorativo de fondo -->
     <div :class="[
       'absolute -right-48 top-1/2 -translate-y-1/2 w-200 h-200 rounded-full opacity-60 pointer-events-none',
-      slide.dark ? 'bg-white/8' : 'bg-accent-soft',
+      slide?.dark ? 'bg-white/8' : 'bg-accent-soft',
     ]" />
 
     <!-- Contenido -->
-    <div class="relative px-6 md:px-16 pt-18 pb-16 md:pb-20 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center min-h-125 md:min-h-140">
+    <div class="relative px-6 md:px-16 pt-18 grid grid-cols-1 md:grid-cols-[1.05fr_1fr] gap-12 md:gap-16 items-center min-h-125 md:min-h-135">
       <!-- Texto -->
-      <div>
-        <div class="flex items-center gap-3 mb-7">
-          <LandingBadge :variant="slide.dark ? 'paper' : 'ink'" size="md">
+      <div v-if="props.skeleton" class="animate-pulse">
+        <div class="h-6 w-40 bg-secondary-900/10 rounded-full mb-7" />
+        <div class="h-16 w-full bg-secondary-900/10 rounded-lg mb-4" />
+        <div class="h-16 w-3/4 bg-secondary-900/10 rounded-lg mb-9" />
+        <div class="h-12 w-48 bg-secondary-900/10 rounded-full" />
+      </div>
+      <div v-else-if="slide">
+        <div v-if="slide.tag || slide.kicker" class="flex items-center gap-3 mb-7">
+          <LandingBadge v-if="slide.tag" :variant="slide.dark ? 'paper' : 'ink'" size="md">
             <span class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-dot" />
             {{ slide.tag }}
           </LandingBadge>
-          <span :class="['font-mono text-[0.6875rem] font-semibold tracking-widest uppercase', slide.dark ? 'text-white/80' : 'text-secondary-500']">
+          <span
+            v-if="slide.kicker"
+            :class="['font-mono text-[0.6875rem] font-semibold tracking-widest uppercase', slide.dark ? 'text-white/80' : 'text-secondary-500']"
+          >
             {{ slide.kicker }}
           </span>
         </div>
 
         <h1 class="font-display font-bold leading-[0.95] tracking-tight text-[clamp(56px,6vw,88px)] text-balance">
           <span
-            v-for="(part, i) in slide.titleParts"
+            v-for="(part, i) in titleParts"
             :key="i"
             class="block py-0.5"
             :class="part.accent
@@ -93,38 +81,52 @@ onUnmounted(() => clearInterval(timer))
           >{{ part.text }}</span>
         </h1>
 
-        <p :class="['font-body text-[1.0625rem] leading-relaxed mt-6 mb-9 max-w-xl text-pretty', slide.dark ? 'text-white/85' : 'text-secondary-500']">
+        <p
+          v-if="slide.sub"
+          :class="['font-body text-[1.0625rem] leading-relaxed mt-6 mb-9 max-w-xl text-pretty', slide.dark ? 'text-white/85' : 'text-secondary-500']"
+        >
           {{ slide.sub }}
         </p>
 
-        <div class="flex flex-wrap gap-3">
-          <RouterLink to="/programs">
+        <div v-if="slide.cta || slide.cta2" class="flex flex-wrap gap-3">
+          <RouterLink v-if="slide.cta" to="/programs">
             <LandingButton :variant="slide.dark ? 'on-accent' : 'primary'" size="lg">{{ slide.cta }}</LandingButton>
           </RouterLink>
-          <RouterLink to="/contact">
+          <RouterLink v-if="slide.cta2" to="/contact">
             <LandingButton :variant="slide.dark ? 'on-accent-sec' : 'secondary'" size="lg" :arrow="false">{{ slide.cta2 }}</LandingButton>
           </RouterLink>
         </div>
       </div>
 
-      <!-- Lado visual — chips flotantes + placeholder geométrico -->
+      <!-- Lado visual — imagen del banner + chips flotantes -->
       <div class="hidden md:flex relative justify-center items-center min-h-105">
-        <div :class="['absolute w-80 h-80 rounded-full border', slide.dark ? 'bg-white/12 border-dashed border-white/30' : 'bg-surface-paper border-line']" />
-        <div :class="['absolute w-60 h-60 rounded-full border border-dashed', slide.dark ? 'border-white/20' : 'border-line-soft']" />
+        <!-- Rectángulos decorativos, no círculos: acompañan la forma del contenido real (foto o ilustración), que dejó de ser circular. -->
+        <div :class="['absolute w-105 h-105 border', slide?.dark ? 'bg-white/12 border-dashed border-white/30' : 'bg-surface-paper border-line']" />
+        <div :class="['absolute w-80 h-80 border border-dashed', slide?.dark ? 'border-white/20' : 'border-line-soft']" />
 
-        <!-- Logo grande centrado como placeholder ilustración -->
-        <div class="relative z-10 -translate-y-3">
-          <svg width="180" height="200" viewBox="0 0 40 44" fill="none">
-            <path d="M20 1.5 L37.5 11.5 L37.5 32.5 L20 42.5 L2.5 32.5 L2.5 11.5 Z"
-              :fill="slide.dark ? 'rgba(255,255,255,0.15)' : '#FFF1E8'"
-              :stroke="slide.dark ? 'rgba(255,255,255,0.4)' : '#EBE2D0'" stroke-width="1.2" stroke-linejoin="round"/>
-            <path d="M14 13 L26 13 L26 17 L18 17 L18 22 L24.5 22 L24.5 26 L18 26 L18 32 L14 32 Z"
-              :fill="slide.dark ? 'rgba(255,255,255,0.6)' : '#E94E1B'"/>
-          </svg>
+        <!--
+          Con foto: rectángulo, no círculo. Las imágenes reales de banner son
+          apaisadas (collages promocionales, capturas de programa) y
+          `object-cover` en un círculo perfecto las recorta mal — se ve solo
+          una franja vertical descentrada. El diseño unificó TODO el lado
+          visual a rectángulo (fondo decorativo incluido, arriba), tanto con
+          foto real como con la ilustración de respaldo.
+        -->
+        <div
+          v-if="!props.skeleton && slide && hasPhoto"
+          class="relative z-10 w-95 h-75 overflow-hidden shadow-md bg-black"
+        >
+          <img :src="slide.desktop" :alt="slide.image_alt" class="size-full object-cover" />
+        </div>
+        <div
+          v-else-if="!props.skeleton && slide"
+          class="relative z-10 -translate-y-3 w-80 h-80 overflow-visible bg-transparent flex items-center justify-center"
+        >
+          <IsoTower :size="340" :accent="slide.dark ? '#FFFFFF' : 'var(--color-primary-500)'" bg="transparent" />
         </div>
 
         <!-- Chip superior -->
-        <div :class="[
+        <div v-if="!props.skeleton && slide" :class="[
           'absolute top-10 right-6 px-3.5 py-2.5 rounded-xl shadow-md font-mono text-[0.6875rem] font-semibold flex items-center gap-2',
           slide.dark ? 'bg-black/40 text-white' : 'bg-surface-paper text-secondary-900',
         ]">
@@ -135,7 +137,7 @@ onUnmounted(() => clearInterval(timer))
         </div>
 
         <!-- Chip inferior -->
-        <div :class="[
+        <div v-if="!props.skeleton && slide" :class="[
           'absolute bottom-10 left-2 px-3.5 py-2.5 rounded-xl shadow-md font-body text-[0.781rem] font-semibold flex items-center gap-2',
           slide.dark ? 'bg-black/40 text-white' : 'bg-surface-paper text-secondary-900',
         ]">
@@ -148,20 +150,21 @@ onUnmounted(() => clearInterval(timer))
     </div>
 
     <!-- Barra inferior: meta + controles -->
-    <div :class="['relative border-t px-6 md:px-16 py-5 flex flex-wrap justify-between items-center gap-4', slide.dark ? 'border-white/20' : 'border-line']">
+    <div v-if="!props.skeleton && slide" :class="['relative border-t px-6 md:px-16 py-5 flex flex-wrap justify-between items-center gap-4', slide.dark ? 'border-white/20' : 'border-line']">
       <!-- Meta datos -->
-      <div class="flex flex-wrap gap-8">
-        <div v-for="([label, value]) in slide.meta" :key="label">
+      <div v-if="metaEntries.length" class="flex flex-wrap gap-8">
+        <div v-for="([label, value]) in metaEntries" :key="label">
           <p :class="['font-mono text-[0.594rem] tracking-widest uppercase', slide.dark ? 'text-white/60' : 'text-secondary-400']">{{ label }}</p>
           <p :class="['font-display text-[1.125rem] font-bold tracking-tight mt-1', slide.dark ? 'text-white' : 'text-secondary-900']">{{ value }}</p>
         </div>
       </div>
+      <div v-else />
 
       <!-- Controles -->
-      <div class="flex items-center gap-4">
+      <div v-if="props.banner.length > 1" class="flex items-center gap-4">
         <!-- Dots -->
         <div class="flex gap-1.5">
-          <button v-for="(_, i) in SLIDES" :key="i" @click="idx = i"
+          <button v-for="(_, i) in props.banner" :key="i" @click="idx = i"
             :class="[
               'h-2 rounded-full transition-all duration-300',
               i === idx ? 'w-8' : 'w-2',

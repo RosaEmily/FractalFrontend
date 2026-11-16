@@ -4,6 +4,8 @@ import type { MaterialDTO } from "../dto/classroom.dto";
 import type {
   EvaluationTypeDTO,
   PassingScoreDTO,
+  CourseMeetLinkDTO,
+  SessionMeetLinkDTO,
   EvaluationsDTO,
   FinalsDTO,
   GradebookDTO,
@@ -154,6 +156,30 @@ class TeacherRepository {
     return apiFractal.patch<PassingScoreDTO>(
       `${this.route}/courses/${offerCourseId}/passing-score`,
       { passing_score: passingScore },
+    );
+  }
+
+  // ─── Enlace de videollamada ─────────────────────────────────────────────
+
+  /** Un enlace para todo el curso: se aplica también a sus clases pendientes. */
+  async setCourseMeetLink(
+    offerCourseId: number,
+    meetLink: string | null,
+  ): Promise<ApiResponse<CourseMeetLinkDTO | null>> {
+    return apiFractal.patch<CourseMeetLinkDTO>(
+      `${this.route}/courses/${offerCourseId}/meet-link`,
+      { meet_link: meetLink },
+    );
+  }
+
+  /** Uno por clase: solo esa sesión (y solo si no está dictada). */
+  async setSessionMeetLink(
+    classSessionId: number,
+    meetLink: string | null,
+  ): Promise<ApiResponse<SessionMeetLinkDTO | null>> {
+    return apiFractal.patch<SessionMeetLinkDTO>(
+      `${this.route}/sessions/${classSessionId}/meet-link`,
+      { meet_link: meetLink },
     );
   }
 

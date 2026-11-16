@@ -1,5 +1,9 @@
 import type { MenuItem } from "@/modules/admin/interface/nav-vertical";
-import { mdiCertificateOutline, mdiFileDocumentOutline } from "@mdi/js";
+import {
+  mdiCertificateOutline,
+  mdiFileDocumentOutline,
+  mdiStarOutline,
+} from "@mdi/js";
 
 /** "Certificación" del diseño: el cierre del ciclo. */
 export const MENU_CERTIFICATION: MenuItem[] = [
@@ -24,6 +28,14 @@ export const MENU_CERTIFICATION: MenuItem[] = [
         roles: ["ADMIN"],
         route: { name: "certificateTemplates.list" },
         module: "certificateTemplates",
+      },
+      {
+        id: "certification.testimonials",
+        label: "Testimonios",
+        icon: mdiStarOutline,
+        roles: ["ADMIN"],
+        route: { name: "testimonials.list" },
+        module: "certification/testimonials",
       },
     ],
   },

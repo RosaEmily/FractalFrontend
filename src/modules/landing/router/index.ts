@@ -17,6 +17,11 @@ export const routesLanding: RouteRecordRaw[] = [
     component: () => import("../pages/InstructorsView.vue"),
   },
   {
+    path: "/instructors/:documentNumber",
+    name: "instructor-detail",
+    component: () => import("../pages/InstructorDetailView.vue"),
+  },
+  {
     path: "/programs/:id",
     name: "program-detail",
     component: () => import("../pages/ProgramDetailView.vue"),

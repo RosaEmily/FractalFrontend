@@ -3,13 +3,14 @@ import { ref } from "vue";
 import { safeRequest } from "@/shared/utils/request";
 import { offerService } from "../services/offer.service";
 import type { OfferList } from "../models/offer.model";
+import type { OfferQueryParams } from "../models/offer-query.model";
 
 export const useOfferStore = defineStore("landing-offers", () => {
   const data = ref<OfferList | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  async function fetch(params?: Record<string, string>) {
+  async function fetch(params?: OfferQueryParams) {
     loading.value = true;
     error.value = null;
     const { data: result, status } = await safeRequest(

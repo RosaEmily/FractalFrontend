@@ -21,5 +21,18 @@ export const useGeneralStore = defineStore("landing-general", () => {
     loading.value = false;
   }
 
-  return { data, loading, error, fetch };
+  /*
+   * Carga UNA vez por página: el footer, el navbar y la home leen del mismo
+   * store al montarse a la vez, y sin esto cada uno dispararía su propio GET.
+   */
+  let pending: Promise<void> | null = null;
+  function ensure(): Promise<void> {
+    if (data.value) return Promise.resolve();
+    pending ??= fetch().finally(() => {
+      pending = null;
+    });
+    return pending;
+  }
+
+  return { data, loading, error, fetch, ensure };
 });

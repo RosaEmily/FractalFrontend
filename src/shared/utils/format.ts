@@ -216,3 +216,10 @@ export const normalizeUrl = (
       .replace(!keepQuery ? /[?#].*$/ : /$/, "");
   }
 };
+
+/**
+ * `19:00:00` → `19:00`. La BD guarda las horas de clase con segundos, pero
+ * solo se cargan hora y minutos: mostrar `:00` es ruido.
+ */
+export const shortTime = (value: string | null | undefined): string =>
+  value ? String(value).slice(0, 5) : "";

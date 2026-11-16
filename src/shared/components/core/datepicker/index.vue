@@ -3,7 +3,7 @@ import { DatePicker } from "primevue";
 import type { DatePickerCoreProps } from "./type";
 import LabelCore from "../label/index.vue";
 import MessageCore from "../message/index.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { dayjsToPrime, parseDate, serializeDate } from "./utils";
 
 const propsInit = withDefaults(defineProps<DatePickerCoreProps>(), {
@@ -54,6 +54,28 @@ const internalModel = computed<Date | (Date | null)[] | null>({
     model.value = serializeDate(value, dayjsFormatValue, dateUtc);
   },
 });
+
+/*
+ * PrimeVue deshabilita los DÍAS anteriores a `minDate`, pero la flecha de
+ * retroceso sigue activa y lleva a meses donde no se puede elegir nada. Se
+ * apaga leyendo el mes que muestra el propio DatePicker (`currentMonth`,
+ * `currentYear` y `currentView` son su estado interno), no uno llevado aparte:
+ * el componente reposiciona la vista al cambiar el valor sin emitir eventos.
+ */
+const picker = ref<{ currentMonth: number; currentYear: number; currentView: string } | null>(null);
+const prevDisabled = computed(() => {
+  const min = propsInit.minDate;
+  const view = picker.value;
+  if (!min || !view) return false;
+  const minYear = min.getFullYear();
+  if (view.currentView === "year") return view.currentYear - (view.currentYear % 10) <= minYear;
+  if (view.currentView === "month") return view.currentYear <= minYear;
+  return view.currentYear * 12 + view.currentMonth <= minYear * 12 + min.getMonth();
+});
+const pt = computed(() => ({
+  ...(propsInit.pt as object | undefined),
+  pcPrevButton: { root: { disabled: prevDisabled.value } },
+}));
 </script>
 
 <template>
@@ -65,7 +87,7 @@ const internalModel = computed<Date | (Date | null)[] | null>({
       :required="props.required"
       :hint="props.hintLabel"
     />
-    <DatePicker class="w-full" v-bind="props" v-model="internalModel" />
+    <DatePicker ref="picker" class="w-full" v-bind="props" :pt="pt" v-model="internalModel" />
     <MessageCore
       v-if="props.messageError"
       :text="props.messageError"

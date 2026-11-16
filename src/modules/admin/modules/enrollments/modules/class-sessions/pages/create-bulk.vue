@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { shortTime } from "@/shared/utils/format";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { mdiClose } from "@mdi/js";
@@ -99,7 +100,7 @@ const onOfferChange = async () => {
         courseName: item.name,
         // El día va TRADUCIDO: `schedules.day_of_week` guarda la clave en
         // inglés (`monday`) y en pantalla salía así.
-        scheduleLabel: `${dayLabel(schedule.dayOfWeek)} ${schedule.startTime}–${schedule.endTime}`,
+        scheduleLabel: `${dayLabel(schedule.dayOfWeek)} ${shortTime(schedule.startTime)}–${shortTime(schedule.endTime)}`,
         sessionDate: nextDateForDay(schedule.dayOfWeek),
         startTime: schedule.startTime,
         endTime: schedule.endTime,

@@ -12,6 +12,8 @@ import type {
 import type {
   EvaluationTypeDTO,
   PassingScoreDTO,
+  CourseMeetLinkDTO,
+  SessionMeetLinkDTO,
   EvaluationsDTO,
   FinalsDTO,
   GradebookDTO,
@@ -132,6 +134,22 @@ class TeacherService {
       offerCourseId,
       passingScore,
     );
+    return response.data;
+  }
+
+  async setCourseMeetLink(
+    offerCourseId: number,
+    meetLink: string | null,
+  ): Promise<CourseMeetLinkDTO | null> {
+    const response = await teacherRepository.setCourseMeetLink(offerCourseId, meetLink);
+    return response.data;
+  }
+
+  async setSessionMeetLink(
+    classSessionId: number,
+    meetLink: string | null,
+  ): Promise<SessionMeetLinkDTO | null> {
+    const response = await teacherRepository.setSessionMeetLink(classSessionId, meetLink);
     return response.data;
   }
 

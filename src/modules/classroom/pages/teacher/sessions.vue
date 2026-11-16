@@ -8,6 +8,7 @@ import {
   mdiCheck,
   mdiClockAlertOutline,
   mdiClose,
+  mdiLinkVariant,
   mdiPlus,
   mdiVideoOutline,
 } from "@mdi/js";
@@ -31,6 +32,7 @@ import {
 } from "../../components/ui";
 import { CAREER_LABEL } from "../../constants/labels";
 import SessionMaterials from "../../components/session-materials.vue";
+import AulaMeetLink from "../../components/aula-meet-link.vue";
 import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
 import AvatarCell from "@/modules/admin/components/ui/avatar-cell.vue";
 import {
@@ -174,6 +176,25 @@ const entryTime = (student: RosterStudentDTO): string => {
 const currentSession = computed(
   () => sessions.value.find((s) => s.id === selectedSession.value) ?? null,
 );
+
+const currentCourse = computed(
+  () => courses.value.find((c) => c.id === selectedCourse.value) ?? null,
+);
+
+/*
+ * Aplica lo guardado desde la RESPUESTA, sin recargar: el enlace del curso pasa
+ * a sus clases pendientes (igual que en la API); el de una clase, solo a ella.
+ */
+const onMeetLinkSaved = (scope: "course" | "session", link: string | null) => {
+  if (scope === "course") {
+    if (currentCourse.value) currentCourse.value.meet_link = link;
+    sessions.value
+      .filter((s) => s.status === 0)
+      .forEach((s) => (s.meet_link = link));
+  } else if (currentSession.value) {
+    currentSession.value.meet_link = link;
+  }
+};
 
 /**
  * Cabecera del detalle: `SESIÓN 1 · LUNES 24 FEB 2025 · 19:00–21:00`.
@@ -455,6 +476,15 @@ onMounted(async () => {
           PÁGINA entera en vez de hacer scroll solo la tabla.
         -->
         <div class="flex min-w-0 flex-col gap-4">
+          <AulaMeetLink
+            v-if="currentCourse"
+            :key="currentCourse.id"
+            :course="currentCourse"
+            :sessions="sessions"
+            :session="currentSession"
+            @saved="onMeetLinkSaved"
+          />
+
           <AulaCard v-if="currentSession">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
@@ -472,12 +502,13 @@ onMounted(async () => {
                   El enlace visible, no solo como href del botón: el docente lo
                   copia para pegarlo en un correo o comprobar que es el correcto.
                 -->
-                <p
+                <span
                   v-if="currentSession.meet_link"
-                  class="text-adm-sm text-secondary-500 mt-1.5 break-all"
+                  class="mt-2 inline-flex max-w-full items-center gap-2 rounded-adm-sm border border-line bg-surface-page px-3 py-1.5 font-mono text-adm-sm text-secondary-500"
                 >
-                  {{ currentSession.meet_link }}
-                </p>
+                  <HeroCore :path="mdiLinkVariant" class="size-3.5 shrink-0 text-secondary-400" />
+                  <span class="break-all">{{ currentSession.meet_link }}</span>
+                </span>
               </div>
               <!--
                 Acción y estado van JUNTOS a la derecha (`gap: 10` del diseño).

@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
+import { safeRequest } from '@/shared/utils/request'
+import { useSiteContact } from '../composables/useSiteContact'
+import { offerService } from '../services/offer.service'
 
 const form = ref({
   firstName: '',
@@ -25,32 +28,48 @@ function toggleFaq(i: number) {
   openFaq.value = openFaq.value === i ? null : i
 }
 
-const CONTACTS = [
-  { icon: 'mail',     label: 'EMAIL',    value: 'contacto@proyectofractal.com', sub: 'Respondemos en menos de 24h' },
-  { icon: 'phone',    label: 'TELÉFONO', value: '+51 987 654 321',              sub: 'Lun a Vie · 9am – 7pm'     },
-  { icon: 'pin',      label: 'SEDE',     value: 'Av. Ejemplo 123',              sub: 'Miraflores · Lima 18, Perú' },
-  { icon: 'whatsapp', label: 'WHATSAPP', value: '+51 987 654 321',              sub: 'Atención 24/7'              },
-]
+const { email, phone, address, mailHref, telHref, whatsappHref, faqs } = useSiteContact()
 
-const PROGRAMS = [
-  'Diplomado en Modelado y Gestión BIM',
-  'Diplomado en Coordinación y Gestión BIM',
-  'Diplomado BIM Manager',
-  'Curso AutoCAD 2D/3D',
-  'Curso Civil 3D',
-  'Otro / aún no decido',
-]
+type ContactCard = { icon: string; label: string; value: string; sub: string; href: string; external?: boolean }
 
-/** `SelectCore` lee un campo por opción, y `PROGRAMS` son strings sueltos. */
-const programOptions = PROGRAMS.map((label) => ({ label, value: label }))
+/*
+ * Los canales son los que cargó el panel (Sitio web → Contactos): antes estaban
+ * escritos acá con una dirección de ejemplo. Un canal sin dato no se pinta.
+ */
+const contactCards = computed<ContactCard[]>(() => {
+  const wa = whatsappHref()
+  const cards: (ContactCard | null)[] = [
+    email.value && mailHref.value
+      ? { icon: 'mail', label: 'EMAIL', value: email.value, sub: 'Respondemos en menos de 24h', href: mailHref.value }
+      : null,
+    phone.value && telHref.value
+      ? { icon: 'phone', label: 'TELÉFONO', value: phone.value, sub: 'Lun a Vie · 9am – 7pm', href: telHref.value }
+      : null,
+    address.value && mapsHref.value
+      ? { icon: 'pin', label: 'SEDE', value: address.value, sub: 'Ver en el mapa', href: mapsHref.value, external: true }
+      : null,
+    wa && phone.value
+      ? { icon: 'whatsapp', label: 'WHATSAPP', value: phone.value, sub: 'Atención 24/7', href: wa, external: true }
+      : null,
+  ]
+  return cards.filter((c): c is ContactCard => c !== null)
+})
 
-const FAQS = [
-  ['¿Las clases son virtuales o presenciales?', 'Todos los programas son 100% virtuales en vivo con grabaciones disponibles en aula 24/7. Algunos talleres son híbridos en nuestra sede de Miraflores.'],
-  ['¿Cómo es el proceso de matrícula?',         'Llenas la ficha, pagas la primera cuota, recibes el contrato firmado digitalmente y accedes al aula virtual con tu correo registrado.'],
-  ['¿La certificación es internacional?',        'Sí. Doble certificación: emitida por Fractal Studio + sello oficial de Autodesk como Authorized Training Center.'],
-  ['¿Aceptan financiamiento o becas?',           'Cuotas sin intereses hasta 6 meses con tarjetas de crédito de los principales bancos. Becas disponibles para profesionales AEC y estudiantes de últimos ciclos.'],
-  ['¿Qué pasa si pierdo una clase?',             'Todas las clases quedan grabadas. Además, hay sesiones de reforzamiento mensual con asistente docente.'],
-]
+const mapsHref = computed(() =>
+  address.value
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.value)}`
+    : null,
+)
+
+/* Los programas del selector son los que están a la venta, más "Otro". */
+const programOptions = ref<{ label: string; value: string }[]>([])
+onMounted(async () => {
+  const { data } = await safeRequest(() => offerService.list({ limit: '50' }), { showAlert: false })
+  programOptions.value = [
+    ...(data?.offers ?? []).map((o) => ({ label: o.name, value: o.name })),
+    { label: 'Otro / aún no decido', value: 'Otro / aún no decido' },
+  ]
+})
 </script>
 
 <template>
@@ -74,9 +93,11 @@ const FAQS = [
           <!-- Contact cards 2x2 -->
           <div class="grid grid-cols-2 gap-3 mb-7">
             <a
-              v-for="c in CONTACTS"
+              v-for="c in contactCards"
               :key="c.label"
-              href="#"
+              :href="c.href"
+              :target="c.external ? '_blank' : undefined"
+              :rel="c.external ? 'noopener' : undefined"
               class="bg-surface-paper border border-line rounded-lg p-5 hover:border-primary-500/40 hover:shadow-sm transition-all duration-200"
             >
               <div class="flex justify-between items-start mb-2.5">
@@ -101,8 +122,8 @@ const FAQS = [
             </a>
           </div>
 
-          <!-- Map placeholder -->
-          <div class="bg-surface-paper border border-line rounded-lg overflow-hidden relative" style="height: 220px">
+          <!-- Map placeholder: ilustración; el enlace real es "Cómo llegar". -->
+          <div v-if="address" class="bg-surface-paper border border-line rounded-lg overflow-hidden relative" style="height: 220px">
             <svg width="100%" height="100%" viewBox="0 0 600 220" class="absolute inset-0" style="background: #F4EBD9">
               <!-- Blocks -->
               <g fill="#FFFFFF" stroke="#EBE2D0" stroke-width="1">
@@ -146,13 +167,12 @@ const FAQS = [
               </div>
             </div>
 
-            <!-- Coords label -->
             <span class="absolute bottom-3 left-3.5 font-mono text-[0.594rem] tracking-widest uppercase text-secondary-400">
-              -12.121°S · -77.029°W · LIMA
+              {{ address }}
             </span>
 
             <!-- Directions button -->
-            <a href="#" class="absolute top-3 right-3 px-3 py-1.5 bg-surface-paper border border-line rounded-full font-body text-[0.75rem] font-medium text-secondary-700 hover:bg-surface-cream transition-colors flex items-center gap-1.5">
+            <a :href="mapsHref ?? undefined" target="_blank" rel="noopener" class="absolute top-3 right-3 px-3 py-1.5 bg-surface-paper border border-line rounded-full font-body text-[0.75rem] font-medium text-secondary-700 hover:bg-surface-cream transition-colors flex items-center gap-1.5">
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 8H13M9 4L13 8L9 12"/>
               </svg>
@@ -276,8 +296,8 @@ const FAQS = [
       </div>
     </section>
 
-    <!-- FAQ section -->
-    <section class="bg-surface-paper border-t border-line px-6 md:px-16 py-24">
+    <!-- FAQ section: las preguntas del panel (Sitio web → FAQ). Sin ninguna, no hay sección. -->
+    <section v-if="faqs.length" class="bg-surface-paper border-t border-line px-6 md:px-16 py-24">
       <div class="text-center mb-12">
         <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">FAQ · PREGUNTAS FRECUENTES</p>
         <h2 class="font-display font-bold text-[clamp(36px,4.5vw,52px)] leading-[1.05] tracking-tight text-secondary-900 text-balance">
@@ -287,8 +307,8 @@ const FAQS = [
 
       <div class="max-w-4xl mx-auto flex flex-col gap-3">
         <div
-          v-for="([q, a], i) in FAQS"
-          :key="i"
+          v-for="(faq, i) in faqs"
+          :key="faq.id"
           class="bg-surface-paper rounded-lg px-6 py-5 transition-all duration-200"
           :class="openFaq === i ? 'border border-primary-500 shadow-sm' : 'border border-line'"
         >
@@ -296,7 +316,7 @@ const FAQS = [
             @click="toggleFaq(i)"
             class="w-full flex items-center justify-between gap-4 text-left"
           >
-            <span class="font-display text-[1.0625rem] font-semibold text-secondary-900 tracking-tight">{{ q }}</span>
+            <span class="font-display text-[1.0625rem] font-semibold text-secondary-900 tracking-tight">{{ faq.question }}</span>
             <span
               class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-250"
               :class="openFaq === i ? 'bg-primary-500 text-white rotate-45' : 'bg-surface-page text-secondary-900 border border-line'"
@@ -307,7 +327,7 @@ const FAQS = [
             </span>
           </button>
           <p v-if="openFaq === i" class="font-body text-[0.906rem] text-secondary-500 leading-relaxed mt-3.5 max-w-3xl">
-            {{ a }}
+            {{ faq.answer }}
           </p>
         </div>
       </div>

@@ -29,6 +29,12 @@ interface Props<T> {
   skeletonFields?: number;
   /** El esqueleto termina en un textarea. */
   skeletonTextarea?: boolean;
+  /**
+   * Sin tarjeta ni pie de acciones: la página arma su propio layout y pone el
+   * botón donde el diseño lo pide (p. ej. el resumen de "Crear programa").
+   * El slot recibe `submit` y `loading` para eso.
+   */
+  bare?: boolean;
 }
 
 const props = withDefaults(defineProps<Props<T>>(), {
@@ -37,6 +43,7 @@ const props = withDefaults(defineProps<Props<T>>(), {
   loadingData: false,
   skeletonFields: 2,
   skeletonTextarea: false,
+  bare: false,
 });
 const loading = ref<boolean>(false);
 
@@ -82,7 +89,15 @@ watch(
 </script>
 
 <template>
-  <CardCore>
+  <form v-if="props.bare" @submit.prevent="onSubmit">
+    <slot
+      :fields="fields"
+      :errors="errors"
+      :submit="onSubmit"
+      :loading="loading"
+    />
+  </form>
+  <CardCore v-else>
     <template #title>
       <span
         class="font-display text-adm-xl font-bold tracking-tight text-secondary-900"
@@ -103,7 +118,13 @@ watch(
           :fields="props.skeletonFields"
           :textarea="props.skeletonTextarea"
         />
-        <slot v-else :fields="fields" :errors="errors" />
+        <slot
+          v-else
+          :fields="fields"
+          :errors="errors"
+          :submit="onSubmit"
+          :loading="loading"
+        />
       </div>
 
       <!-- ACTIONS -->

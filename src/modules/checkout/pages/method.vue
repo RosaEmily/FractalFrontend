@@ -20,12 +20,8 @@ const selected = ref<number | null>(null);
 const loading = ref(true);
 const paying = ref(false);
 
-/** Qué le pasa al usuario tras elegir, según cómo cobra el método. */
-const HINT: Record<PaymentMethod["type"], string> = {
-  card: "Ingresarás los datos de tu tarjeta en el siguiente paso.",
-  wallet: "Escanearás un código QR desde tu app.",
-  redirect: "Te llevaremos a la pasarela para completar el pago.",
-};
+// Una tarjeta no es una marca: la fila muestra las que acepta, como el carrito.
+const CARD_BRANDS = ["visa", "mastercard", "amex"];
 
 onMounted(async () => {
   /*
@@ -75,26 +71,30 @@ const goToPayment = async () => {
 </script>
 
 <template>
-  <CheckoutLayout step="method">
+  <CheckoutLayout
+    step="method"
+    :primary="selected ? 'Continuar' : 'Selecciona un método'"
+    :primary-disabled="!selected || loading"
+    :loading="paying"
+    @primary="goToPayment"
+  >
     <StepLayout
-      eyebrow="Paso 4 de 4"
-      title="Elige cómo pagar"
-      primary="Continuar"
-      :primary-disabled="!selected || loading"
-      :loading="paying"
+      :index="4"
+      eyebrow="Método de pago"
+      title="Elige cómo pagar."
+      sub="Procesamos tu pago con pasarelas certificadas. Tus datos viajan cifrados y no se almacenan en nuestros servidores."
       @back="router.push({ name: 'checkout-buyer' })"
-      @primary="goToPayment"
     >
       <div v-if="loading" class="space-y-3">
         <div v-for="n in 4" :key="n" class="h-[4.5rem] animate-pulse rounded-adm-md bg-surface-cream" />
       </div>
 
-      <div v-else class="space-y-3">
+      <div v-else class="flex max-w-160 flex-col gap-3">
         <label
           v-for="method in methods"
           :key="method.id"
-          class="flex cursor-pointer items-center gap-4 rounded-adm-md border bg-surface-paper p-4 transition-colors"
-          :class="selected === method.id ? 'border-primary-500 bg-accent-soft' : 'border-line hover:border-secondary-400'"
+          class="flex cursor-pointer items-center gap-4 rounded-adm-lg border-[1.5px] bg-surface-paper px-5 py-[1.125rem] transition-all"
+          :class="selected === method.id ? 'border-primary-500 shadow-md' : 'border-line shadow-sm hover:border-secondary-400'"
         >
           <RadioButton
             v-model="selected"
@@ -102,19 +102,32 @@ const goToPayment = async () => {
             :value="method.id"
             class="shrink-0"
           />
-          <PayMark :name="method.name" :height="24" class="shrink-0" />
           <span class="min-w-0 flex-1">
-            <span class="block font-display text-[0.938rem] font-bold text-secondary-900">
+            <span class="block font-display text-[1.063rem] font-bold text-secondary-900">
               {{ method.name }}
             </span>
-            <span class="block text-[0.813rem] text-secondary-500">{{ method.description }}</span>
+            <span class="mt-[0.188rem] block text-[0.813rem] text-secondary-500">{{ method.description }}</span>
+          </span>
+          <span class="flex shrink-0 items-center gap-2">
+            <PayMark
+              v-for="brand in method.type === 'card' ? CARD_BRANDS : [method.name]"
+              :key="brand"
+              :name="brand"
+              :height="method.type === 'card' ? 22 : 26"
+              :class="brand === 'amex' ? 'max-sm:hidden' : ''"
+            />
           </span>
         </label>
-      </div>
 
-      <p v-if="selected && !loading" class="mt-4 text-[0.813rem] text-secondary-400">
-        {{ HINT[methods.find((m) => m.id === selected)?.type ?? "redirect"] }}
-      </p>
+        <p class="mt-1 flex items-center gap-2 text-[0.781rem] text-secondary-400">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-success-DEFAULT" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="11" rx="2.5" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.7" />
+            <path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <circle cx="12" cy="15" r="1.6" fill="currentColor" />
+          </svg>
+          Certificado PCI-DSS · verificación 3D Secure
+        </p>
+      </div>
     </StepLayout>
   </CheckoutLayout>
 </template>

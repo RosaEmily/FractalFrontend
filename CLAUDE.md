@@ -439,12 +439,12 @@ Fuente de verdad del diseño: `../Design/fractal/project/diseño fractal/*.jsx`.
 > OPACO (`amber-line`), no `-DEFAULT` con alfa (vira a gris sobre el crema del
 > aula).
 
-> ⚠️ **La barra de scroll del aula (`.aula *::-webkit-scrollbar*`) vive en
-> `style.css`**, anclada a la clase `.aula` en el raíz de
-> `classroom/layouts/main.vue` — el admin conserva la nativa. El
+> ⚠️ **La barra de scroll es GLOBAL** (`::-webkit-scrollbar` sin ancestro en
+> `style.css`, incluida la de la ventana): el pulgar crema del aula se extendió
+> a landing, checkout, login y panel (27-sep-2026, pedido de Sandro). El
 > `background: transparent` del `-track` y las propiedades estándar para
 > Firefox NO están en el diseño pero hacen falta: `scrollbar-width` /
-> `scrollbar-color` van dentro de `@supports not
+> `scrollbar-color` van en `html` dentro de `@supports not
 > selector(::-webkit-scrollbar)`, porque Chrome les da prioridad sobre el
 > pseudo-elemento y sueltas anulan el pulgar redondeado del diseño.
 
@@ -474,7 +474,7 @@ Fuente de verdad del diseño: `../Design/fractal/project/diseño fractal/*.jsx`.
 ## Cómo verificar
 
 ```bash
-npx vue-tsc -b --force --noEmit | grep -c "error TS"   # baseline: 87
+npx vue-tsc -b --force --noEmit | grep -c "error TS"   # baseline: 43 (28-sep-2026)
 npx vite build
 ```
 
@@ -673,3 +673,43 @@ a los tres roles. Detalle completo en la memoria del proyecto
 
 El alta manual de sesión (botón `+` del docente) **sigue abierta** — ver la
 nota de la tanda anterior.
+
+**27-sep-2026 — checkout, landing v4, pago y "Crear programa" (sin commitear).**
+Detalle en la memoria del proyecto (`project_modulo_checkout.md`,
+`project_landing_v4_auditoria_27sep.md`, `project_formulario_programas.md`).
+
+- **Checkout = diseño `checkout/*.jsx` (Layout A, SIN `maxWidth`: el 980 es
+  del Layout B).** Grid proporcional `1.6fr 1fr` (carrito) / `1.55fr 1fr`
+  (pasos), padding de `ckResp` (18/32/64). Pantalla del alto de la ventana:
+  cabecera y **footer fijos** (Cancelar compra · PAGO SEGURO · SSL · CTA del
+  paso) y scroll SOLO en el `<main>`. Las CTAs salieron del cuerpo al footer
+  (`CheckoutLayout` recibe `primary`/`@primary`). Con sesión de aula la barra
+  quita "Cuenta" y la cabecera muestra avatar + nombre + correo; en móvil la
+  barra es compacta con "PASO N DE M · …". Estado vacío `CkCartEmpty` centrado.
+  La franja negra "CONEXIÓN SEGURA" no existe en el diseño: se quitó.
+- **Pago**: la compra ahora queda `paid` (pasarela simulada en la API) y la
+  confirmación dice "Pago confirmado"; un cobro `failed` va a Rechazado.
+- **Landing v4 (tanda 1)**: fuera los datos inventados (cuotas ×6, "44h",
+  "QUÉ APRENDERÁS", "Quedan pocos cupos", "15 JUL 2025", cifras fijas de
+  Instructores, chip 'BIM'). **`landing/composables/useSiteContact()`** es la
+  única fuente de contacto, redes, FAQs, libro de reclamaciones y WhatsApp
+  (lee `landing/general`; `useGeneralStore.ensure()` = una sola petición). Sin
+  número configurado, "Hablar con un asesor" cae a `/contact`. "Rutas" pinta
+  ofertas `learning_path` con `ProgramOfferCard`. Menú móvil a pantalla
+  completa y Patrocinadores 2/3/4 columnas.
+- **Scroll interno también en la landing** (`LandingLayout`): el navbar queda
+  fijo y la barra empieza debajo. ⚠️ El `scrollBehavior` del router sube la
+  VENTANA, que ya no se mueve: el layout resetea su contenedor al cambiar de
+  ruta, y los `sticky` descontaron la altura del navbar.
+- **Material de la clase**: los archivos quedan "Por subir" (se pueden
+  quitar) y se suben juntos con "Guardar N archivos".
+- **"Crear programa" rediseñado** (`admin/crear-programa.jsx`): 4 pasos +
+  resumen oscuro sticky; el INICIO DE CLASES es la única fecha — cursos en
+  cascada (4 semanas por defecto, el siguiente el lunes posterior), matrícula
+  deducida (21 días antes, "Cambiar"), nombre con cohorte y prefijo
+  `SIGLAS-AÑO-SEMESTRE`. Horario con inicio · duración · fin enlazados. El body
+  a la API no cambió. `CrudForm` ganó el modo **`bare`** (sin tarjeta ni pie;
+  el slot recibe `submit` y `loading`).
+- **Línea de carrera**: `CourseOrderList` ordena los cursos con ↑/↓ — el orden
+  es la secuencia en que se habilitan.
+

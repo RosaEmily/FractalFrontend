@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import { useSiteContact } from "@/modules/landing/composables/useSiteContact";
 import { useRoute, useRouter } from "vue-router";
 import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
 import CheckoutLayout from "../layouts/main.vue";
@@ -11,28 +13,27 @@ const router = useRouter();
 /** El id de la matrícula ES el número de pedido: no hay otro correlativo. */
 const enrollmentId = route.query.enrollment as string | undefined;
 
-/** Mismo número que usa la landing (`ProgramDetailView`). */
-const WHATSAPP_URL = "https://wa.me/51987654321";
+const { advisorHref } = useSiteContact();
 
 /*
- * ⚠️ Ningún paso promete acceso inmediato al aula: el pago queda pendiente
- * hasta que coordinación lo valide. El diseño sí lo promete porque no tiene
- * backend detrás.
+ * La compra llega acá solo con el cobro aprobado (`payment_status = paid`): la
+ * matrícula ya está pagada y sus cursos desbloqueados, así que el acceso al
+ * aula es inmediato.
  */
-const NEXT_STEPS = [
+const NEXT_STEPS = computed(() => [
   {
     icon: mdiEmailOutline,
     title: "Revisa tu correo",
     description:
-      "Te enviamos el detalle de la matrícula y los pasos para completar el pago.",
+      "Te enviamos el detalle de la matrícula y el comprobante del pago.",
     href: null,
     cta: null,
   },
   {
     icon: mdiCalendarCheckOutline,
-    title: "Confirmación del pago",
+    title: "Tu acceso ya está activo",
     description:
-      "Coordinación valida el pago y activa tu acceso al aula. Te avisamos por correo.",
+      "Tus cursos ya aparecen en el aula virtual: entra cuando quieras con tu correo.",
     href: null,
     cta: null,
   },
@@ -40,10 +41,10 @@ const NEXT_STEPS = [
     icon: mdiWhatsapp,
     title: "¿Tienes dudas?",
     description: "Escríbenos y te ayudamos con tu matrícula o el pago.",
-    href: WHATSAPP_URL,
+    href: advisorHref(),
     cta: "Escribir",
   },
-];
+]);
 </script>
 
 <template>
@@ -86,28 +87,21 @@ const NEXT_STEPS = [
         y te enviamos los datos a tu correo.
       </p>
 
-      <!--
-        Se dice con todas las letras que el pago está PENDIENTE. La pasarela no
-        está integrada: prometer acceso inmediato al aula sería mentir, y el
-        alumno llegaría a una puerta cerrada sin saber por qué.
-      -->
       <div
-        class="mt-6 rounded-adm-md border border-amber-DEFAULT/40 bg-amber-soft px-5 py-4 text-left"
+        class="mt-6 rounded-adm-md border border-success-DEFAULT/30 bg-success-soft px-5 py-4 text-left"
       >
         <p class="font-display text-[0.938rem] font-bold text-secondary-900">
-          Falta confirmar el pago
+          Pago confirmado
         </p>
         <p class="mt-1.5 text-[0.875rem] leading-relaxed text-secondary-500">
-          Tu matrícula queda reservada como <strong>pendiente</strong>.
-          Coordinación validará el pago y activará tu acceso al aula virtual. Te
-          avisamos por correo en cuanto esté listo.
+          Tu matrícula quedó <strong>pagada</strong> y tu acceso al aula virtual
+          ya está activo.
         </p>
       </div>
 
       <!--
-        "¿Qué sigue?" del diseño, adaptado: el diseño promete "tus accesos ya
-        están activos" y acá el pago queda PENDIENTE, así que cada paso dice lo
-        que de verdad se puede hacer ahora.
+        "¿Qué sigue?" del diseño: con el pago aprobado el acceso ya está
+        activo, como promete el diseño.
       -->
       <section class="mt-8 text-left">
         <h3

@@ -837,52 +837,50 @@
 }
 
 /*
- * Barra de desplazamiento del AULA (`Aula Virtual Fractal.html`).
+ * Barra de desplazamiento de TODO el sitio (la define `Aula Virtual Fractal.html`
+ * y se extiende a landing, checkout, login y panel para que no cambie entre
+ * pantallas).
  *
- * La del navegador sale gris y con flechas, que en el lienzo crema del aula se
- * ve como un elemento ajeno. El diseño la adelgaza y la tiñe del color de las
- * líneas.
+ * La del navegador sale gris y con flechas, que en el lienzo crema se ve como
+ * un elemento ajeno. El diseño la adelgaza y la tiñe del color de las líneas.
+ *
+ * Sin selector de ancestro: `::-webkit-scrollbar` a secas cubre también la
+ * barra de la VENTANA, que no pertenece a ningún elemento con clase.
  *
  * ⚠️ El `border: 3px solid transparent` + `background-clip: content-box` es lo
  * que da el pulgar FINO dentro de un carril de 10px: sin eso el color ocupa
  * todo el ancho y se ve como una barra maciza.
- *
- * Solo dentro de `.aula`: el admin conserva la barra nativa, que es lo que su
- * propio diseño dibuja.
  */
-.aula *::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 /*
- * ⚠️ El CARRIL va transparente y hay que declararlo.
- *
- * El diseño no lo hace porque su HTML tiene fondo blanco detrás y el gris por
- * defecto del navegador no se distingue. Acá el panel de avisos y las tarjetas
- * tienen bordes y fondos crema, y ese carril gris se ve como una banda ajena
- * pegada al borde.
+ * ⚠️ El CARRIL va transparente y hay que declararlo: el gris por defecto del
+ * navegador se ve como una banda ajena pegada al borde de las tarjetas crema.
  */
-.aula *::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 /*
- * Firefox no entiende `::-webkit-scrollbar` y usa las propiedades estándar.
+ * Firefox no entiende `::-webkit-scrollbar` y usa las propiedades estándar
+ * (heredables, por eso basta con `html`).
  *
  * ⚠️ Van en `@supports`, NO sueltas: Chrome da PRIORIDAD a las estándar sobre
  * `::-webkit-scrollbar`, así que declararlas para todos desactivaría el pulgar
- * redondeado del diseño y dejaría una barra fina genérica. La consulta las
- * limita a los navegadores que no soportan el pseudo-elemento.
+ * redondeado del diseño y dejaría una barra fina genérica.
  */
 @supports not selector(::-webkit-scrollbar) {
-  .aula {
+  html {
     scrollbar-width: thin;
     scrollbar-color: var(--color-scrollbar-thumb) transparent;
   }
 }
 
-.aula *::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: var(--color-scrollbar-thumb);
   border-radius: var(--radius-pill);
   border: 3px solid transparent;

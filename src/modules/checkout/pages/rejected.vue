@@ -5,10 +5,12 @@ import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
 import CheckoutLayout from "../layouts/main.vue";
 import { useCartStore } from "../stores/useCartStore";
 import { formatMoney } from "../utils/money";
+import { useSiteContact } from "@/modules/landing/composables/useSiteContact";
 
 const route = useRoute();
 const router = useRouter();
 const cart = useCartStore();
+const { advisorHref } = useSiteContact();
 
 const methodId = route.query.method as string | undefined;
 
@@ -104,7 +106,7 @@ const hasCart = computed(() => !cart.isEmpty && amount.value > 0);
           </svg>
           ¿Sigues con problemas?
           <a
-            href="https://wa.me/51987654321"
+            :href="advisorHref()"
             target="_blank"
             rel="noopener"
             class="font-semibold text-primary-600 underline"

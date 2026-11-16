@@ -2,6 +2,9 @@
 import { RouterLink } from 'vue-router'
 import LandingButton from './ui/LandingButton.vue'
 import LandingEyebrow from './ui/LandingEyebrow.vue'
+import { useSiteContact } from '../composables/useSiteContact'
+
+const { phone, whatsappHref } = useSiteContact()
 </script>
 
 <template>
@@ -24,28 +27,25 @@ import LandingEyebrow from './ui/LandingEyebrow.vue'
           </p>
         </div>
 
-        <!-- Right: CTA + meta -->
-        <div class="flex flex-col gap-10">
-          <div class="flex flex-col gap-3">
-            <RouterLink to="/contact">
-              <LandingButton variant="on-accent" size="lg" class="w-full justify-center">
-                Hablar con un asesor
-              </LandingButton>
-            </RouterLink>
-            <RouterLink to="/programs">
-              <LandingButton variant="on-accent-sec" size="lg" :arrow="false" class="w-full justify-center">
-                Ver todos los programas
-              </LandingButton>
-            </RouterLink>
-          </div>
-
-          <!-- Meta -->
-          <div class="grid grid-cols-2 gap-5 pt-8 border-t border-white/20">
-            <div v-for="([label, value]) in [['Próximo inicio', '15 JUL 2025'], ['Cupos disponibles', '15 / 30'], ['Asesoría', 'Gratuita'], ['Respuesta', '< 24 h']]" :key="label">
-              <p class="font-mono text-[0.594rem] tracking-widest uppercase text-white/50">{{ label }}</p>
-              <p class="font-display font-bold text-[1.125rem] text-white mt-1">{{ value }}</p>
-            </div>
-          </div>
+        <!-- Right: CTA. v4 quitó la grilla de "Próximo inicio / Cupos": eran
+             fechas y cupos fijos que no salían de ninguna oferta. -->
+        <div class="flex flex-col gap-3">
+          <RouterLink to="/contact">
+            <LandingButton variant="on-accent" size="lg" class="w-full justify-center">
+              Solicitar llamada
+            </LandingButton>
+          </RouterLink>
+          <a v-if="phone && whatsappHref()" :href="whatsappHref() ?? undefined" target="_blank" rel="noopener">
+            <LandingButton variant="on-accent-sec" size="lg" :arrow="false" class="w-full justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z" />
+              </svg>
+              WhatsApp · {{ phone }}
+            </LandingButton>
+          </a>
+          <p class="mt-1 text-center font-mono text-[0.688rem] tracking-[0.04em] text-white/70 uppercase">
+            Respondemos en menos de 24h
+          </p>
         </div>
       </div>
     </div>

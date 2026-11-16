@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSiteContact } from "@/modules/landing/composables/useSiteContact";
 import { hasSession } from "@/shared/utils/session";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
@@ -9,13 +10,13 @@ import ErrorFigure from "../components/ErrorFigure.vue";
 import {
   ERROR_CODES,
   SERVER_CODES,
-  SUPPORT_WHATSAPP,
 } from "../constants/codes";
 
 const props = defineProps<{ status?: number }>();
 
 const route = useRoute();
 const router = useRouter();
+const { advisorHref } = useSiteContact();
 
 const state = computed(
   () => ERROR_CODES[props.status ?? 404] ?? ERROR_CODES[404]!,
@@ -81,7 +82,7 @@ const onPrimary = () => {
 
 const onSecondary = () => {
   if (props.status === 403) {
-    window.open(SUPPORT_WHATSAPP, "_blank", "noopener");
+    window.open(advisorHref(), "_blank", "noopener");
     return;
   }
   router.push({ name: "home" });
