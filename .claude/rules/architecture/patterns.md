@@ -1,3 +1,12 @@
+---
+paths:
+  - "src/**/repositories/**"
+  - "src/**/services/**"
+  - "src/**/adapters/**"
+  - "src/**/dto/**"
+  - "src/**/models/**"
+---
+
 # Patrones — Repository, Adapter, Service
 
 ## Flujo de datos

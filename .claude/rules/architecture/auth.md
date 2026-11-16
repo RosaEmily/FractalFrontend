@@ -1,3 +1,10 @@
+---
+paths:
+  - "src/modules/auth/**"
+  - "src/router/**"
+  - "src/shared/utils/session.ts"
+---
+
 # Autenticación y Sesión
 
 ## Flujo de login
@@ -96,3 +103,43 @@ admin usa la redirección directa descrita arriba.
 ## Menú y roles
 
 El menú del admin (`constants/menu/security.ts`) incluye `roles: ["ADMIN"]` por ítem, pero el filtrado visual del menú es independiente del guard del router — ambos deben estar configurados.
+
+---
+
+## Reglas y trampas vigentes
+
+## Sesión — dos zonas independientes
+
+Cookie de sesión **HttpOnly por zona** que emite el backend; el JS no la toca.
+Más una cookie de perfil por zona: `app_user_admin` / `app_user_aula`.
+
+Cada petición declara su zona en **`X-Fractal-Zone`**, que pone un interceptor
+en `shared/helpers/axios/api-fractal.ts` usando `zoneFromPath(location.pathname)`.
+
+> ⚠️ **La sesión son DOS cookies y el guard solo puede leer UNA.** La HttpOnly
+> es invisible para el JS (es lo que impide que un XSS robe el token), así que
+> el guard usa `app_user_{zona}` como señal. Si esa falta pero el token sigue
+> vivo —el login falló entre un paso y otro, o `max_sessions=1` rechazó el
+> segundo— el usuario quedaba **encerrado fuera**: entraba, rebotaba al login,
+> entraba otra vez. Desde sep 2026 el guard consulta `auth/me` **una vez por
+> zona y carga de página** antes de rebotar, y rehace el perfil si el token
+> sirve. ⚠️ `clearSession()` solo borra las cookies VISIBLES: para descartar una
+> sesión de verdad hay que llamar al logout, o queda el token huérfano.
+
+> La zona sale del **path**, no de la cookie ni del rol. Pedir `/admin/...`
+> pregunta siempre por la sesión del panel, exista o no la del aula.
+
+Panel y aula pueden estar abiertos a la vez. `hasSession(zone)`,
+`clearSession(zone)` y `getUserRoles(zone)` siempre reciben la zona.
+
+**El perfil del AULA vive en un `ref` de módulo (`classroomUser`,
+`classroom/composables/useClassroomRole.ts`), no en un `computed` que lea la
+cookie** — una cookie no es reactiva, así que un `computed` la lee una vez y
+queda congelado hasta recargar. La cookie es solo la persistencia entre
+recargas. `syncClassroomUser()` la relee (login nuevo, sesión recuperada por
+el guard); `updateClassroomUser(patch)` la actualiza (se guardó el perfil): el
+`ref` primero, para que la UI reaccione al instante, la cookie después con
+`restoreSessionUser` (que CONSERVA la caducidad real de la sesión). Como es un
+`ref` de módulo, toda llamada a `useClassroomRole()` en cualquier componente
+—incluida la landing pública, que puede montarse antes o después de que el
+aula exista— comparte la misma instancia y ve los mismos cambios.

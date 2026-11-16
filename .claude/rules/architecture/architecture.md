@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/**"
+---
+
 # Arquitectura — Estructura del Proyecto
 
 ## Mapa de directorios

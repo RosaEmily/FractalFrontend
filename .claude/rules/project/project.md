@@ -1,3 +1,11 @@
+---
+paths:
+  - "package.json"
+  - "vite.config.ts"
+  - ".github/**"
+  - "Dockerfile*"
+---
+
 # Proyecto — Stack y Configuración
 
 ## ¿Qué es?

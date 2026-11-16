@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/admin/**"
+---
+
 # Guía para agregar un nuevo módulo CRUD
 
 Sigue este orden exacto para crear un nuevo módulo en el panel admin.

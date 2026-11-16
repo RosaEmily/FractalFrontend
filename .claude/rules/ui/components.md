@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/shared/components/**"
+  - "src/**/components/**"
+---
+
 # Componentes — Design System y UI
 
 ## Design System propio (`shared/components/core/`)

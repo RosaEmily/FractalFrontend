@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/modules/admin/modules/security/**"
+  - "src/modules/landing/**"
+---
+
 # Módulos existentes
 
 ## Auth
