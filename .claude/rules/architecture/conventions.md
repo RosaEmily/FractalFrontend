@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/**"
+---
+
 # Convenciones y reglas de desarrollo
 
 ## TypeScript y componentes
