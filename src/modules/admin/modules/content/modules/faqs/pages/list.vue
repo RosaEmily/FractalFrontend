@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h } from "vue";
 import SectionList from "@/modules/admin/components/Section/list.vue";
 import faqService from "../services/faq.service";
 import type { Faq } from "../models/faq.model";
@@ -17,6 +18,21 @@ const columns: GridUiColumnProps<Faq>[] = [
     field: "answer",
     header: "Respuesta",
     showFilterMenu: false,
+    /*
+     * Las respuestas son párrafos: en una celda de texto plano la columna se
+     * estrechaba y la fila crecía a 15+ líneas en móvil. Se recorta a 3 líneas
+     * con un ancho mínimo; el texto completo está en el título y en Editar.
+     */
+    type: "custom",
+    render: (row: Faq) =>
+      h(
+        "p",
+        {
+          class: "min-w-64 line-clamp-3 text-adm-base text-secondary-500",
+          title: row.answer,
+        },
+        row.answer,
+      ),
   },
 ];
 </script>
