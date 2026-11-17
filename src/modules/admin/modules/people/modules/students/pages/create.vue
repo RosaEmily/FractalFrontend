@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { strongPassword } from "@/shared/utils/password-schema";
+import { phoneSchema } from "@/modules/admin/utils/document-schema";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -14,6 +16,7 @@ import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces, numbersOnly } from "@/shared/utils/zod/shortcuts";
 import {
+  InputPhoneCore,
   InputTextCore,
   InputPasswordCore,
   DatePicketCore,
@@ -110,9 +113,7 @@ const formSchema = z.object({
     .string({ message: "El correo es obligatorio" })
     .email({ message: "Debes ingresar un correo válido" })
     .max(150),
-  password: z
-    .string({ message: "La contraseña es obligatoria" })
-    .min(6, { message: "Debe tener al menos 6 caracteres" }),
+  password: strongPassword(),
   gender: z.enum(["m", "f", "o"], { message: "Debes seleccionar un género" }),
   document_type: z.string({ message: "El tipo de documento es obligatorio" }),
   document_number: withRefinements(
@@ -122,7 +123,7 @@ const formSchema = z.object({
       .max(50),
     numbersOnly,
   ),
-  phone: z.string({ message: "El teléfono es obligatorio" }).max(20),
+  phone: phoneSchema(),
   education_level: z.string({ message: "El nivel educativo es obligatorio" }),
   career: z.string({ message: "La carrera es obligatoria" }),
   other_career: z.string().max(100).nullable().optional(),
@@ -209,8 +210,9 @@ const onSubmit = (body: Record<string, unknown>) =>
           :invalid="!!errors.gender"
           :message-error="errors.gender"
         />
-        <InputTextCore
+        <InputPhoneCore
           v-model="fields.phone.value"
+          name="phone"
           label="Teléfono"
           :invalid="!!errors.phone"
           :message-error="errors.phone"

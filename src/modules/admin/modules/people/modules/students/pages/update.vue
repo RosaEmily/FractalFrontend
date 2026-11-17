@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { phoneSchema } from "@/modules/admin/utils/document-schema";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -15,6 +16,7 @@ import PersonPhotoField from "@/modules/admin/components/ui/person-photo-field.v
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { numbersOnly } from "@/shared/utils/zod/shortcuts";
 import {
+  InputPhoneCore,
   InputTextCore,
   SelectCore,
   DatePicketCore,
@@ -73,11 +75,7 @@ const formSchema = z.object({
       message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
     }),
   address: z.string().max(255).nullable().optional(),
-  phone: z
-    .string()
-    .max(20, { message: "El teléfono es demasiado largo" })
-    .nullable()
-    .optional(),
+  phone: phoneSchema().nullable().optional(),
   is_favorite: z.boolean().optional(),
 });
 
@@ -193,8 +191,9 @@ onMounted(async () => {
           :invalid="!!errors.birth_date"
           :message-error="errors.birth_date"
         />
-        <InputTextCore
+        <InputPhoneCore
           v-model="fields.phone.value"
+          name="phone"
           label="Teléfono"
           :invalid="!!errors.phone"
           :message-error="errors.phone"

@@ -7,6 +7,7 @@ import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import ToggleCheck from "@/modules/admin/components/ui/toggle-check.vue";
 import PersonPhotoField from "@/modules/admin/components/ui/person-photo-field.vue";
 import {
+  InputPhoneCore,
   InputTextCore,
   InputNumberCore,
   SelectCore,
@@ -19,7 +20,6 @@ import {
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
 import {
   getDocumentRule,
-  PHONE_PE,
 } from "@/modules/admin/constants/documents";
 import {
   documentNumberSchema,
@@ -168,14 +168,12 @@ onMounted(async () => {
           :invalid="!!errors.academic_degree"
           :message-error="errors.academic_degree"
         />
-        <InputTextCore
+        <InputPhoneCore
           v-model="fields.phone.value"
+          name="phone"
           label="Teléfono"
-          :hint-label="PHONE_PE.hint"
-          :maxlength="PHONE_PE.length"
           :invalid="!!errors.phone"
           :message-error="errors.phone"
-          v-keyfilter.numbersOnly
         />
       </div>
 

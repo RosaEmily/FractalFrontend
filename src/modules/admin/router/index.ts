@@ -1,5 +1,5 @@
-import LayoutMain from "@/modules/layouts/main.vue";
-import LayoutAdminMain from "../layouts/main.vue";
+const LayoutMain = () => import("@/modules/layouts/main.vue");
+const LayoutAdminMain = () => import("../layouts/main.vue");
 
 import { routesSecurity } from "../modules/security/router";
 import { routesCatalog } from "../modules/catalog/router";

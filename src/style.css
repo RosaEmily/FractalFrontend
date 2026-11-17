@@ -654,6 +654,20 @@
   line-height: 1.2;
 }
 
+/* Teléfono con país (InputPhoneCore): el selector queda a su ancho y comparte borde con el número. */
+.landing-field .phone-core__select.p-select {
+  width: auto;
+  flex-shrink: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.landing-field .phone-core__input.p-inputtext {
+  flex: 1;
+  min-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 /* Celular con prefijo: la máscara se pega al "+51" y comparte su borde. */
 .landing-field .landing-mask {
   flex: 1;

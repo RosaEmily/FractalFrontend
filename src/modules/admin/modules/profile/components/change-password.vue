@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { strongPassword } from "@/shared/utils/password-schema";
 import { computed, ref } from "vue";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -81,10 +82,7 @@ const formSchema = z
     current_password: z
       .string({ message: "Debes ingresar tu contraseña actual" })
       .min(1, { message: "Debes ingresar tu contraseña actual" }),
-    password: z
-      .string({ message: "La nueva contraseña es obligatoria" })
-      .min(6, { message: "Debe tener al menos 6 caracteres" })
-      .max(100, { message: "No puede tener más de 100 caracteres" }),
+    password: strongPassword("La nueva contraseña es obligatoria"),
     password_confirmation: z
       .string({ message: "Debes confirmar la nueva contraseña" })
       .min(1, { message: "Debes confirmar la nueva contraseña" }),

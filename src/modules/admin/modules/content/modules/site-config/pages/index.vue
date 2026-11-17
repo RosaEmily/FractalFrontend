@@ -13,7 +13,8 @@ import { z } from "zod";
 import { computed, onMounted, ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
-import { InputTextCore, TextAreaCore } from "@/shared/components";
+import { InputPhoneCore, InputTextCore, TextAreaCore } from "@/shared/components";
+import { isValidPhone } from "@/shared/components/core/input/phone/countries";
 import FieldPreview from "../../../components/field-preview.vue";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import siteConfigService from "../services/site-config.service";
@@ -44,10 +45,9 @@ const formSchema = z.object({
     .max(100, { message: "No puede tener más de 100 caracteres" }),
   whatsapp: z
     .string({ message: "El WhatsApp es obligatorio" })
-    .regex(/^\+?[0-9]+$/, {
-      message: "Solo números, con un + opcional al inicio",
-    })
-    .max(20, { message: "No puede tener más de 20 caracteres" }),
+    .refine((v) => isValidPhone(v), {
+      message: "Ingresa un número de WhatsApp válido",
+    }),
   meta_title: z
     .string({ message: "El meta título es obligatorio" })
     .max(META_TITLE_MAX, {
@@ -118,12 +118,11 @@ onMounted(async () => {
           :messages-info="['Aparece en la pestaña del navegador.']"
           @update:model-value="current.site_name = $event"
         />
-        <InputTextCore
+        <InputPhoneCore
           v-model="fields.whatsapp.value"
+          name="whatsapp"
           label="WhatsApp flotante"
           required
-          hint-label="Solo números, con código de país."
-          placeholder="+51999999999"
           :invalid="!!errors.whatsapp"
           :message-error="errors.whatsapp"
           @update:model-value="current.whatsapp = $event"

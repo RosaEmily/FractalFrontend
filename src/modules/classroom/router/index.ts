@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from "vue-router";
-import LayoutClassroom from "../layouts/main.vue";
+const LayoutClassroom = () => import("../layouts/main.vue");
 
 /*
  * Aula virtual: tres zonas bajo un mismo shell.

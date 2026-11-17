@@ -1,8 +1,8 @@
-import ListPage from "../pages/list.vue";
-import CreatePage from "../pages/create.vue";
-import UpdatePage from "../pages/update.vue";
-import SessionsPage from "../pages/sessions.vue";
-import ManageSessionsPage from "../pages/manage-sessions.vue";
+const ListPage = () => import("../pages/list.vue");
+const CreatePage = () => import("../pages/create.vue");
+const UpdatePage = () => import("../pages/update.vue");
+const SessionsPage = () => import("../pages/sessions.vue");
+const ManageSessionsPage = () => import("../pages/manage-sessions.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 

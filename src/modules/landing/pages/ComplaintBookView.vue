@@ -8,9 +8,10 @@
  */
 import { computed, onMounted, ref, watch } from 'vue'
 import { Checkbox, InputMask, InputNumber, RadioButton } from 'primevue'
+import { isValidPhone } from '@/shared/components/core/input/phone/countries'
 import { z } from 'zod'
 import LandingLayout from '../layouts/LandingLayout.vue'
-import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
+import { InputPhoneCore, InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
 import LabelCore from '@/shared/components/core/label/index.vue'
 import MessageCore from '@/shared/components/core/message/index.vue'
 import { safeRequest } from '@/shared/utils/request'
@@ -72,7 +73,7 @@ const schema = z
     documentType: z.string().min(1, 'Elige el tipo de documento'),
     documentNumber: z.string().trim().min(1, 'Escribe tu número de documento'),
     email: z.string().trim().min(1, 'Escribe tu correo').email('Escribe un correo válido').max(150, 'Máximo 150 caracteres'),
-    phone: z.string().refine((v) => !v || /^9\d{2} \d{3} \d{3}$/.test(v), 'Escribe un celular de 9 dígitos que empiece con 9'),
+    phone: z.string().refine((v) => !v || isValidPhone(v), 'Escribe un celular válido'),
     address: z.string().trim().min(5, 'Escribe tu domicilio').max(255, 'Máximo 255 caracteres'),
     isMinor: z.boolean(),
     guardianName: z.string().trim().max(200, 'Máximo 200 caracteres'),
@@ -178,7 +179,7 @@ async function submit() {
       document_number: f.documentNumber.trim(),
       email: f.email.trim(),
       // La API guarda el móvil de 9 dígitos, sin prefijo ni espacios (igual que los usuarios).
-      phone: f.phone ? f.phone.replace(/\s/g, '') : null,
+      phone: f.phone || null,
       address: f.address.trim(),
       is_minor: f.isMinor,
       guardian_name: f.isMinor ? f.guardianName.trim() : null,
@@ -361,15 +362,7 @@ const STEPS = [
                 placeholder="tu@correo.com" :invalid="!!errors.email" :message-error="errors.email" @blur="onBlur('email')" />
 
               <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
-                <div class="landing-field">
-                  <LabelCore text="Celular" html-for="phone" hint="opcional" />
-                  <div class="flex">
-                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-line bg-surface-cream font-mono text-[0.8125rem] text-secondary-500">+51</span>
-                    <InputMask id="phone" v-model="form.phone" mask="999 999 999" placeholder="999 999 999" inputmode="tel"
-                      autocomplete="tel-national" class="landing-mask" :invalid="!!errors.phone" @blur="onBlur('phone')" />
-                  </div>
-                  <MessageCore v-if="errors.phone" :text="errors.phone" severity="error" variant="simple" />
-                </div>
+                <InputPhoneCore v-model="form.phone" class="landing-field" name="phone" label="Celular" hint-label="opcional" :invalid="!!errors.phone" :message-error="errors.phone" @blur="onBlur('phone')" />
                 <InputTextCore v-model="form.address" class="landing-field" label="Domicilio" required name="address" autocomplete="street-address"
                   placeholder="Av. / Calle, distrito" :invalid="!!errors.address" :message-error="errors.address" @blur="onBlur('address')" />
               </div>

@@ -1,4 +1,4 @@
-import ProfilePage from "../pages/index.vue";
+const ProfilePage = () => import("../pages/index.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 

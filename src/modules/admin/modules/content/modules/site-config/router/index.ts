@@ -1,4 +1,4 @@
-import ConfigPage from "../pages/index.vue";
+const ConfigPage = () => import("../pages/index.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 
