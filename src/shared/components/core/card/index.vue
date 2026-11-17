@@ -5,19 +5,19 @@ const props = withDefaults(defineProps<CardCoreProps>(), {});
 </script>
 <template>
   <Card v-bind="props">
-    <template #title>
+    <template v-if="$slots.title" #title>
       <slot name="title" />
     </template>
     <template #content>
       <slot />
     </template>
-    <template #subtitle>
+    <template v-if="$slots.subtitle" #subtitle>
       <slot name="subtitle" />
     </template>
-    <template #footer>
+    <template v-if="$slots.footer" #footer>
       <slot name="footer" />
     </template>
-    <template #header>
+    <template v-if="$slots.header" #header>
       <slot name="header" />
     </template>
   </Card>

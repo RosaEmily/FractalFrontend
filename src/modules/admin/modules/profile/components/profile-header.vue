@@ -86,7 +86,7 @@ const roleLabel = computed(() => {
         </span>
       </div>
 
-      <div class="flex-1 pt-4 min-w-0">
+      <div class="flex-1 basis-56 pt-4 min-w-0">
         <h1
           class="font-display text-[1.75rem] font-bold text-secondary-900 m-0 tracking-tight leading-tight"
         >
@@ -101,8 +101,8 @@ const roleLabel = computed(() => {
       </div>
 
       <!-- Stats: solo los que la API puede responder de verdad -->
-      <div class="pt-4 flex border border-line rounded-adm-md overflow-hidden">
-        <div class="px-4.5 py-2.5">
+      <div class="pt-4 flex w-full lg:w-auto border border-line rounded-adm-md overflow-hidden">
+        <div class="px-4.5 py-2.5 min-w-0 flex-1 lg:flex-none">
           <div
             class="font-mono text-[0.563rem] text-secondary-400 tracking-widest uppercase"
           >
@@ -112,7 +112,7 @@ const roleLabel = computed(() => {
             {{ lastAccessLabel }}
           </div>
         </div>
-        <div class="px-4.5 py-2.5 border-l border-line">
+        <div class="px-4.5 py-2.5 min-w-0 flex-1 lg:flex-none border-l border-line">
           <div
             class="font-mono text-[0.563rem] text-secondary-400 tracking-widest uppercase"
           >
@@ -124,14 +124,14 @@ const roleLabel = computed(() => {
             {{ sessionsCount }}
           </div>
         </div>
-        <div class="px-4.5 py-2.5 border-l border-line">
+        <div class="px-4.5 py-2.5 min-w-0 flex-1 lg:flex-none border-l border-line">
           <div
             class="font-mono text-[0.563rem] text-secondary-400 tracking-widest uppercase"
           >
             Rol
           </div>
           <div
-            class="font-display text-base font-bold text-secondary-900 mt-1"
+            class="font-display text-base font-bold text-secondary-900 mt-1 wrap-break-word"
           >
             {{ mainRole?.description ?? mainRole?.name ?? "—" }}
           </div>

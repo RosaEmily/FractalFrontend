@@ -11,8 +11,10 @@ const columns: GridUiColumnProps<Sponsor>[] = [
     header: "Logo",
     type: "image",
     showFilterMenu: false,
-    // Los logos vienen en proporciones distintas: contain los respeta.
-    image: { fit: "contain", class: "h-10 w-auto max-w-32" },
+    // Los logos vienen en proporciones distintas: contain los respeta. Son
+    // blancos (van sobre fondo oscuro en la landing): sin fondo propio se
+    // pierden sobre la fila blanca/crema.
+    image: { fit: "contain", class: "h-10 w-auto max-w-32 rounded-adm-sm bg-secondary-900 px-2 py-1" },
   },
   {
     field: "name",

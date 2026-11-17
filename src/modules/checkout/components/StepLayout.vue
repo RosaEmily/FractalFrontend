@@ -29,7 +29,7 @@ const cart = useCartStore();
     Volver
   </button>
 
-  <div class="grid items-start gap-10 min-[900px]:grid-cols-[1.55fr_1fr]">
+  <div class="grid grid-cols-1 items-start gap-10 min-[900px]:grid-cols-[1.55fr_1fr]">
     <section class="order-1 min-w-0 min-[900px]:order-0">
       <LandingEyebrow :index="index">{{ eyebrow }}</LandingEyebrow>
       <h1 class="mt-3.5 font-display text-[1.875rem] leading-[1.1] font-bold tracking-[-0.02em] text-secondary-900 sm:text-[2.5rem]">
@@ -46,7 +46,7 @@ const cart = useCartStore();
     </section>
 
     <!-- En una columna el pedido va ARRIBA, como en el diseño. -->
-    <aside class="order-0 min-[900px]:sticky min-[900px]:-top-5 min-[900px]:order-1">
+    <aside class="order-0 min-w-0 min-[900px]:sticky min-[900px]:-top-5 min-[900px]:order-1">
       <div class="rounded-adm-lg border border-line bg-surface-paper p-6 shadow-md">
         <p class="mb-4 font-mono text-[0.688rem] tracking-[0.08em] text-secondary-400 uppercase">Tu pedido</p>
         <ul class="mb-[1.125rem] flex flex-col gap-3">

@@ -129,7 +129,7 @@ watch(
 
       <!-- ACTIONS -->
       <div
-        class="flex gap-2.5 justify-end items-center mt-7 -mx-6 -mb-6 px-7 py-4.5 border-t border-line-soft bg-admin-bg rounded-b-adm-lg"
+        class="flex gap-2.5 justify-end items-center mt-7 -mx-5 -mb-5 px-7 py-4.5 border-t border-line-soft bg-admin-bg rounded-b-adm-lg"
       >
         <ButtonCore
           as="RouterLink"

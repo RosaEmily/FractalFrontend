@@ -48,7 +48,7 @@ onUnmounted(() => clearInterval(timer))
     ]" />
 
     <!-- Contenido -->
-    <div class="relative px-6 md:px-16 pt-18 grid grid-cols-1 md:grid-cols-[1.05fr_1fr] gap-12 md:gap-16 items-center min-h-125 md:min-h-135">
+    <div class="relative px-6 md:px-16 pt-18 pb-10 md:pb-0 grid grid-cols-1 md:grid-cols-[1.05fr_1fr] gap-12 md:gap-16 items-center min-h-125 md:min-h-135">
       <!-- Texto -->
       <div v-if="props.skeleton" class="animate-pulse">
         <div class="h-6 w-40 bg-secondary-900/10 rounded-full mb-7" />
