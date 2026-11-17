@@ -6,6 +6,7 @@ import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
 import { safeRequest } from '@/shared/utils/request'
 import { useSiteContact } from '../composables/useSiteContact'
 import { offerService } from '../services/offer.service'
+import { contactMessageService } from '../services/contact-message.service'
 
 const form = ref({
   firstName: '',
@@ -18,9 +19,44 @@ const form = ref({
   consent:   true,
 })
 const sent = ref(false)
+const sending = ref(false)
+const sendError = ref<string | null>(null)
+/* Señuelo anti-bots: un visitante real nunca lo ve, así que nunca lo llena. */
+const website = ref('')
 const openFaq = ref<number | null>(0)
 
-function submit() { sent.value = true }
+async function submit() {
+  if (sending.value) return
+  sending.value = true
+  sendError.value = null
+
+  const f = form.value
+  const { error } = await safeRequest(
+    () => contactMessageService.send({
+      first_name: f.firstName.trim(),
+      last_name: f.lastName.trim(),
+      email: f.email.trim(),
+      phone: f.phone.trim() || null,
+      profession: f.profession.trim() || null,
+      program_interest: f.program || null,
+      message: f.message.trim(),
+      consent: f.consent,
+      website: website.value,
+    }),
+    { showAlert: false },
+  )
+
+  sending.value = false
+  if (error) {
+    // Un campo mal llenado trae el detalle por campo; si no, el mensaje general.
+    const details = error.details && !Array.isArray(error.details)
+      ? Object.values(error.details as Record<string, string[]>)[0]?.[0]
+      : null
+    sendError.value = details ?? error.message ?? 'No pudimos enviar tu mensaje. Inténtalo de nuevo.'
+    return
+  }
+  sent.value = true
+}
 function resetForm() {
   form.value = { firstName: '', lastName: '', email: '', phone: '', profession: '', program: '', message: '', consent: true }
   sent.value = false
@@ -29,7 +65,18 @@ function toggleFaq(i: number) {
   openFaq.value = openFaq.value === i ? null : i
 }
 
-const { email, phone, address, mailHref, telHref, whatsappHref, faqs } = useSiteContact()
+const { email, phone, address, mailHref, telHref, whatsappHref, faqs, footer } = useSiteContact()
+
+/* Textos del panel (Sitio web → Pie de página); lo de la derecha es el respaldo. */
+const cp = computed(() => footer.value?.contactPage)
+const heroEyebrow = computed(() => cp.value?.eyebrow ?? 'CONTACTO · LIMA · PERÚ')
+const heroTitle = computed(() => cp.value?.title ?? 'Conversa con un')
+const heroAccent = computed(() => cp.value?.titleAccent ?? 'asesor académico')
+const heroDescription = computed(
+  () => cp.value?.description
+    ?? 'Cuéntanos sobre tu rol, experiencia y meta profesional. Te ayudamos a elegir el programa correcto y resolvemos dudas de matrícula.',
+)
+const formNote = computed(() => cp.value?.formNote ?? 'Te responderemos en menos de 24 horas hábiles.')
 
 /*
  * `/contact#faqs` (enlace del pie): la sección solo existe cuando las preguntas
@@ -39,11 +86,13 @@ const { email, phone, address, mailHref, telHref, whatsappHref, faqs } = useSite
 const route = useRoute()
 const scrollToFaqs = () =>
   nextTick(() => document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' }))
+// Datos que llegan después de montar la página (primera visita).
 watch(
   () => [faqs.value.length, route.hash] as const,
   ([count, hash]) => { if (count && hash === '#faqs') scrollToFaqs() },
-  { immediate: true },
 )
+// Datos que ya estaban en caché (se llegó desde otra página): la sección existe al montar.
+onMounted(() => { if (route.hash === '#faqs' && faqs.value.length) scrollToFaqs() })
 
 type ContactCard = { icon: string; label: string; value: string; sub: string; href: string; external?: boolean }
 
@@ -55,16 +104,16 @@ const contactCards = computed<ContactCard[]>(() => {
   const wa = whatsappHref()
   const cards: (ContactCard | null)[] = [
     email.value && mailHref.value
-      ? { icon: 'mail', label: 'EMAIL', value: email.value, sub: 'Respondemos en menos de 24h', href: mailHref.value }
+      ? { icon: 'mail', label: 'EMAIL', value: email.value, sub: cp.value?.emailNote ?? 'Respondemos en menos de 24h', href: mailHref.value }
       : null,
     phone.value && telHref.value
-      ? { icon: 'phone', label: 'TELÉFONO', value: phone.value, sub: 'Lun a Vie · 9am – 7pm', href: telHref.value }
+      ? { icon: 'phone', label: 'TELÉFONO', value: phone.value, sub: cp.value?.phoneNote ?? 'Lun a Vie · 9am – 7pm', href: telHref.value }
       : null,
     address.value && mapsHref.value
-      ? { icon: 'pin', label: 'SEDE', value: address.value, sub: 'Ver en el mapa', href: mapsHref.value, external: true }
+      ? { icon: 'pin', label: 'SEDE', value: address.value, sub: cp.value?.addressNote ?? 'Ver en el mapa', href: mapsHref.value, external: true }
       : null,
     wa && phone.value
-      ? { icon: 'whatsapp', label: 'WHATSAPP', value: phone.value, sub: 'Atención 24/7', href: wa, external: true }
+      ? { icon: 'whatsapp', label: 'WHATSAPP', value: phone.value, sub: cp.value?.whatsappNote ?? 'Atención 24/7', href: wa, external: true }
       : null,
   ]
   return cards.filter((c): c is ContactCard => c !== null)
@@ -97,12 +146,12 @@ onMounted(async () => {
       <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-16">
         <!-- Left: info + cards + map -->
         <div>
-          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">CONTACTO · LIMA · PERÚ</p>
+          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">{{ heroEyebrow }}</p>
           <h1 class="font-display font-bold text-[clamp(48px,6vw,72px)] leading-[0.98] tracking-tight text-secondary-900 text-balance">
-            Conversa con un<br><span class="text-primary-500">asesor académico</span>.
+            {{ heroTitle }}<br><span class="text-primary-500">{{ heroAccent }}</span>.
           </h1>
           <p class="font-body text-[1.0625rem] text-secondary-500 leading-relaxed mt-3 mb-9 max-w-lg text-pretty">
-            Cuéntanos sobre tu rol, experiencia y meta profesional. Te ayudamos a elegir el programa correcto y resolvemos dudas de matrícula.
+            {{ heroDescription }}
           </p>
 
           <!-- Contact cards 2x2 -->
@@ -223,6 +272,11 @@ onMounted(async () => {
 
           <!-- Form -->
           <form v-else @submit.prevent="submit" class="flex flex-col gap-3.5">
+            <!-- Señuelo anti-bots: fuera de pantalla y fuera del tabulador -->
+            <div class="sr-only" aria-hidden="true">
+              <label>No llenar este campo<input v-model="website" type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+            </div>
+
             <!-- Name row -->
             <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
               <div>
@@ -292,19 +346,24 @@ onMounted(async () => {
               Acepto recibir información sobre programas, becas y novedades de Fractal Studio.
             </label>
 
+            <p v-if="sendError" role="alert" class="font-body text-[0.8125rem] text-danger-DEFAULT">
+              {{ sendError }}
+            </p>
+
             <!-- Submit -->
             <button
               type="submit"
-              class="w-full flex items-center justify-between px-6 py-4 bg-primary-500 text-white font-body text-[0.9375rem] font-semibold rounded-lg hover:opacity-90 transition-opacity mt-2"
+              :disabled="sending"
+              class="w-full flex items-center justify-between px-6 py-4 bg-primary-500 text-white font-body text-[0.9375rem] font-semibold rounded-lg hover:opacity-90 transition-opacity mt-2 disabled:opacity-60 disabled:cursor-wait"
             >
-              Enviar consulta
+              {{ sending ? 'Enviando…' : 'Enviar consulta' }}
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 8H13M9 4L13 8L9 12"/>
               </svg>
             </button>
 
             <p class="font-body text-[0.719rem] text-secondary-400 text-center">
-              Te responderemos en menos de 24 horas hábiles.
+              {{ formNote }}
             </p>
           </form>
         </div>

@@ -54,6 +54,36 @@ export interface Faq {
   answer: string;
 }
 
+export interface FooterLink {
+  label: string;
+  /** Destino ya resuelto: ruta interna (`/info/...`, `/contact#faqs`) o URL externa. */
+  href: string;
+  external: boolean;
+}
+
+export interface FooterColumn {
+  title: string;
+  links: FooterLink[];
+}
+
+export interface FooterContent {
+  brandText: string | null;
+  legalName: string | null;
+  locationText: string | null;
+  columns: FooterColumn[];
+  contactPage: {
+    eyebrow: string | null;
+    title: string | null;
+    titleAccent: string | null;
+    description: string | null;
+    emailNote: string | null;
+    phoneNote: string | null;
+    addressNote: string | null;
+    whatsappNote: string | null;
+    formNote: string | null;
+  };
+}
+
 export interface General {
   logo: string;
   banner: Banner[];
@@ -63,6 +93,7 @@ export interface General {
   social_networks: SocialNetwork[];
   faqs: Faq[];
   complaints_book: string | null;
+  footer: FooterContent;
   whatsapp: string | null;
   site_name: string | null;
   meta_title: string | null;

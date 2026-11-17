@@ -8,6 +8,9 @@ import {
   mdiImageMultipleOutline,
   mdiCardAccountPhoneOutline,
   mdiCogOutline,
+  mdiFileDocumentOutline,
+  mdiDockBottom,
+  mdiMessageTextOutline,
 } from "@mdi/js";
 
 export const MENU_CONTENT: MenuItem[] = [
@@ -65,6 +68,30 @@ export const MENU_CONTENT: MenuItem[] = [
         roles: ["ADMIN"],
         route: { name: "contacts.list" },
         module: "contacts",
+      },
+      {
+        id: "content.pages",
+        label: "Páginas",
+        icon: mdiFileDocumentOutline,
+        roles: ["ADMIN"],
+        route: { name: "pages.list" },
+        module: "pages",
+      },
+      {
+        id: "content.footer",
+        label: "Pie de página",
+        icon: mdiDockBottom,
+        roles: ["ADMIN"],
+        route: { name: "footer" },
+        module: "footer",
+      },
+      {
+        id: "content.contact-messages",
+        label: "Mensajes de contacto",
+        icon: mdiMessageTextOutline,
+        roles: ["ADMIN"],
+        route: { name: "contactMessages.list" },
+        module: "contactMessages",
       },
       {
         id: "content.site-config",

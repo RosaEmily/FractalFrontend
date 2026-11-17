@@ -27,6 +27,11 @@ export const routesLanding: RouteRecordRaw[] = [
     component: () => import("../pages/ProgramDetailView.vue"),
   },
   {
+    path: "/info/:slug",
+    name: "info-page",
+    component: () => import("../pages/InfoPageView.vue"),
+  },
+  {
     path: "/contact",
     name: "contact",
     component: () => import("../pages/ContactView.vue"),

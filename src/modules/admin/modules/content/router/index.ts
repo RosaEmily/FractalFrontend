@@ -5,6 +5,9 @@ import { routesSocialNetworks } from "../modules/social-networks/router";
 import { routesBanners } from "../modules/banners/router";
 import { routesContacts } from "../modules/contacts/router";
 import { routesSiteConfig } from "../modules/site-config/router";
+import { routesPages } from "../modules/pages/router";
+import { routesFooter } from "../modules/footer/router";
+import { routesContactMessages } from "../modules/contact-messages/router";
 
 import type { RouteRecordRaw } from "vue-router";
 
@@ -20,6 +23,9 @@ export const routesContent: RouteRecordRaw[] = [
       ...routesBanners,
       ...routesContacts,
       ...routesSiteConfig,
+      ...routesPages,
+      ...routesFooter,
+      ...routesContactMessages,
     ],
   },
 ];
