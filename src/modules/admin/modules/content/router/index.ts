@@ -8,6 +8,7 @@ import { routesSiteConfig } from "../modules/site-config/router";
 import { routesPages } from "../modules/pages/router";
 import { routesFooter } from "../modules/footer/router";
 import { routesContactMessages } from "../modules/contact-messages/router";
+import { routesComplaints } from "../modules/complaints/router";
 
 import type { RouteRecordRaw } from "vue-router";
 
@@ -26,6 +27,7 @@ export const routesContent: RouteRecordRaw[] = [
       ...routesPages,
       ...routesFooter,
       ...routesContactMessages,
+      ...routesComplaints,
     ],
   },
 ];

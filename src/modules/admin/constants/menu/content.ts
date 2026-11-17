@@ -11,6 +11,7 @@ import {
   mdiFileDocumentOutline,
   mdiDockBottom,
   mdiMessageTextOutline,
+  mdiBookOpenPageVariantOutline,
 } from "@mdi/js";
 
 export const MENU_CONTENT: MenuItem[] = [
@@ -92,6 +93,14 @@ export const MENU_CONTENT: MenuItem[] = [
         roles: ["ADMIN"],
         route: { name: "contactMessages.list" },
         module: "contactMessages",
+      },
+      {
+        id: "content.complaints",
+        label: "Libro de reclamaciones",
+        icon: mdiBookOpenPageVariantOutline,
+        roles: ["ADMIN"],
+        route: { name: "complaints.list" },
+        module: "complaints",
       },
       {
         id: "content.site-config",
