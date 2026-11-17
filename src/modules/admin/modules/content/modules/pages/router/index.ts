@@ -1,6 +1,6 @@
-import ListPage from "../pages/list.vue";
-import CreatePage from "../pages/create.vue";
-import EditPage from "../pages/edit.vue";
+const ListPage = () => import("../pages/list.vue");
+const CreatePage = () => import("../pages/create.vue");
+const EditPage = () => import("../pages/edit.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 

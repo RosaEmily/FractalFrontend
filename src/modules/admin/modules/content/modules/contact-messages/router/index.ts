@@ -1,4 +1,4 @@
-import ListPage from "../pages/list.vue";
+const ListPage = () => import("../pages/list.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 

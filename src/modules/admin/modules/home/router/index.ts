@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from "vue-router";
-import HomePage from "../pages/index.vue";
+const HomePage = () => import("../pages/index.vue");
 
 export const routesHome: RouteRecordRaw[] = [
   {

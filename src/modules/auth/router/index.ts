@@ -1,5 +1,5 @@
-import AuthPage from "../pages/AuthPage.vue";
-import LayoutMain from "@/modules/layouts/main.vue";
+const AuthPage = () => import("../pages/AuthPage.vue");
+const LayoutMain = () => import("@/modules/layouts/main.vue");
 import type { RouteRecordRaw } from "vue-router";
 
 /*

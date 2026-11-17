@@ -1,4 +1,4 @@
-import IndexPage from "../pages/index.vue";
+const IndexPage = () => import("../pages/index.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 
