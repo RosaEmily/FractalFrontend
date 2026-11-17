@@ -23,9 +23,11 @@ const inline = (escaped: string): string =>
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, url: string) => {
       // `&amp;` dentro de la URL ya viene escapado; se desescapa solo para comprobar el esquema.
       const raw = url.replace(/&amp;/g, "&");
-      return SAFE_URL.test(raw)
-        ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
-        : `${label} (${url})`;
+      if (!SAFE_URL.test(raw)) return `${label} (${url})`;
+      // Una ruta del propio sitio (`/contact`) se abre en la misma pestaña; el resto, en una nueva.
+      return raw.startsWith("/")
+        ? `<a href="${url}">${label}</a>`
+        : `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
     })
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");

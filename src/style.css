@@ -636,6 +636,34 @@
   resize: none;
 }
 
+/* Con error el borde avisa; el texto y el placeholder siguen legibles, no en rojo. */
+.landing-field .p-inputtext.p-invalid,
+.landing-field .p-textarea.p-invalid {
+  color: var(--color-secondary-900);
+}
+.landing-field .p-inputtext::placeholder,
+.landing-field .p-textarea::placeholder {
+  color: var(--color-secondary-400);
+}
+.landing-field .p-message {
+  margin-top: 0.375rem;
+}
+.landing-field .p-message-text {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+/* Celular con prefijo: la máscara se pega al "+51" y comparte su borde. */
+.landing-field .landing-mask {
+  flex: 1;
+  min-width: 0;
+}
+.landing-field .landing-mask.p-inputtext {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 /*
  * Campo "desnudo": el control va DENTRO de una píldora que ya dibuja borde y
  * fondo (el buscador de docentes, el alta del newsletter, el buscador del
@@ -681,21 +709,53 @@
  * Slider de rango de la landing (precio y duración): el diseño V3 lo dibuja
  * más fino que el default de Aura, con el tramo activo en el color primario.
  */
-.landing-range .p-slider {
+.landing-range {
+  /* Los pulgares sobresalen media vuelta del track en los extremos: sin este margen se recortan. */
+  padding-inline: 0.625rem;
+}
+
+.landing-range .p-slider.p-slider-horizontal {
   width: 100%;
-  height: 0.375rem;
+  height: 0.25rem;
+  border-radius: 9999px;
   background: var(--color-line);
 }
 
-.landing-range .p-slider-range {
+.landing-range .p-slider .p-slider-range {
+  border-radius: 9999px;
   background: var(--color-primary-500);
 }
 
-.landing-range .p-slider-handle {
-  width: 1rem;
-  height: 1rem;
-  background: var(--color-surface-paper);
+/*
+ * El pulgar de Aura se dibuja con un círculo exterior y otro interior
+ * (`::before`); con el borde propio quedaba un óvalo partido y descentrado.
+ * Acá es un solo círculo; el handle se ancla al 50% del track, así que el
+ * margen negativo es la mitad de su propio alto.
+ */
+.landing-range .p-slider .p-slider-handle {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: -0.625rem;
+  margin-left: -0.625rem;
+  box-sizing: border-box;
   border: 2px solid var(--color-primary-500);
+  border-radius: 50%;
+  background: var(--color-surface-paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-range .p-slider .p-slider-handle::before {
+  display: none;
+}
+
+.landing-range .p-slider .p-slider-handle:hover {
+  transform: scale(1.1);
+}
+
+.landing-range .p-slider .p-slider-handle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(233 78 27 / 0.25);
 }
 
 /*

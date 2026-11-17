@@ -2,7 +2,11 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
+import { InputMask, Checkbox } from 'primevue'
+import { z } from 'zod'
 import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
+import MessageCore from '@/shared/components/core/message/index.vue'
+import LabelCore from '@/shared/components/core/label/index.vue'
 import { safeRequest } from '@/shared/utils/request'
 import { useSiteContact } from '../composables/useSiteContact'
 import { offerService } from '../services/offer.service'
@@ -25,8 +29,62 @@ const sendError = ref<string | null>(null)
 const website = ref('')
 const openFaq = ref<number | null>(0)
 
+/*
+ * Validación del formulario. El teléfono es un celular peruano (9 dígitos que
+ * empiezan con 9), que es lo que fuerza la máscara; es opcional, pero si se
+ * escribe tiene que estar completo.
+ */
+const schema = z.object({
+  firstName: z.string().trim().min(2, 'Escribe tu nombre').max(100, 'Máximo 100 caracteres'),
+  lastName: z.string().trim().min(2, 'Escribe tu apellido').max(100, 'Máximo 100 caracteres'),
+  email: z.string().trim().min(1, 'Escribe tu correo').email('Escribe un correo válido').max(150, 'Máximo 150 caracteres'),
+  phone: z.string().refine((v) => !v || /^9\d{2} \d{3} \d{3}$/.test(v), 'Escribe un celular de 9 dígitos que empiece con 9'),
+  profession: z.string().trim().max(100, 'Máximo 100 caracteres'),
+  program: z.string().nullable().optional(),
+  message: z.string().trim().min(10, 'Cuéntanos un poco más (mínimo 10 caracteres)').max(2000, 'Máximo 2000 caracteres'),
+  consent: z.boolean().refine((v) => v, 'Debes aceptar para que podamos contactarte'),
+})
+type FieldName = keyof z.infer<typeof schema>
+
+const errors = ref<Partial<Record<FieldName, string>>>({})
+const touched = ref<Partial<Record<FieldName, boolean>>>({})
+
+function validate(only?: FieldName): boolean {
+  const result = schema.safeParse(form.value)
+  const found: Partial<Record<FieldName, string>> = {}
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as FieldName
+      if (!found[key]) found[key] = issue.message
+    }
+  }
+  if (only) {
+    errors.value = { ...errors.value, [only]: found[only] }
+  } else {
+    errors.value = found
+  }
+  return result.success
+}
+/** Valida un campo al salir de él, sin gritarle al visitante mientras todavía escribe. */
+function onBlur(field: FieldName) {
+  touched.value[field] = true
+  validate(field)
+}
+/** Una vez que el campo tuvo error, se revalida al escribir para que desaparezca al corregirlo. */
+watch(form, () => {
+  for (const key of Object.keys(errors.value) as FieldName[]) {
+    if (errors.value[key] || touched.value[key]) validate(key)
+  }
+}, { deep: true })
+
 async function submit() {
   if (sending.value) return
+  // Todos los campos se marcan, así el visitante ve de una vez lo que le falta.
+  if (!validate()) {
+    await nextTick()
+    document.querySelector<HTMLElement>('form .p-invalid, form .p-inputtext[aria-invalid="true"]')?.focus()
+    return
+  }
   sending.value = true
   sendError.value = null
 
@@ -36,7 +94,7 @@ async function submit() {
       first_name: f.firstName.trim(),
       last_name: f.lastName.trim(),
       email: f.email.trim(),
-      phone: f.phone.trim() || null,
+      phone: f.phone ? `+51 ${f.phone}` : null,
       profession: f.profession.trim() || null,
       program_interest: f.program || null,
       message: f.message.trim(),
@@ -59,6 +117,9 @@ async function submit() {
 }
 function resetForm() {
   form.value = { firstName: '', lastName: '', email: '', phone: '', profession: '', program: '', message: '', consent: true }
+  errors.value = {}
+  touched.value = {}
+  sendError.value = null
   sent.value = false
 }
 function toggleFaq(i: number) {
@@ -271,7 +332,7 @@ onMounted(async () => {
           </div>
 
           <!-- Form -->
-          <form v-else @submit.prevent="submit" class="flex flex-col gap-3.5">
+          <form v-else novalidate @submit.prevent="submit" class="flex flex-col gap-3.5">
             <!-- Señuelo anti-bots: fuera de pantalla y fuera del tabulador -->
             <div class="sr-only" aria-hidden="true">
               <label>No llenar este campo<input v-model="website" type="text" name="website" tabindex="-1" autocomplete="off" /></label>
@@ -279,37 +340,43 @@ onMounted(async () => {
 
             <!-- Name row -->
             <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
-              <div>
-                <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Nombre</label>
-                <InputTextCore v-model="form.firstName" class="landing-field" required type="text" placeholder="Diego" />
-              </div>
-              <div>
-                <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Apellido</label>
-                <InputTextCore v-model="form.lastName" class="landing-field" required type="text" placeholder="Vargas" />
-              </div>
+              <InputTextCore v-model="form.firstName" class="landing-field" label="Nombre" required name="firstName" autocomplete="given-name"
+                placeholder="Diego" :invalid="!!errors.firstName" :message-error="errors.firstName" @blur="onBlur('firstName')" />
+              <InputTextCore v-model="form.lastName" class="landing-field" label="Apellido" required name="lastName" autocomplete="family-name"
+                placeholder="Vargas" :invalid="!!errors.lastName" :message-error="errors.lastName" @blur="onBlur('lastName')" />
             </div>
 
-            <!-- Email -->
-            <div>
-              <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Correo electrónico</label>
-              <InputTextCore v-model="form.email" class="landing-field" required type="email" placeholder="diego@ejemplo.com" />
-            </div>
+            <InputTextCore v-model="form.email" class="landing-field" label="Correo electrónico" required name="email" type="email" autocomplete="email"
+              placeholder="diego@ejemplo.com" :invalid="!!errors.email" :message-error="errors.email" @blur="onBlur('email')" />
 
             <!-- Phone + Profession -->
             <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
-              <div>
-                <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Teléfono</label>
-                <InputTextCore v-model="form.phone" class="landing-field" type="tel" placeholder="+51 ..." />
+              <div class="landing-field">
+                <LabelCore text="Celular" html-for="phone" hint="opcional" />
+                <div class="flex">
+                  <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-line bg-surface-cream font-mono text-[0.8125rem] text-secondary-500">+51</span>
+                  <InputMask
+                    v-model="form.phone"
+                    id="phone"
+                    name="phone"
+                    mask="999 999 999"
+                    placeholder="999 999 999"
+                    inputmode="tel"
+                    autocomplete="tel-national"
+                    :invalid="!!errors.phone"
+                    class="landing-mask"
+                    @blur="onBlur('phone')"
+                  />
+                </div>
+                <MessageCore v-if="errors.phone" :text="errors.phone" severity="error" variant="simple" />
               </div>
-              <div>
-                <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Profesión</label>
-                <InputTextCore v-model="form.profession" class="landing-field" type="text" placeholder="Arquitecto / Ing. Civil" />
-              </div>
+              <InputTextCore v-model="form.profession" class="landing-field" label="Profesión" hint-label="opcional" name="profession"
+                placeholder="Arquitecto / Ing. Civil" :invalid="!!errors.profession" :message-error="errors.profession" @blur="onBlur('profession')" />
             </div>
 
             <!-- Program select -->
             <div>
-              <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Programa de interés</label>
+              <LabelCore text="Programa de interés" hint="opcional" />
               <SelectCore
                 v-model="form.program"
                 class="landing-field"
@@ -323,28 +390,29 @@ onMounted(async () => {
 
             <!-- Message -->
             <div>
-              <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Mensaje</label>
               <TextAreaCore
                 v-model="form.message"
                 class="landing-field"
+                label="Mensaje"
+                required
+                name="message"
                 :rows="4"
                 placeholder="Cuéntanos sobre tu meta profesional…"
+                :invalid="!!errors.message"
+                :message-error="errors.message"
+                @blur="onBlur('message')"
               />
+              <p class="font-mono text-[0.625rem] text-secondary-400 text-right mt-1">{{ form.message.length }}/2000</p>
             </div>
 
             <!-- Consent -->
-            <label class="flex items-start gap-2.5 font-body text-[0.781rem] text-secondary-600 leading-relaxed cursor-pointer">
-              <span
-                class="w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors"
-                :class="form.consent ? 'bg-primary-500 border-primary-500' : 'bg-surface-page border-line'"
-                @click="form.consent = !form.consent"
-              >
-                <svg v-if="form.consent" width="9" height="9" viewBox="0 0 9 9" fill="none">
-                  <path d="M1 4.5L3.5 7L8 1.5" stroke="#FFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              Acepto recibir información sobre programas, becas y novedades de Fractal Studio.
-            </label>
+            <div>
+              <label class="flex items-start gap-2.5 font-body text-[0.781rem] text-secondary-600 leading-relaxed cursor-pointer">
+                <Checkbox v-model="form.consent" binary input-id="consent" :invalid="!!errors.consent" class="mt-0.5 shrink-0" />
+                Acepto recibir información sobre programas, becas y novedades de Fractal Studio.
+              </label>
+              <MessageCore v-if="errors.consent" :text="errors.consent" severity="error" variant="simple" />
+            </div>
 
             <p v-if="sendError" role="alert" class="font-body text-[0.8125rem] text-danger-DEFAULT">
               {{ sendError }}

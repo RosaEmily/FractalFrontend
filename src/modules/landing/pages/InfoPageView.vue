@@ -4,7 +4,7 @@
  * administra el panel en Sitio web → Páginas.
  */
 import { computed, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import { safeRequest } from '@/shared/utils/request'
 import { renderMarkdown } from '@/shared/utils/markdown'
@@ -12,6 +12,7 @@ import { pageService } from '../services/page.service'
 import type { PageDTO } from '../dto/page.dto'
 
 const route = useRoute()
+const router = useRouter()
 const page = ref<PageDTO | null>(null)
 const loading = ref(true)
 
@@ -26,8 +27,31 @@ async function load(slug: string) {
 
 watch(() => route.params.slug, (slug) => load(String(slug)), { immediate: true })
 
-// renderMarkdown escapa el HTML y solo deja pasar enlaces seguros: es seguro para v-html.
-const html = computed(() => renderMarkdown(page.value?.content))
+/*
+ * renderMarkdown escapa el HTML y solo deja pasar enlaces seguros: es seguro para v-html.
+ *
+ * Los enlaces internos del contenido (`/contact`, `/info/...`) se escriben sin la
+ * base `/FractalFrontend/` del router; un `<a href="/contact">` suelto daría 404,
+ * así que se resuelven contra el router.
+ */
+const html = computed(() =>
+  renderMarkdown(page.value?.content).replace(
+    /href="(\/[^"]*)"/g,
+    (_, path: string) => `href="${router.resolve(path).href}"`,
+  ),
+)
+
+/** Navega sin recargar cuando el clic es sobre un enlace interno del contenido. */
+function onContentClick(event: MouseEvent) {
+  const link = (event.target as HTMLElement).closest('a')
+  const href = link?.getAttribute('href')
+  const base = router.options.history.base
+  if (!link || !href || link.target === '_blank' || event.metaKey || event.ctrlKey) return
+  // `base` es `/FractalFrontend` (sin barra final): lo que sigue es la ruta del router.
+  if (!href.startsWith(`${base}/`)) return
+  event.preventDefault()
+  router.push(href.slice(base.length))
+}
 </script>
 
 <template>
@@ -47,6 +71,7 @@ const html = computed(() => renderMarkdown(page.value?.content))
           </h1>
           <div
             class="font-body text-[1rem] leading-relaxed text-secondary-600 space-y-4 [&_h2]:font-display [&_h2]:text-[1.5rem] [&_h2]:font-bold [&_h2]:text-secondary-900 [&_h2]:mt-8 [&_h3]:font-display [&_h3]:font-bold [&_h3]:text-secondary-900 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1.5 [&_a]:text-primary-500 [&_a]:underline [&_strong]:text-secondary-900"
+            @click="onContentClick"
             v-html="html"
           />
         </article>
