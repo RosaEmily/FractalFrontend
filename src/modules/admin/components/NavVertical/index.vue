@@ -148,7 +148,7 @@ const onRedirect = (item: MenuItem) => {
 
     <!-- Botón de colapso, anclado al pie como en el diseño -->
     <div
-      class="border-t border-line mt-2.5 pt-2.5"
+      class="hidden lg:block border-t border-line mt-2.5 pt-2.5"
       :class="isCollapsed ? 'px-3' : 'px-2.5'"
     >
       <button

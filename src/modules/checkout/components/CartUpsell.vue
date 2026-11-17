@@ -6,6 +6,8 @@ import { HeroCore } from "@/shared/components";
 import LandingImage from "@/modules/landing/components/ui/LandingImage.vue";
 import { offerService } from "@/modules/landing/services/offer.service";
 import type { Offer } from "@/modules/landing/models/offer.model";
+import studentService from "@/modules/classroom/services/student.service";
+import { hasSession } from "@/shared/utils/session";
 import { useCartStore } from "../stores/useCartStore";
 import { formatMoney } from "../utils/money";
 
@@ -23,8 +25,17 @@ const loading = ref(true);
 
 const MAX = 2;
 
+/**
+ * Programas que el alumno ya tiene: recomendarlos termina en un rechazo del
+ * backend ("ya tienes una matrícula pagada"). Solo con sesión de aula: un
+ * invitado que pidiera sus cursos recibiría un 401 y lo sacaría del carrito.
+ */
+const owned = ref<Set<number>>(new Set());
+
 const recommendations = computed(() =>
-  offers.value.filter((offer) => !cart.has(offer.id)).slice(0, MAX),
+  offers.value
+    .filter((offer) => !cart.has(offer.id) && !owned.value.has(offer.id))
+    .slice(0, MAX),
 );
 
 /**
@@ -38,6 +49,12 @@ onMounted(async () => {
   const data = await offerService.list();
   // ⚠️ El listado público devuelve `offers`, no `items`.
   offers.value = (data?.offers ?? []).filter((offer) => !isSoldOut(offer));
+
+  if (hasSession("classroom")) {
+    const courses = await studentService.courses().catch(() => []);
+    owned.value = new Set(courses.map((c) => c.offerId));
+  }
+
   loading.value = false;
 });
 </script>

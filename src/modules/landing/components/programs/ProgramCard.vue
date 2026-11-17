@@ -57,7 +57,7 @@ const STATUS_VARIANT: Record<string, 'open' | 'upcoming' | 'soft' | 'ink'> = {
 
       <div class="mt-auto pt-3 flex items-center justify-between border-t border-line-soft">
         <span class="font-mono text-[0.6875rem] text-secondary-400">
-          {{ program.duration_label ?? '—' }} · {{ program.courses.length }} cursos
+          {{ program.duration_label ?? '—' }} · {{ program.courses.length }} {{ program.courses.length === 1 ? 'curso' : 'cursos' }}
         </span>
         <span class="font-display font-bold text-[1rem] text-primary-500">{{ program.price }}</span>
       </div>

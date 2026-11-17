@@ -81,13 +81,17 @@ const groupCount = computed(
   () => new Set(courses.value.map((c) => c.offer_id)).size,
 );
 
-/** Próximas clases sin dictar, las primeras que el docente tiene que atender. */
-const upcoming = computed(() =>
-  sessions.value
-    .filter((s) => s.status === 0)
+/**
+ * Próximas clases sin dictar, desde hoy. Las de fecha pasada que siguen
+ * pendientes no son "próximas": ya salen en Pendientes como "sin marcar".
+ */
+const upcoming = computed(() => {
+  const today = new Date().toLocaleDateString("en-CA");
+  return sessions.value
+    .filter((s) => s.status === 0 && s.session_date.slice(0, 10) >= today)
     .sort((a, b) => a.session_date.localeCompare(b.session_date))
-    .slice(0, 5),
-);
+    .slice(0, 5);
+});
 
 const nextSession = computed(() => upcoming.value[0] ?? null);
 
@@ -289,7 +293,7 @@ onMounted(async () => {
         Próxima clase + pendientes, lado a lado (`1.35fr 1fr` del diseño).
         Estaban uno debajo del otro y la mitad derecha quedaba desperdiciada.
       -->
-      <div class="grid gap-5 mb-6 lg:grid-cols-[1.35fr_1fr]">
+      <div class="grid grid-cols-1 gap-5 mb-6 lg:grid-cols-[1.35fr_1fr]">
         <!--
           ⚠️ `div` propio y NO `AulaCard`: la tarjeta declara `bg-surface-paper`
           en su `class` estático, y una clase de fondo pasada desde fuera
@@ -407,11 +411,11 @@ onMounted(async () => {
               />
               <span class="min-w-0">
                 <span
-                  class="block truncate text-adm-base font-semibold text-secondary-900"
+                  class="block line-clamp-2 wrap-break-word text-adm-base font-semibold text-secondary-900"
                 >
                   {{ item.label }}
                 </span>
-                <span class="block truncate text-adm-sm text-secondary-400">
+                <span class="block line-clamp-2 wrap-break-word text-adm-sm text-secondary-400">
                   {{ item.detail }}
                 </span>
               </span>

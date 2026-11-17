@@ -61,7 +61,7 @@ onMounted(async () => {
     <AulaSkeleton v-if="loading" kind="page" :rows="4" />
 
     <template v-else>
-      <div class="grid gap-3.5 sm:grid-cols-3 mb-6">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3 mb-6">
         <AulaStat
           label="Cobrado del mes"
           :value="

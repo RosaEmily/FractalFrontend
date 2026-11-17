@@ -123,7 +123,7 @@ onMounted(async () => {
     <AulaSkeleton v-if="loading" kind="cards" :cards="3" />
 
     <template v-else>
-      <div class="grid gap-3.5 sm:grid-cols-3 mb-5">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3 mb-5">
         <AulaStat
           label="Certificados emitidos"
           :value="certificates.length || '—'"
@@ -157,7 +157,7 @@ onMounted(async () => {
         >
           Mis certificados
         </h2>
-        <div class="grid gap-3.5 xl:grid-cols-2">
+        <div class="grid grid-cols-1 gap-3.5 xl:grid-cols-2">
           <AulaCard v-for="certificate in certificates" :key="certificate.id">
             <div class="flex items-start gap-3.5">
               <span

@@ -19,7 +19,7 @@ const TONES = {
 </script>
 
 <template>
-  <section class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-3.5">
+  <section class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-3.5">
     <div
       v-for="item in items"
       :key="item.label"

@@ -750,26 +750,27 @@ onMounted(loadOffer);
         </div>
 
         <!-- Roadmap nodes -->
-        <div class="relative px-5">
+        <div class="relative md:px-5">
           <div
-            class="absolute top-9 left-15 right-15 h-0.5 bg-line pointer-events-none"
+            class="hidden md:block absolute top-9 left-15 right-15 h-0.5 bg-line pointer-events-none"
           />
           <div
-            :class="`grid gap-0`"
-            :style="`grid-template-columns: repeat(${offer.courses.length}, 1fr)`"
+            class="flex flex-col gap-7 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-0"
+            :style="{ '--cols': offer.courses.length }"
           >
             <div
               v-for="(c, i) in offer.courses"
               :key="i"
-              class="flex flex-col items-center text-center px-2 relative"
+              class="flex flex-row items-start gap-4 text-left md:flex-col md:items-center md:gap-0 md:text-center px-2 relative"
             >
               <div
-                class="w-18 h-18 rounded-full bg-surface-paper border-[0.188rem] border-primary-500 text-primary-500 flex items-center justify-center font-display text-[1.5rem] font-extrabold tracking-tight shadow-sm relative z-10"
+                class="shrink-0 w-18 h-18 rounded-full bg-surface-paper border-[0.188rem] border-primary-500 text-primary-500 flex items-center justify-center font-display text-[1.5rem] font-extrabold tracking-tight shadow-sm relative z-10"
               >
                 {{ String(i + 1).padStart(2, "0") }}
               </div>
+              <div class="min-w-0 md:w-full">
               <p
-                class="font-mono text-[0.5625rem] tracking-widest uppercase text-primary-500 mt-3"
+                class="font-mono text-[0.5625rem] tracking-widest uppercase text-primary-500 mt-1 md:mt-3"
               >
                 MÓDULO {{ i + 1 }}
               </p>
@@ -783,6 +784,7 @@ onMounted(loadOffer);
               >
                 {{ c.schedules?.[0] ? `${c.schedules[0].day} · ${shortTime(c.schedules[0].start_time)}` : "" }}
               </p>
+              </div>
             </div>
           </div>
         </div>

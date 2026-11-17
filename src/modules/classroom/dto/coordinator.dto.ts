@@ -18,10 +18,10 @@ export interface QuotaDTO {
   id: number;
   name: string;
   prefix: string | null;
-  enrolled_students_count: number;
-  min_students: number;
-  max_students: number;
-  enrollment_end_date: string | null;
+  enrolled: number;
+  min: number;
+  max: number;
+  closes_at: string | null;
   /** `over_max | below_min | ok`, derivado en el backend. */
   state: string;
 }

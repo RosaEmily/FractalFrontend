@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, provide } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount, provide } from "vue";
 import DataTable, { type DataTableFilterMeta } from "primevue/datatable";
 import Column from "primevue/column";
 import GridUiColumn from "./column/index.vue";
@@ -178,8 +178,39 @@ const resetPageAndRefresh = async () => {
   await refreshData(false);
 };
 
+// Pista de scroll horizontal: marca el contenedor mientras queda contenido
+// oculto a cada lado (la sombra la pinta `.fractal-basic-table` en style.css).
+const tableRef = ref<{ $el: HTMLElement } | null>(null);
+let scroller: HTMLElement | null = null;
+let resizeObs: ResizeObserver | null = null;
+
+const updateScrollHint = () => {
+  const root = tableRef.value?.$el;
+  if (!root || !scroller) return;
+  const max = scroller.scrollWidth - scroller.clientWidth;
+  root.toggleAttribute("data-more-left", scroller.scrollLeft > 1);
+  root.toggleAttribute("data-more-right", max - scroller.scrollLeft > 1);
+};
+
 onMounted(async () => {
+  scroller =
+    tableRef.value?.$el.querySelector<HTMLElement>(
+      ".p-datatable-table-container",
+    ) ?? null;
+  if (scroller) {
+    scroller.addEventListener("scroll", updateScrollHint, { passive: true });
+    resizeObs = new ResizeObserver(updateScrollHint);
+    resizeObs.observe(scroller);
+    const table = scroller.querySelector("table");
+    if (table) resizeObs.observe(table);
+  }
   await refreshData(true);
+  updateScrollHint();
+});
+
+onBeforeUnmount(() => {
+  scroller?.removeEventListener("scroll", updateScrollHint);
+  resizeObs?.disconnect();
 });
 
 const setLoading = (value: boolean) => {
@@ -208,6 +239,7 @@ defineExpose<GridUiTableExpose>({
 
 <template>
   <DataTable
+    ref="tableRef"
     v-model:selection="rowsSelected"
     v-model:sortField="order.sortField"
     v-model:sortOrder="order.sortOrder"

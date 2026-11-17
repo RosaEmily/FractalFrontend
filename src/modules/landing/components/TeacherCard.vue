@@ -84,7 +84,7 @@ const specialtyList = computed<string[]>(() => {
 
     <!-- Top labels -->
     <div class="absolute top-3.5 left-3.5 right-3.5 flex justify-between items-center z-20">
-      <span v-if="teacher.specialty" class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 truncate max-w-32">
+      <span v-if="teacher.specialty" class="font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 truncate max-w-3/5">
         {{ teacher.specialty.toString().trim() }}
       </span>
       <span v-if="teacher.experience_years != null" class="ml-auto font-mono text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900 flex items-center gap-1">

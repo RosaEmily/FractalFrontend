@@ -40,7 +40,7 @@ const loading = ref(true);
 
 /** Alumnos activos: la suma de matriculados en las cohortes abiertas. */
 const activeStudents = computed(() =>
-  quotas.value.reduce((total, q) => total + q.enrolled_students_count, 0),
+  quotas.value.reduce((total, q) => total + q.enrolled, 0),
 );
 
 const teacherName = (item: ClassTodayDTO) =>
@@ -83,7 +83,7 @@ onMounted(async () => {
     <AulaSkeleton v-if="loading" kind="page" :rows="5" />
 
     <template v-else>
-      <div class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         <AulaStat
           label="Alumnos activos"
           :value="activeStudents || '—'"

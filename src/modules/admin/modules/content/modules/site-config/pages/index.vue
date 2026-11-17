@@ -108,7 +108,7 @@ onMounted(async () => {
     submit-label="Guardar"
   >
     <template #default="{ fields, errors }">
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <InputTextCore
           v-model="fields.site_name.value"
           label="Nombre del sitio"

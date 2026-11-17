@@ -69,7 +69,7 @@ function isActive(to: string) {
 <template>
   <!-- Top trust strip -->
   <div
-    class="bg-surface-cream border-b border-line px-6 md:px-16 py-2.5 hidden md:flex justify-between items-center font-mono text-[0.6875rem] tracking-[0.06em] text-secondary-900"
+    class="bg-surface-cream border-b border-line px-6 md:px-8 lg:px-16 py-2.5 hidden md:flex whitespace-nowrap justify-between items-center font-mono text-[0.6875rem] tracking-[0.06em] text-secondary-900"
   >
     <span class="flex items-center gap-2.5">
       <span class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-dot" />
@@ -122,7 +122,7 @@ function isActive(to: string) {
 
   <!-- Main nav -->
   <header
-    class="bg-surface-page/85 backdrop-blur-md border-b border-line px-6 md:px-16 py-4 flex justify-between items-center"
+    class="bg-surface-page/85 backdrop-blur-md border-b border-line px-6 md:px-8 lg:px-16 py-4 flex justify-between items-center"
   >
     <!-- Logo -->
     <RouterLink to="/" class="flex items-center shrink-0">
@@ -134,7 +134,7 @@ function isActive(to: string) {
     </RouterLink>
 
     <!-- Desktop nav -->
-    <nav class="hidden md:flex gap-8 font-body text-[0.9375rem] font-medium">
+    <nav class="hidden md:flex gap-5 lg:gap-8 font-body text-[0.9375rem] font-medium">
       <RouterLink
         v-for="item in navItems"
         :key="item.key"
@@ -151,7 +151,7 @@ function isActive(to: string) {
     </nav>
 
     <!-- Desktop CTA -->
-    <div class="hidden md:flex items-center gap-3">
+    <div class="hidden md:flex items-center gap-2 lg:gap-3">
       <template v-if="isLoggedIn">
         <!--
           Con sesión de aula: "Mi aula" + chip de avatar y nombre

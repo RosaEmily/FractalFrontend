@@ -78,7 +78,7 @@ onMounted(async () => {
         :sub="`${group.total} cursos que se desbloquean en orden.`"
       />
 
-      <div class="grid gap-3.5 sm:grid-cols-3 mb-5">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3 mb-5">
         <AulaStat
           label="Avance de la línea"
           :value="`${group.percent}%`"
@@ -123,7 +123,7 @@ onMounted(async () => {
         Cursos de la línea
       </h2>
 
-      <div class="grid gap-3.5 xl:grid-cols-2">
+      <div class="grid grid-cols-1 gap-3.5 xl:grid-cols-2">
         <CourseCard
           v-for="course in group.courses"
           :key="course.id"

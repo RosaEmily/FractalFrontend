@@ -455,7 +455,7 @@ onMounted(async () => {
       <AulaSkeleton v-if="loadingTable" kind="table" :rows="8" />
 
       <template v-else-if="data">
-        <div class="grid gap-3.5 sm:grid-cols-3 mb-5">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3 mb-5">
           <AulaStat label="Alumnos" :value="data.totals.students || '—'" />
           <AulaStat
             label="Evaluaciones"

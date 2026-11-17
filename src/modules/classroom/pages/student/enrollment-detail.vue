@@ -89,7 +89,7 @@ onMounted(async () => {
         :sub="`${items.length} ${items.length === 1 ? 'curso' : 'cursos'} con acceso al aula.`"
       />
 
-      <div class="grid gap-3.5 sm:grid-cols-3 mb-6">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3 mb-6">
         <AulaStat
           label="Cursos incluidos"
           :value="items.length"

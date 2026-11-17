@@ -154,7 +154,7 @@ const summary = computed(() => {
     </section>
 
     <!-- Los 4 números -->
-    <section class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+    <section class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
         :icon="mdiCashMultiple"
         :value="revenueValue"
@@ -191,7 +191,7 @@ const summary = computed(() => {
 
     <AttentionPanel :items="attention" :loading="loading" />
 
-    <section class="grid gap-3.5 xl:grid-cols-[1.35fr_1fr]">
+    <section class="grid grid-cols-1 gap-3.5 xl:grid-cols-[1.35fr_1fr]">
       <ClassesToday :items="classes" :loading="loading" />
       <QuotasPanel :items="quotas" :loading="loading" />
     </section>

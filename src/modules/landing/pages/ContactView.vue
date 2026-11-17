@@ -91,7 +91,7 @@ onMounted(async () => {
           </p>
 
           <!-- Contact cards 2x2 -->
-          <div class="grid grid-cols-2 gap-3 mb-7">
+          <div class="grid grid-cols-1 xs:grid-cols-2 gap-3 mb-7">
             <a
               v-for="c in contactCards"
               :key="c.label"
@@ -117,7 +117,7 @@ onMounted(async () => {
                   </svg>
                 </div>
               </div>
-              <div class="font-display text-[1rem] font-bold text-secondary-900 leading-tight mb-1">{{ c.value }}</div>
+              <div class="font-display text-[1rem] font-bold text-secondary-900 leading-tight mb-1 break-anywhere">{{ c.value }}</div>
               <div class="font-body text-[0.75rem] text-secondary-400">{{ c.sub }}</div>
             </a>
           </div>
@@ -209,7 +209,7 @@ onMounted(async () => {
           <!-- Form -->
           <form v-else @submit.prevent="submit" class="flex flex-col gap-3.5">
             <!-- Name row -->
-            <div class="grid grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Nombre</label>
                 <InputTextCore v-model="form.firstName" class="landing-field" required type="text" placeholder="Diego" />
@@ -227,7 +227,7 @@ onMounted(async () => {
             </div>
 
             <!-- Phone + Profession -->
-            <div class="grid grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
               <div>
                 <label class="block font-body text-[0.8125rem] font-medium text-secondary-700 mb-1.5">Teléfono</label>
                 <InputTextCore v-model="form.phone" class="landing-field" type="tel" placeholder="+51 ..." />

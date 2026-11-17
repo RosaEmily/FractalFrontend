@@ -118,7 +118,8 @@ onMounted(async () => {
       <!-- Clase en vivo: el enlace es lo único que el alumno viene a buscar -->
       <AulaCard
         v-if="!session.isDone && session.meetLink"
-        class="mb-5 bg-secondary-900 border-secondary-900"
+        tone="ink"
+        class="mb-5"
       >
         <span
           class="font-mono text-adm-xs text-white/60 tracking-[0.08em] uppercase"
@@ -189,7 +190,7 @@ onMounted(async () => {
         </p>
       </AulaCard>
 
-      <div class="grid gap-3.5 lg:grid-cols-[1fr_20rem]">
+      <div class="grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_20rem]">
         <!-- Clases alrededor -->
         <AulaCard v-if="around.length" pad="sm">
           <p

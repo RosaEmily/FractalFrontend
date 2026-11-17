@@ -133,7 +133,8 @@ onMounted(async () => {
       <!-- Próxima clase: lo primero que el alumno viene a mirar -->
       <AulaCard
         v-if="nextCourse?.nextSession"
-        class="mb-5 bg-secondary-900 border-secondary-900"
+        tone="ink"
+        class="mb-5"
       >
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="min-w-0">
@@ -169,7 +170,7 @@ onMounted(async () => {
         </div>
       </AulaCard>
 
-      <div class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         <AulaStat
           label="Cursos en marcha"
           :value="inProgress.length || '—'"
@@ -207,7 +208,7 @@ onMounted(async () => {
         >
           Cursos en marcha
         </h2>
-        <div class="grid gap-3.5 xl:grid-cols-2 mb-6">
+        <div class="grid grid-cols-1 gap-3.5 xl:grid-cols-2 mb-6">
           <CourseCard
             v-for="course in inProgress"
             :key="course.id"

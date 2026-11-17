@@ -265,6 +265,7 @@ onMounted(load);
           "
           :disabled="notification.read"
           :title="notification.read ? 'Leída' : 'Marcar como leída'"
+          :aria-label="notification.read ? 'Leída' : 'Marcar como leída'"
           @click="toggleRead(notification)"
         >
           <AulaSpinner

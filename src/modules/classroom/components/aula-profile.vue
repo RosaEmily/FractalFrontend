@@ -347,7 +347,7 @@ const cancel = () => {
 </script>
 
 <template>
-  <div class="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1.25fr_1fr]">
     <!-- Columna izquierda: lo que el usuario sí puede cambiar -->
     <AulaCard pad="lg">
       <div class="mb-4.5 flex items-center justify-between gap-3">
@@ -384,7 +384,7 @@ const cancel = () => {
 
       <!-- Modo edición -->
       <div v-if="editing" class="flex flex-col gap-3.5">
-        <div class="grid gap-3.5 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <InputTextCore v-model="form.first_name" label="Nombres" />
           <InputTextCore v-model="form.last_name" label="Apellidos" />
         </div>
@@ -395,7 +395,7 @@ const cancel = () => {
           y el docente `Género + Teléfono` (teacher.jsx:898). Un campo corto
           suelto a ancho completo desalinea la columna entera.
         -->
-        <div v-if="isTeacher" class="grid gap-3.5 sm:grid-cols-2">
+        <div v-if="isTeacher" class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <SelectCore
             v-model="form.gender"
             label="Género"
@@ -407,7 +407,7 @@ const cancel = () => {
         </div>
 
         <template v-else>
-          <div class="grid gap-3.5 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <DatePicketCore
               v-model="form.birth_date"
               label="Fecha de nacimiento"
@@ -416,7 +416,7 @@ const cancel = () => {
             <InputTextCore v-model="form.phone" label="Teléfono" />
           </div>
 
-          <div class="grid gap-3.5 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <SelectCore
               v-model="form.gender"
               label="Género"
@@ -460,7 +460,7 @@ const cancel = () => {
 
         <template v-else>
           <InputTextCore v-model="form.address" label="Dirección" />
-          <div class="grid gap-3.5 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <SelectCore
               v-model="form.education_level"
               label="Nivel educativo"

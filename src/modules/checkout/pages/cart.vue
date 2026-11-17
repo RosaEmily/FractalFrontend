@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { hasSession } from "@/shared/utils/session";
 import LandingButton from "@/modules/landing/components/ui/LandingButton.vue";
@@ -31,6 +31,18 @@ onMounted(async () => {
   await cart.refreshStaleItems();
   await cart.validate();
 });
+
+/*
+ * Agregar o quitar un programa cambia el carrito: hay que volver a pedir los
+ * totales y los problemas (cupo, moneda) al servidor. Va acá y no en el store
+ * porque `add()` también se usa desde la landing, donde aún no hay sesión.
+ */
+watch(
+  () => cart.items.map((i) => i.offerId).join(","),
+  () => {
+    if (!cart.isEmpty) cart.validate();
+  },
+);
 
 // Con sesión de aula no hay paso Cuenta: se va directo a los datos.
 const goNext = () =>

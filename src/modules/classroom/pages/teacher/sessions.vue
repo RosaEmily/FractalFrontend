@@ -384,7 +384,7 @@ onMounted(async () => {
         disabled-hint="Aún sin datos cargados"
       />
 
-      <div class="grid gap-3.5 lg:grid-cols-[20rem_1fr]">
+      <div class="grid grid-cols-1 gap-3.5 lg:grid-cols-[20rem_1fr]">
         <!-- Lista de clases del curso -->
         <!--
           `self-start`: el diseño lo marca explícito (`alignSelf: 'flex-start'`,

@@ -101,22 +101,23 @@ onUnmounted(() => clearInterval(timer))
       <!-- Lado visual — imagen del banner + chips flotantes -->
       <div class="hidden md:flex relative justify-center items-center min-h-105">
         <!-- Rectángulos decorativos, no círculos: acompañan la forma del contenido real (foto o ilustración), que dejó de ser circular. -->
-        <div :class="['absolute w-105 h-105 border', slide?.dark ? 'bg-white/12 border-dashed border-white/30' : 'bg-surface-paper border-line']" />
-        <div :class="['absolute w-80 h-80 border border-dashed', slide?.dark ? 'border-white/20' : 'border-line-soft']" />
+        <div :class="['absolute w-full max-w-105 aspect-square border', slide?.dark ? 'bg-white/12 border-dashed border-white/30' : 'bg-surface-paper border-line']" />
+        <div :class="['absolute w-4/5 max-w-80 aspect-square border border-dashed', slide?.dark ? 'border-white/20' : 'border-line-soft']" />
 
         <!--
           Con foto: rectángulo, no círculo. Las imágenes reales de banner son
-          apaisadas (collages promocionales, capturas de programa) y
-          `object-cover` en un círculo perfecto las recorta mal — se ve solo
-          una franja vertical descentrada. El diseño unificó TODO el lado
+          apaisadas y de proporciones distintas (1920×1080 y 1366×501): el marco
+          NO fija proporción y la imagen manda su alto, así ninguna se recorta
+          (con `object-cover` en un marco fijo se perdían los laterales de las
+          panorámicas, textos incluidos). El diseño unificó TODO el lado
           visual a rectángulo (fondo decorativo incluido, arriba), tanto con
           foto real como con la ilustración de respaldo.
         -->
         <div
           v-if="!props.skeleton && slide && hasPhoto"
-          class="relative z-10 w-95 h-75 overflow-hidden shadow-md bg-black"
+          class="relative z-10 w-11/12 max-w-105 overflow-hidden shadow-md bg-black"
         >
-          <img :src="slide.desktop" :alt="slide.image_alt" class="size-full object-cover" />
+          <img :src="slide.desktop" :alt="slide.image_alt" class="block w-full h-auto" />
         </div>
         <div
           v-else-if="!props.skeleton && slide"
