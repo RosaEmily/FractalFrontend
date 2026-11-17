@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidPhone } from "@/shared/components/core/input/phone/countries";
 import {
   getDocumentRule,
   PHONE_PE,
@@ -44,15 +45,21 @@ export const documentNumberSchema = (type?: string | null) => {
 };
 
 /**
- * Teléfono móvil peruano: 9 dígitos que empiezan en 9.
+ * Teléfono en E.164 (+51987654321), que es lo que envía `InputPhoneCore`.
  *
- * El valor llega con la máscara aplicada ("987 654 321"), así que se limpian
- * los espacios antes de validar y de enviar — la API guarda solo dígitos.
+ * Los valores guardados antes del selector de país son 9 dígitos sin prefijo:
+ * se normalizan a +51 para que al guardar queden todos en el mismo formato.
+ * Por ahora solo se aceptan móviles peruanos; al habilitar otro país en
+ * `PHONE_COUNTRIES`, ampliar aquí y en la regla `PeruvianMobile` de la API.
  */
 export const phoneSchema = () =>
   z
     .string({ message: "El teléfono es obligatorio" })
-    .transform((value) => value.replace(/\s/g, ""))
-    .refine((value) => PHONE_PE.regex.test(value), {
-      message: "Debe ser un móvil peruano de 9 dígitos que empiece en 9",
-    });
+    .transform((value) => {
+      const clean = value.replace(/\s/g, "");
+      return PHONE_PE.regex.test(clean) ? `+51${clean}` : clean;
+    })
+    .refine(
+      (value) => value.startsWith("+51") && isValidPhone(value),
+      { message: "Ingresa un móvil peruano válido (9 dígitos que empiece en 9)" },
+    );

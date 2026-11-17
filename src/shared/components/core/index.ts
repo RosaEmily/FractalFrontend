@@ -22,3 +22,4 @@ export { default as TextAreaCore } from "./textarea/index.vue";
 export { default as InputTextCore } from "./input/text/index.vue";
 export { default as InputPasswordCore } from "./input/password/index.vue";
 export { default as InputNumberCore } from "./input/number/index.vue";
+export { default as InputPhoneCore } from "./input/phone/index.vue";

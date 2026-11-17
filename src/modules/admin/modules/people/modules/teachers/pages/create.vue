@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { strongPassword } from "@/shared/utils/password-schema";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -8,6 +9,7 @@ import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
 import {
+  InputPhoneCore,
   InputTextCore,
   InputPasswordCore,
   InputNumberCore,
@@ -22,7 +24,6 @@ import {
 import { EXPERIENCE_YEARS_LIMIT } from "@/modules/admin/constants/numeric-limits";
 import {
   getDocumentRule,
-  PHONE_PE,
 } from "@/modules/admin/constants/documents";
 import {
   documentNumberSchema,
@@ -122,9 +123,7 @@ const formSchema = computed(() =>
     .string({ message: "El correo es obligatorio" })
     .email({ message: "Debes ingresar un correo válido" })
     .max(150),
-  password: z
-    .string({ message: "La contraseña es obligatoria" })
-    .min(6, { message: "Debe tener al menos 6 caracteres" }),
+  password: strongPassword(),
   gender: z.enum(["m", "f", "o"], { message: "Debes seleccionar un género" }),
   document_type: z.string({ message: "El tipo de documento es obligatorio" }),
   document_number: documentNumberSchema(documentType.value),
@@ -218,14 +217,12 @@ const onSubmit = (body: Record<string, unknown>) =>
           :invalid="!!errors.gender"
           :message-error="errors.gender"
         />
-        <InputTextCore
+        <InputPhoneCore
           v-model="fields.phone.value"
+          name="phone"
           label="Teléfono"
-          :hint-label="PHONE_PE.hint"
-          :maxlength="PHONE_PE.length"
           :invalid="!!errors.phone"
           :message-error="errors.phone"
-          v-keyfilter.numbersOnly
         />
       </div>
 

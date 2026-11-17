@@ -2,9 +2,10 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
-import { InputMask, Checkbox } from 'primevue'
+import { Checkbox } from 'primevue'
+import { isValidPhone } from '@/shared/components/core/input/phone/countries'
 import { z } from 'zod'
-import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
+import { InputPhoneCore, InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
 import MessageCore from '@/shared/components/core/message/index.vue'
 import LabelCore from '@/shared/components/core/label/index.vue'
 import { safeRequest } from '@/shared/utils/request'
@@ -38,7 +39,7 @@ const schema = z.object({
   firstName: z.string().trim().min(2, 'Escribe tu nombre').max(100, 'Máximo 100 caracteres'),
   lastName: z.string().trim().min(2, 'Escribe tu apellido').max(100, 'Máximo 100 caracteres'),
   email: z.string().trim().min(1, 'Escribe tu correo').email('Escribe un correo válido').max(150, 'Máximo 150 caracteres'),
-  phone: z.string().refine((v) => !v || /^9\d{2} \d{3} \d{3}$/.test(v), 'Escribe un celular de 9 dígitos que empiece con 9'),
+  phone: z.string().refine((v) => !v || isValidPhone(v), 'Escribe un celular válido'),
   profession: z.string().trim().max(100, 'Máximo 100 caracteres'),
   program: z.string().nullable().optional(),
   message: z.string().trim().min(10, 'Cuéntanos un poco más (mínimo 10 caracteres)').max(2000, 'Máximo 2000 caracteres'),
@@ -94,7 +95,7 @@ async function submit() {
       first_name: f.firstName.trim(),
       last_name: f.lastName.trim(),
       email: f.email.trim(),
-      phone: f.phone ? `+51 ${f.phone}` : null,
+      phone: f.phone || null,
       profession: f.profession.trim() || null,
       program_interest: f.program || null,
       message: f.message.trim(),
@@ -351,25 +352,7 @@ onMounted(async () => {
 
             <!-- Phone + Profession -->
             <div class="grid grid-cols-1 xs:grid-cols-2 gap-3.5">
-              <div class="landing-field">
-                <LabelCore text="Celular" html-for="phone" hint="opcional" />
-                <div class="flex">
-                  <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-line bg-surface-cream font-mono text-[0.8125rem] text-secondary-500">+51</span>
-                  <InputMask
-                    v-model="form.phone"
-                    id="phone"
-                    name="phone"
-                    mask="999 999 999"
-                    placeholder="999 999 999"
-                    inputmode="tel"
-                    autocomplete="tel-national"
-                    :invalid="!!errors.phone"
-                    class="landing-mask"
-                    @blur="onBlur('phone')"
-                  />
-                </div>
-                <MessageCore v-if="errors.phone" :text="errors.phone" severity="error" variant="simple" />
-              </div>
+              <InputPhoneCore v-model="form.phone" class="landing-field" name="phone" label="Celular" hint-label="opcional" :invalid="!!errors.phone" :message-error="errors.phone" @blur="onBlur('phone')" />
               <InputTextCore v-model="form.profession" class="landing-field" label="Profesión" hint-label="opcional" name="profession"
                 placeholder="Arquitecto / Ing. Civil" :invalid="!!errors.profession" :message-error="errors.profession" @blur="onBlur('profession')" />
             </div>

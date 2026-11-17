@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { strongPassword } from "@/shared/utils/password-schema";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -13,6 +14,7 @@ import {
 import { withRefinements } from "@/shared/utils/zod/withRefinements";
 import { lettersSpaces } from "@/shared/utils/zod/shortcuts";
 import {
+  InputPhoneCore,
   InputTextCore,
   InputPasswordCore,
   InputNumberCore,
@@ -34,7 +36,6 @@ import {
 } from "@/modules/admin/constants/numeric-limits";
 import {
   getDocumentRule,
-  PHONE_PE,
 } from "@/modules/admin/constants/documents";
 import {
   documentNumberSchema,
@@ -189,9 +190,7 @@ const formSchema = computed(() => {
       .email({ message: "Debes ingresar un correo válido" })
       .max(150),
     // Opcional al editar: si se deja vacío, se conserva la actual.
-    password: z
-      .string()
-      .min(6, { message: "Debe tener al menos 6 caracteres" })
+    password: strongPassword()
       .nullable()
       .optional(),
     gender: z.enum(["m", "f", "o"], { message: "Debes seleccionar un género" }),
@@ -374,14 +373,12 @@ const formSchema = computed(() => {
             :message-error="errors.document_number"
             v-keyfilter="documentRule.numericOnly ? /^\d+$/ : /^[A-Za-z0-9]+$/"
           />
-          <InputTextCore
+          <InputPhoneCore
             v-model="fields.phone.value"
+            name="phone"
             label="Teléfono"
-            :hint-label="PHONE_PE.hint"
-            :maxlength="PHONE_PE.length"
             :invalid="!!errors.phone"
             :message-error="errors.phone"
-            v-keyfilter.numbersOnly
           />
         </div>
       </template>

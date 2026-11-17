@@ -4,6 +4,7 @@ import { mdiLockOutline, mdiTrayArrowUp } from "@mdi/js";
 import {
   ButtonCore,
   HeroCore,
+  InputPhoneCore,
   InputTextCore,
   SelectCore,
   DatePicketCore,
@@ -403,7 +404,7 @@ const cancel = () => {
             option-label="label"
             option-value="value"
           />
-          <InputTextCore v-model="form.phone" label="Teléfono" />
+          <InputPhoneCore v-model="form.phone" name="phone" label="Teléfono" />
         </div>
 
         <template v-else>
@@ -413,7 +414,7 @@ const cancel = () => {
               label="Fecha de nacimiento"
               dayjs-format-value="YYYY-MM-DD"
             />
-            <InputTextCore v-model="form.phone" label="Teléfono" />
+            <InputPhoneCore v-model="form.phone" name="phone" label="Teléfono" />
           </div>
 
           <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
