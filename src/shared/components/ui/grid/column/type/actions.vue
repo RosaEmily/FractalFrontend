@@ -59,6 +59,16 @@ const normalizeAction = (action: Action): Action => {
   };
 };
 
+/** Los botones son solo ícono: sin etiqueta, un lector de pantalla no sabe qué hacen. */
+const ACTION_LABELS: Record<string, string> = {
+  edit: "Editar",
+  delete: "Eliminar",
+  state: "Cambiar estado",
+  redirect: "Abrir",
+};
+const actionLabel = (action: Action) =>
+  ACTION_LABELS[action.type] ?? "Acción";
+
 const getRedirectHref = (action: Action) => {
   const { redirect = "", params = null } = action;
   return buildRedirectPath(redirect, props.data, params);
@@ -136,6 +146,8 @@ const onClick = async (action: Action) => {
       <ButtonCore
         v-if="rawAction.type == 'delete' || rawAction.type == 'button'"
         v-bind="normalizeAction(rawAction).buttonProps"
+        :aria-label="actionLabel(normalizeAction(rawAction))"
+        :title="actionLabel(normalizeAction(rawAction))"
         @click="onClick(normalizeAction(rawAction))"
         class="!p-1"
       >
@@ -146,6 +158,8 @@ const onClick = async (action: Action) => {
       <ButtonCore
         v-if="rawAction.type == 'redirect' || rawAction.type == 'edit'"
         v-bind="normalizeAction(rawAction).buttonProps"
+        :aria-label="actionLabel(normalizeAction(rawAction))"
+        :title="actionLabel(normalizeAction(rawAction))"
         :to="getRedirectHref(normalizeAction(rawAction))"
         as="RouterLink"
         class="!p-1"
@@ -160,6 +174,7 @@ const onClick = async (action: Action) => {
           String(data[normalizeAction(rawAction).columnKey ?? 'status'])
         "
         @update:model-value="onChangeState(normalizeAction(rawAction), $event)"
+        :aria-label="actionLabel(normalizeAction(rawAction))"
         :true-value="'1'"
         :false-value="'0'"
       />

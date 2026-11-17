@@ -164,7 +164,7 @@ onMounted(async () => {
         </template>
       </AulaPageHeader>
 
-      <div class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         <AulaStat
           label="Clases dictadas"
           :value="`${course.sessionsDone}/${course.sessionsTotal}`"
@@ -289,7 +289,7 @@ onMounted(async () => {
 
       <!-- ── Material ──────────────────────────────────────────────── -->
       <template v-else-if="tab === 'materials'">
-        <div v-if="course.materials.length" class="grid gap-3.5 sm:grid-cols-2 mb-4">
+        <div v-if="course.materials.length" class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 mb-4">
           <AulaStat
             label="Archivos disponibles"
             :value="course.materials.length"

@@ -23,8 +23,6 @@ const PALETTES = [
   { bg: '#FFF1E8', fg: '#E94E1B' },
 ]
 
-const SPECIALTY_FILTERS = ['Todos', 'BIM', 'AutoCAD', 'Civil 3D', 'MEP', 'Visualización']
-
 function initials(t: Teacher) {
   return `${t.first_name?.[0] ?? ''}${t.last_name?.[0] ?? ''}`.toUpperCase()
 }
@@ -49,12 +47,23 @@ const stats = computed(() => {
   }
 })
 
+/** Chips del filtro: las especialidades reales de los docentes cargados. */
+const SPECIALTY_FILTERS = computed(() => {
+  const seen = new Map<string, string>()
+  for (const t of teachers.value) {
+    for (const s of specialtyList(t)) {
+      if (!seen.has(s.toLowerCase())) seen.set(s.toLowerCase(), s)
+    }
+  }
+  return ['Todos', ...[...seen.values()].sort((a, b) => a.localeCompare(b, 'es'))]
+})
+
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
   return teachers.value.filter(t => {
     const name = `${t.first_name} ${t.last_name}`.toLowerCase()
     const matchName = !q || name.includes(q)
-    const specs = specialtyList(t).join(' ').toLowerCase()
+    const specs = specialtyList(t).map((s) => s.toLowerCase())
     const matchSpec = activeFilter.value === 'Todos' || specs.includes(activeFilter.value.toLowerCase())
     return matchName && matchSpec
   })

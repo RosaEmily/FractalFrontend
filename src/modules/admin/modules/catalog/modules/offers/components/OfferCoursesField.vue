@@ -222,7 +222,7 @@ const copyLinkToAll = (source: OfferCourseItem) => {
         <!-- Curso + duración + fechas + docente + link -->
         <div class="border-b border-line bg-admin-bg px-4 py-3">
           <div class="flex items-start gap-3">
-            <div class="grid flex-1 gap-3 md:grid-cols-2">
+            <div class="grid grid-cols-1 flex-1 gap-3 md:grid-cols-2">
               <!-- Curso fijado por el origen: se muestra, no se elige. -->
               <div v-if="lockCourses" class="md:col-span-2">
                 <p
@@ -374,7 +374,7 @@ const copyLinkToAll = (source: OfferCourseItem) => {
             class="space-y-2"
           >
             <div
-              class="grid items-end gap-2 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+              class="grid grid-cols-1 items-end gap-2 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
             >
               <SelectCore
                 :model-value="schedule.dayOfWeek"

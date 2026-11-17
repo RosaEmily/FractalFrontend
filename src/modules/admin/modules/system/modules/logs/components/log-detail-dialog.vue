@@ -52,7 +52,7 @@ const fields = (log: LogDetail) =>
         </p>
       </div>
 
-      <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+      <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
         <div v-for="field in fields(props.log)" :key="field.label">
           <dt
             class="font-mono text-adm-xs uppercase tracking-wide text-secondary-400"

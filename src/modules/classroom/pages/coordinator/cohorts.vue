@@ -19,10 +19,10 @@ const loading = ref(true);
 
 /** Ocupación sobre el cupo máximo. Se capa al 100% para que la barra no desborde. */
 const occupancy = (quota: QuotaDTO) =>
-  quota.max_students
+  quota.max
     ? Math.min(
         100,
-        Math.round((quota.enrolled_students_count / quota.max_students) * 100),
+        Math.round((quota.enrolled / quota.max) * 100),
       )
     : 0;
 
@@ -51,7 +51,7 @@ onMounted(async () => {
 
     <AulaSkeleton v-if="loading" kind="table" :rows="4" />
 
-    <div v-else-if="quotas.length" class="grid gap-3.5 xl:grid-cols-2">
+    <div v-else-if="quotas.length" class="grid grid-cols-1 gap-3.5 xl:grid-cols-2">
       <AulaCard v-for="quota in quotas" :key="quota.id">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
@@ -77,14 +77,14 @@ onMounted(async () => {
         <div class="flex items-end justify-between gap-3 mt-4">
           <div>
             <span class="font-display text-3xl font-extrabold text-secondary-900">
-              {{ quota.enrolled_students_count }}
+              {{ quota.enrolled }}
             </span>
             <span class="text-adm-base text-secondary-500">
-              / {{ quota.max_students }} matriculados
+              / {{ quota.max }} matriculados
             </span>
           </div>
           <span class="font-mono text-adm-xs text-secondary-400">
-            MÍN {{ quota.min_students }} · MÁX {{ quota.max_students }}
+            MÍN {{ quota.min }} · MÁX {{ quota.max }}
           </span>
         </div>
 
@@ -100,7 +100,7 @@ onMounted(async () => {
           class="font-mono text-adm-xs text-secondary-400 mt-3 pt-3 border-t border-line-soft"
         >
           MATRÍCULA CIERRA EL
-          {{ formatDate(quota.enrollment_end_date, true).toUpperCase() }}
+          {{ formatDate(quota.closes_at, true).toUpperCase() }}
         </p>
       </AulaCard>
     </div>

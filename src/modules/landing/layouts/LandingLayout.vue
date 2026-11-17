@@ -14,10 +14,11 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { onMounted, ref, watch } from 'vue'
   import { useRoute } from 'vue-router'
   import Navbar from '../components/NavbarHeader.vue'
   import Footer from '../components/FooterSection.vue'
+  import { useGeneralStore } from '../stores/useGeneralStore'
 
   const route = useRoute()
   const scroller = ref<HTMLElement | null>(null)
@@ -28,4 +29,29 @@
    * esto el detalle nuevo se abriría a media altura.
    */
   watch(() => route.path, () => scroller.value?.scrollTo({ top: 0 }))
+
+  /*
+   * SEO del sitio público: título y meta descripción salen de Sitio web →
+   * Configuración. Sin valores en el panel se conserva el `<title>` del HTML.
+   */
+  const general = useGeneralStore()
+  onMounted(() => general.ensure())
+  watch(
+    () => general.data,
+    (d) => {
+      const title = d?.meta_title || d?.site_name
+      if (title) document.title = title
+      const desc = d?.meta_description
+      if (desc) {
+        let tag = document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
+        if (!tag) {
+          tag = document.createElement('meta')
+          tag.name = 'description'
+          document.head.appendChild(tag)
+        }
+        tag.content = desc
+      }
+    },
+    { immediate: true },
+  )
 </script>

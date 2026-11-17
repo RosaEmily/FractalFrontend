@@ -64,4 +64,7 @@ export interface General {
   faqs: Faq[];
   complaints_book: string | null;
   whatsapp: string | null;
+  site_name: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
 }

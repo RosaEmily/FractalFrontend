@@ -83,7 +83,7 @@ onMounted(async () => {
 
     <AulaSkeleton v-if="loading" kind="table" :rows="4" />
 
-    <div v-else-if="visible.length" class="grid gap-3.5 xl:grid-cols-2">
+    <div v-else-if="visible.length" class="grid grid-cols-1 gap-3.5 xl:grid-cols-2">
       <CourseCard
         v-for="course in visible"
         :key="course.id"

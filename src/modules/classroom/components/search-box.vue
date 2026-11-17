@@ -273,7 +273,7 @@ const coordinatorIndex = computed<SearchItem[]>(() =>
     label: cohort.name,
     meta: [
       cohort.prefix,
-      `${cohort.enrolled_students_count} de ${cohort.max_students || "—"} matriculados`,
+      `${cohort.enrolled} de ${cohort.max || "—"} matriculados`,
     ]
       .filter(Boolean)
       .join(" · "),

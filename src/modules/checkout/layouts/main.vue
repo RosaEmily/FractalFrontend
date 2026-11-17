@@ -121,9 +121,9 @@ const cancelPurchase = () => {
         Cancelar compra
       </LandingButton>
 
-      <div class="flex items-center gap-5">
+      <div class="flex items-center gap-3 sm:gap-5">
         <span
-          class="inline-flex items-center gap-2 font-mono text-[0.688rem] font-semibold tracking-[0.06em] whitespace-nowrap text-secondary-500"
+          class="hidden items-center gap-2 sm:inline-flex font-mono text-[0.688rem] font-semibold tracking-[0.06em] whitespace-nowrap text-secondary-500"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" class="text-success-DEFAULT" aria-hidden="true">
             <rect x="4" y="10" width="16" height="11" rx="2.5" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.7" />

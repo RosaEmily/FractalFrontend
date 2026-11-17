@@ -80,7 +80,7 @@ const ACCENT_INDEX = 1
             v-for="(kpi, i) in animatedKpis"
             :key="kpi.id"
             :class="[
-              'rounded-lg p-8 flex flex-col relative overflow-hidden border',
+              'rounded-lg p-5 sm:p-8 flex flex-col relative overflow-hidden border',
               i === ACCENT_INDEX
                 ? 'bg-primary-500 border-primary-500 shadow-accent'
                 : 'bg-surface-paper border-line shadow-sm hover:-translate-y-1 transition-transform duration-300',
@@ -98,10 +98,10 @@ const ACCENT_INDEX = 1
 
             <!-- Value + suffix — large counter -->
             <div class="flex items-baseline gap-0.5 font-display font-bold leading-none tracking-tight mb-5">
-              <span :class="['text-[4.5rem]', i === ACCENT_INDEX ? 'text-white' : 'text-secondary-900']">
+              <span :class="['text-[3.25rem] sm:text-[4.5rem]', i === ACCENT_INDEX ? 'text-white' : 'text-secondary-900']">
                 {{ kpi.currentValue }}
               </span>
-              <span v-if="kpi.suffix" :class="['text-[2rem]', i === ACCENT_INDEX ? 'text-white/70' : 'text-primary-500']">
+              <span v-if="kpi.suffix" :class="['text-[1.5rem] sm:text-[2rem]', i === ACCENT_INDEX ? 'text-white/70' : 'text-primary-500']">
                 {{ kpi.suffix }}
               </span>
             </div>

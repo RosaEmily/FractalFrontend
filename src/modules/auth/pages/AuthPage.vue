@@ -329,7 +329,7 @@ const onSubmit = handleSubmit(async (values) => {
       <span class="text-white/70">UTC-5 / LIMA</span>
     </div>
 
-    <div class="flex-1 grid lg:grid-cols-[1.1fr_1fr] min-h-0">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] min-h-0">
       <!-- ── Panel de marca ─────────────────────────────────────────── -->
       <aside
         class="hidden lg:flex relative overflow-hidden bg-admin-pane border-r border-line px-14 pt-14 pb-10 flex-col"

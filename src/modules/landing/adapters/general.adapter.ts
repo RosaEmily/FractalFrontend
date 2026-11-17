@@ -55,5 +55,8 @@ export const GeneralAdapter = {
     faqs: dto.faqs ?? [],
     complaints_book: dto.complaints_book ?? null,
     whatsapp: dto.whatsapp ?? null,
+    site_name: dto.site_name ?? null,
+    meta_title: dto.meta_title ?? null,
+    meta_description: dto.meta_description ?? null,
   }),
 };

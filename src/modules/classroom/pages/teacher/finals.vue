@@ -273,7 +273,7 @@ onMounted(async () => {
           menos una evaluación.
         </AulaNotice>
 
-        <div class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-5">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-5">
           <AulaStat
             label="Notas finales"
             :value="`${data.totals.with_grade}/${data.totals.students}`"

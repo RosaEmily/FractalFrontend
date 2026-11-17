@@ -3,6 +3,66 @@
 Bitácora de lo hecho y decidido por tanda (sep–oct 2026). **No se carga sola**: léelo cuando
 preguntes por qué algo está como está o qué se hizo antes.
 
+**16-nov-2026 — revisión de landing, admin y aula con navegador (sin commitear).**
+Recorrido de las 3 zonas con Playwright (extensión) y datos sembrados para que
+se vean llenas. Patrón de diseño confirmado: V3 cálido/editorial (crema
+`#FAF6EE`, acento `#E94E1B`, Bricolage Grotesque + Inter Tight + JetBrains Mono,
+botones píldora) en landing/aula/checkout y ADM más neutro en el admin. Sin
+desbordes en móvil (390px).
+
+- **Landing**: chips de especialidad de `/instructors` ahora salen de los docentes
+  (eran una lista fija BIM/AutoCAD/…); título y meta descripción salen de Sitio
+  web → Configuración (`LandingLayout.vue`, campos nuevos en dto/model/adapter de
+  `general`); "1 cursos" → "1 curso" en `ProgramOfferCard` y `ProgramCard`.
+- **Aula**: `AulaCard` ganó la prop `tone="ink"`. La tarjeta oscura de "próxima
+  clase" (home y detalle de clase del alumno) pasaba `bg-secondary-900` desde
+  fuera, pero `bg-surface-paper` ganaba por orden en el CSS y el texto blanco
+  quedaba invisible. **Regla: una variante de fondo va como prop, no como clase
+  externa.**
+- **Aula docente**: "Tu próxima clase" y "Próximas clases que dictas" ya no
+  arrancan con clases de fecha pasada que siguen pendientes; esas salen en
+  Pendientes como "sin marcar".
+- **Rol COORDINATOR no entra por la puerta del aula** (la API solo admite
+  STUDENT/TEACHER ahí; COORDINATOR entra por el panel). Las 4 pantallas de
+  `/aula/coordinacion` solo se alcanzan con un usuario multirol
+  (`profesor@fractal.com` quedó TEACHER + COORDINATOR). Decisión de acceso
+  pendiente de Sandro.
+- `security/users/{id}` devuelve `teacher: null` aunque el docente exista: el
+  formulario de edición de un usuario docente no puede precargar el perfil
+  (posible bug, sin corregir).
+- Baseline `vue-tsc`: 43 errores, sin cambios.
+
+**Cómo operar el aula con el navegador (verificado)**: iniciar sesión con
+`fetch` a `auth/login` con `zone: classroom` en el body; luego, DESDE una ruta
+`/aula/...` (no `/admin`, o guarda el perfil del admin), importar
+`modules/admin/services/auth.service.ts` + `shared/utils/session.ts` y llamar
+`setSessionUser('classroom', safeJsonStringify(await me.me()), expiresAt)`.
+`max_sessions` es 1 por zona: para re-entrar con el mismo usuario hay que
+revocar su sesión con `DELETE system/sessions/{id}` desde el admin.
+
+**16-nov-2026 (2ª pasada) — flujo de compra completo por la interfaz.** Recorrido
+real landing → programa → carrito → datos → método → pago de prueba →
+confirmación → aula, con una línea sola, un curso solo (Yape) y un carrito mixto
+(línea + curso). Las 3 compras quedaron `paid` y el alumno ve sus cursos, la
+secuencia (módulo 1 en curso, 2 y 3 bloqueados), clases y videollamada.
+
+- **Total del carrito desactualizado**: `add()`/`remove()` del `useCartStore` no
+  invalidaban `totals` (los del servidor, del carrito anterior), así que con 2
+  ítems decía S/ 1,150 en vez de S/ 1,470. Ahora invalidan `totals` y `cart.vue`
+  revalida al cambiar los ítems. La revalidación va en la página y no en el store
+  porque `add()` también se usa desde la landing, sin sesión (un `validate()` ahí
+  daría 401 y sacaría al invitado).
+- **"Completa tu formación" ofrecía lo ya comprado** (`CartUpsell.vue`): ahora
+  excluye las ofertas del alumno (vía `studentService.courses()`, solo con
+  sesión de aula).
+- Pantallas de pago: los campos de tarjeta están deshabilitados A PROPÓSITO (pago
+  de prueba); el botón real es "Registrar matrícula — S/ X".
+- **Pendiente**: la confirmación y el paso de datos prometen un correo y un
+  "comprobante descargable" que NO existen (`MAIL_MAILER=log`, sin `Mail` ni
+  notificaciones). Requiere un servicio de correo/comprobantes.
+- Cosmético: las etiquetas de paso dicen "03/04" aunque son el 2.º y 3.º (se
+  salta "02 Cuenta" con sesión).
+
 **Los 5 PRs se mergearon** (15-sep-2026): sesión por zona, aula + checkout,
 alineación con el diseño, esqueleto de carga, y modo masivo + landing v4 +
 huecos de aula/checkout. **Rama base: `dev-v2`**; el trabajo nuevo ya no va
@@ -216,3 +276,22 @@ Detalle en la memoria del proyecto (`project_modulo_checkout.md`,
   el slot recibe `submit` y `loading`).
 - **Línea de carrera**: `CourseOrderList` ordena los cursos con ↑/↓ — el orden
   es la secuencia en que se habilitan.
+
+## 17-nov-2026 — Revisión de diseño y responsive (landing / aula)
+
+Patrón: tokens V3 en `@theme` (crema `#FAF6EE`, acento `#E94E1B`, Bricolage/Inter Tight/JetBrains Mono, píldoras); ADM para el panel.
+Corregido (verificado en 375 / 768 con Playwright; `vue-tsc` 43, `vite build` OK):
+- **`grid` sin `grid-cols-1` base + `sm:/xl:grid-cols-N`** → la columna implícita crece con el contenido y desborda en móvil (aula: tarjeta de curso de 563px). Corregido en 39 grids (classroom, checkout, admin, landing). **Regla: todo `grid` responsive lleva `grid-cols-1` base.**
+- Contacto: tarjetas y filas de formulario en 1 columna bajo `xs`; el email largo ya no se corta (`break-anywhere`).
+- KPIs del inicio: número/sufijo/padding escalan en móvil (el "%" salía cortado).
+- Navbar/topbar en tablet: `whitespace-nowrap`, paddings `md:px-8 lg:px-16`, gaps menores (teléfono partido, "Contacto" pegado a "Mi aula").
+- Hero: marco de imagen y rectángulos decorativos fluidos (`max-w` + `aspect`), antes 380/420px fijos y se salían en tablet.
+Pendiente de revisar: admin en 375/768, checkout con carrito (datos/pago/confirmación) y desktop 1280 con capturas.
+
+### 17-nov-2026 (2ª pasada) — admin móvil, roadmap, checkout
+Metodología: revisar sin editar → plan → cambios → esperar a que Vite se calme → recargar y medir (evita que el HMR recargue la pestaña de Playwright a mitad de un script).
+- **Admin < lg: menú como cajón.** `admin/layouts/main.vue`: botón hamburguesa en el header (`lg:hidden`), fondo oscuro, cierre al navegar (`watch(route.fullPath)`); en `lg+` el wrapper es `lg:contents` y el `<aside>` queda como antes (verificado en 1280). Header `px-4 lg:px-7`, contenido `!px-4 sm:!px-6`. Antes un sidebar fijo de 256px dejaba ~100px al contenido en 375.
+- **Detalle de programa: roadmap de módulos** vertical en móvil (fila círculo + texto) y grilla horizontal desde `md` (`--cols` + `md:grid-cols-[repeat(var(--cols),minmax(0,1fr))]`); desbordaba 404/365.
+- **Checkout: barra inferior** en una fila en móvil (el "PAGO SEGURO · SSL" se oculta bajo `sm`).
+- Decisión de diseño que NO se toca: en móvil el resumen va ARRIBA de la lista de ítems (comentario en `cart.vue`: total y CTA sin bajar).
+- Pendiente de revisar: aula docente/coordinación, checkout datos/pago/confirmación, resto de módulos del admin (solo se midieron Home, Usuarios, Cursos/crear), "Colapsar menú" sobra dentro del cajón móvil.

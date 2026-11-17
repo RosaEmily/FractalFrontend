@@ -426,7 +426,7 @@ onMounted(async () => {
 
       <template v-else>
         <!-- Acciones arriba, como el diseño: el cuadro SIEMPRE es editable. -->
-        <div class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-5">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4 mb-5">
           <AulaStat
             :icon="mdiChartBoxOutline"
             label="Suma de pesos"
@@ -676,7 +676,7 @@ onMounted(async () => {
           </AulaEmpty>
         </AulaCard>
 
-        <div class="grid gap-3.5 lg:grid-cols-2 mt-5">
+        <div class="grid grid-cols-1 gap-3.5 lg:grid-cols-2 mt-5">
           <!-- Escala y aprobación: la nota máxima es UNA para todo el cuadro. -->
           <AulaCard pad="sm">
             <div class="flex items-center justify-between mb-4">

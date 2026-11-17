@@ -126,7 +126,7 @@ const pay = async () => {
             un formulario que acepte un número de tarjeta real recogería datos
             sensibles que nadie puede procesar ni proteger.
           -->
-          <div class="grid gap-3.5 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <label class="sm:col-span-2 block">
               <span class="mb-1.5 block text-[0.813rem] font-medium text-secondary-500">Número de tarjeta</span>
               <InputTextCore class="checkout-field" type="text" disabled placeholder="0000 0000 0000 0000" />

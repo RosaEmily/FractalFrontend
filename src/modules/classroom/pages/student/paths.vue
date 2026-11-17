@@ -55,7 +55,7 @@ const open = (group: LearningPathGroup) => {
 
     <AulaSkeleton v-if="loading" kind="table" :rows="3" />
 
-    <div v-else-if="paths.length" class="grid gap-3.5 xl:grid-cols-2">
+    <div v-else-if="paths.length" class="grid grid-cols-1 gap-3.5 xl:grid-cols-2">
       <AulaCard v-for="group in paths" :key="group.offerId" hover @click="open(group)">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">

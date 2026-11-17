@@ -128,12 +128,16 @@ export const useCartStore = defineStore("cart", () => {
     if (has(offer.id)) return;
 
     items.value.push(CartItemAdapter.fromOffer(offer));
+    // Los totales del servidor eran de OTRO carrito: dejarlos mostraba el total
+    // anterior con un ítem de más. Sin ellos el resumen usa `localTotal`.
+    totals.value = null;
     persist();
   }
 
   function remove(offerId: number) {
     items.value = items.value.filter((i) => i.offerId !== offerId);
     problems.value = problems.value.filter((p) => p.offer_id !== offerId);
+    totals.value = null;
     persist();
   }
 

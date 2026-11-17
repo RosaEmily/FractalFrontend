@@ -10,7 +10,8 @@ import NavVertical from "../components/NavVertical/index.vue";
 import Logo from "@/assets/fractal.png";
 import authService from "../services/auth.service";
 import { useUserStore } from "../stores/useUserStore";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { mdiClose, mdiMenu } from "@mdi/js";
 import { safeJsonParse, safeJsonStringify } from "@/shared/utils/safe-json";
 import {
   clearSession,
@@ -22,15 +23,26 @@ import {
 } from "@/shared/utils/session";
 import { safeRequest } from "@/shared/utils/request";
 import type { MeResponse } from "../models/auth.model";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { MENU_LAYOUT } from "../constants/layout";
 import { useClickOutsideMulti } from "@/shared/composables/useClickOutside";
 import type { MenuLayout } from "@/shared/interface/layout";
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 
 const openMenu = ref<boolean>(false);
+
+/**
+ * Menú lateral como cajón por debajo de `lg`: a 375px un sidebar fijo de 256px
+ * deja ~100px al contenido. En `lg+` el wrapper es `display: contents` y el
+ * `<aside>` vuelve a ser hijo directo del flex, igual que antes.
+ */
+const navOpen = ref<boolean>(false);
+watch(() => route.fullPath, () => {
+  navOpen.value = false;
+});
 const menuRef = ref<HTMLElement | null>(null);
 const logoutEnable = ref<boolean>(false);
 const logoutLoading = ref<boolean>(false);
@@ -111,9 +123,18 @@ onMounted(async () => {
 <template>
   <div class="h-dvh flex flex-col w-full bg-admin-bg">
     <header
-      class="w-full sticky top-0 z-50 px-7 py-3.5 flex items-center justify-between bg-surface-paper border-b border-line"
+      class="w-full sticky top-0 z-50 px-4 lg:px-7 py-3.5 flex items-center justify-between bg-surface-paper border-b border-line"
     >
-      <div>
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="lg:hidden grid size-10 place-items-center rounded-full border border-line bg-surface-paper text-secondary-900"
+          :aria-label="navOpen ? 'Cerrar menú' : 'Abrir menú'"
+          :aria-expanded="navOpen"
+          @click="navOpen = !navOpen"
+        >
+          <HeroCore :path="navOpen ? mdiClose : mdiMenu" class="size-5" />
+        </button>
         <ImageCore image-class="h-10" :src="Logo" />
       </div>
       <div>
@@ -127,7 +148,7 @@ onMounted(async () => {
         <transition name="fade-scale">
           <div
             v-if="openMenu"
-            class="absolute right-7 top-16 bg-surface-paper border border-line min-w-[16rem] p-1.5 z-[9999] rounded-adm-md shadow-lg"
+            class="absolute right-4 lg:right-7 top-16 bg-surface-paper border border-line min-w-[16rem] p-1.5 z-[9999] rounded-adm-md shadow-lg"
           >
             <!-- Cabecera con la identidad del usuario -->
             <div
@@ -198,15 +219,25 @@ onMounted(async () => {
       :show-container-footer="false"
       :show-right="false"
       class-main="!bg-admin-bg"
-      class-container="!px-6 !py-6 !mr-0 !my-0"
+      class-container="!px-4 sm:!px-6 !py-6 !mr-0 !my-0"
     >
       <template #left>
-        <NavVertical
-          :avatar="userStore.photo ?? userStore.fullName"
-          :avatar-fallback="userStore.fullName"
-          :full-name="userStore.fullName"
-          :role="userStore.role"
+        <div
+          v-if="navOpen"
+          class="fixed inset-x-0 bottom-0 top-17 z-30 bg-secondary-900/40 lg:hidden"
+          @click="navOpen = false"
         />
+        <div
+          class="fixed bottom-0 left-0 top-17 z-40 transition-transform duration-200 lg:contents"
+          :class="navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        >
+          <NavVertical
+            :avatar="userStore.photo ?? userStore.fullName"
+            :avatar-fallback="userStore.fullName"
+            :full-name="userStore.fullName"
+            :role="userStore.role"
+          />
+        </div>
       </template>
       <section class="size-full">
         <router-view />

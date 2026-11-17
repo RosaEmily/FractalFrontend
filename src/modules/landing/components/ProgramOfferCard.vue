@@ -54,7 +54,7 @@ const STATUS_LABEL: Record<string, string> = {
       <!-- Course count badge (if multiple) -->
       <div v-if="offer.courses.length > 1" class="absolute top-3.5 right-3.5">
         <span class="font-mono text-[0.625rem] font-semibold tracking-wide px-2.5 py-1 rounded-full bg-surface-paper border border-line text-secondary-900">
-          {{ offer.courses.length }} cursos
+          {{ offer.courses.length }} {{ offer.courses.length === 1 ? "curso" : "cursos" }}
         </span>
       </div>
     </div>

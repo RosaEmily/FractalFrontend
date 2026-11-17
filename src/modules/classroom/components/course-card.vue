@@ -81,7 +81,7 @@ const open = () => {
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p
-              class="font-display text-adm-lg font-bold text-secondary-900 tracking-tight truncate"
+              class="font-display text-adm-lg font-bold text-secondary-900 tracking-tight line-clamp-2 wrap-break-word"
             >
               {{ course.courseName }}
             </p>

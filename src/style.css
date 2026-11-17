@@ -207,6 +207,34 @@
 .adm-row { transition: background .15s; }
 .adm-row:hover { background: var(--color-admin-row-hover); }
 
+/* Pista de scroll horizontal en tablas del admin. GripUi marca el contenedor
+   con `data-more-right` / `data-more-left` mientras quede contenido oculto en
+   ese lado; el degradado va en un pseudo-elemento porque las celdas tienen
+   fondo propio y taparían uno pintado en el contenedor. */
+.fractal-basic-table { position: relative; }
+.fractal-basic-table::before,
+.fractal-basic-table::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 1.5rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.fractal-basic-table::before {
+  left: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--color-secondary-900) 16%, transparent), transparent);
+}
+.fractal-basic-table::after {
+  right: 0;
+  background: linear-gradient(to left, color-mix(in srgb, var(--color-secondary-900) 16%, transparent), transparent);
+}
+.fractal-basic-table[data-more-left]::before,
+.fractal-basic-table[data-more-right]::after { opacity: 1; }
+
 .adm-nav-item { transition: background .15s, color .15s, border-color .15s; }
 .adm-nav-item:hover:not(.is-active) { background: var(--color-accent-dim-soft); }
 
