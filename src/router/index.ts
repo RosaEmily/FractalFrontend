@@ -43,7 +43,10 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory("/FractalFrontend/"),
   routes,
-  scrollBehavior() {
+  scrollBehavior(to) {
+    // Un enlace con ancla lo resuelve la propia pantalla (la sección puede no
+    // existir todavía y el router, al subir al inicio, pisaba su scroll).
+    if (to.hash) return false;
     return { top: 0 };
   },
 });

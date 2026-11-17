@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import { InputTextCore, SelectCore, TextAreaCore } from '@/shared/components'
 import { safeRequest } from '@/shared/utils/request'
@@ -29,6 +30,20 @@ function toggleFaq(i: number) {
 }
 
 const { email, phone, address, mailHref, telHref, whatsappHref, faqs } = useSiteContact()
+
+/*
+ * `/contact#faqs` (enlace del pie): la sección solo existe cuando las preguntas
+ * ya llegaron del panel, así que el salto se hace al aparecer, no al montar.
+ * Si llegan antes de que el router resuelva el hash, el scroll lo cubre acá.
+ */
+const route = useRoute()
+const scrollToFaqs = () =>
+  nextTick(() => document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' }))
+watch(
+  () => [faqs.value.length, route.hash] as const,
+  ([count, hash]) => { if (count && hash === '#faqs') scrollToFaqs() },
+  { immediate: true },
+)
 
 type ContactCard = { icon: string; label: string; value: string; sub: string; href: string; external?: boolean }
 
@@ -297,7 +312,7 @@ onMounted(async () => {
     </section>
 
     <!-- FAQ section: las preguntas del panel (Sitio web → FAQ). Sin ninguna, no hay sección. -->
-    <section v-if="faqs.length" class="bg-surface-paper border-t border-line px-6 md:px-16 py-24">
+    <section v-if="faqs.length" id="faqs" class="scroll-mt-20 bg-surface-paper border-t border-line px-6 md:px-16 py-24">
       <div class="text-center mb-12">
         <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">FAQ · PREGUNTAS FRECUENTES</p>
         <h2 class="font-display font-bold text-[clamp(36px,4.5vw,52px)] leading-[1.05] tracking-tight text-secondary-900 text-balance">

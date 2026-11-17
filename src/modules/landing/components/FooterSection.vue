@@ -32,7 +32,7 @@ const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
     {
       title: 'Información',
       items: [
-        { label: 'Preguntas frecuentes', href: '/contact' },
+        { label: 'Preguntas frecuentes', href: '/contact#faqs' },
         { label: 'Comunidad de egresados', href: '#' },
         { label: 'Cursos corporativos', href: '#' },
         { label: 'Becas y financiamiento', href: '#' },
