@@ -1,14 +1,35 @@
 <script setup lang="ts">
-import LandingButton from './ui/LandingButton.vue'
-import LandingEyebrow from './ui/LandingEyebrow.vue'
-import { InputTextCore } from '@/shared/components'
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useSiteContact } from '../composables/useSiteContact'
+import FooterIcon from '@/shared/components/footer-icon.vue'
+
+const route = useRoute()
+
+/*
+ * Un enlace con ancla a la página en la que ya estás no navega (la URL es la
+ * misma), así que el salto se hace acá.
+ */
+function onLinkClick(event: MouseEvent, href: string) {
+  const [path, hash] = href.split('#')
+  if (!hash || !path || !route.path.endsWith(path)) return
+  const target = document.getElementById(hash)
+  if (!target) return
+  event.preventDefault()
+  target.scrollIntoView({ behavior: 'smooth' })
+}
 
 const {
-  email, phone, address, mailHref, telHref, whatsappHref, socialNetworks, complaintsBook,
+  email, phone, address, mailHref, telHref, whatsappHref, socialNetworks, footer,
 } = useSiteContact()
+
+/* Respaldo mientras el panel no cargue estos textos, para que el pie no quede vacío. */
+const brandText = computed(
+  () => footer.value?.brandText
+    ?? 'Centro Autodesk Authorized Training Center en Perú. Formación técnica especializada en BIM, AutoCAD y herramientas digitales para arquitectura, ingeniería y construcción.',
+)
+const legalName = computed(() => footer.value?.legalName ?? 'FRACTAL STUDIO S.A.C.')
+const locationText = computed(() => footer.value?.locationText ?? 'HECHO EN LIMA · PERÚ')
 
 /* Las redes y los canales son los que cargó el panel: sin dato, no se pinta. */
 const socialLinks = computed(() =>
@@ -27,68 +48,46 @@ const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
   ]
   const contact = channels.filter((i): i is FooterItem => i !== null)
 
-  return [
-    { title: 'Contacto', items: contact },
-    {
-      title: 'Información',
-      items: [
-        { label: 'Preguntas frecuentes', href: '/contact' },
-        { label: 'Comunidad de egresados', href: '#' },
-        { label: 'Cursos corporativos', href: '#' },
-        { label: 'Becas y financiamiento', href: '#' },
-      ],
-    },
-    {
-      title: 'Compañía',
-      items: [
-        { label: 'Política de privacidad', href: '#' },
-        { label: 'Términos y condiciones', href: '#' },
-        ...(complaintsBook.value
-          ? [{ label: 'Libro de reclamaciones', href: complaintsBook.value, external: true }]
-          : []),
-      ],
-    },
-  ]
+  /* Las columnas de enlaces son las que armó el panel (Sitio web → Pie de página). */
+  const custom = (footer.value?.columns ?? []).map((column) => ({
+    title: column.title,
+    items: column.links.map((link): FooterItem => ({
+      label: link.label,
+      href: link.href,
+      external: link.external,
+      icon: link.icon,
+    })),
+  }))
+
+  /* El Libro de reclamaciones es una página propia y cierra la última columna. */
+  const book: FooterItem = {
+    label: 'Libro de reclamaciones',
+    href: '/libro-de-reclamaciones',
+    icon: 'book',
+  }
+  const last = custom[custom.length - 1]
+  if (last) last.items.push(book)
+  else custom.push({ title: 'Compañía', items: [book] })
+
+  return [{ title: 'Contacto', items: contact }, ...custom]
 })
+
+/* Branding + una columna por bloque: el ancho se reparte según cuántas haya. */
+const gridColumns = computed(() => `1.5fr repeat(${footerCols.value.length}, minmax(0, 1fr))`)
 </script>
 
 <template>
   <footer class="bg-surface-cream">
-    <!-- Newsletter CTA flotante -->
-    <div class="mx-6 md:mx-16 translate-y-14 relative z-10">
-      <div class="bg-surface-paper border border-line rounded-xl shadow-lg px-8 md:px-14 py-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center overflow-hidden relative">
-        <!-- Decoración -->
-        <div class="absolute -right-10 -top-10 w-56 h-56 rounded-full bg-accent-soft opacity-60 pointer-events-none" />
-        <div class="absolute -right-25 -bottom-20 w-44 h-44 rounded-full bg-accent-tint opacity-50 pointer-events-none" />
-
-        <div class="relative z-10">
-          <LandingEyebrow>NEWSLETTER · FRACTAL INSIGHT</LandingEyebrow>
-          <h3 class="font-display text-[clamp(26px,3vw,36px)] font-bold leading-[1.05] tracking-tight mt-3 mb-2 text-secondary-900">
-            Recibe nuevos programas y becas en tu correo.
-          </h3>
-          <p class="font-body text-[0.9375rem] text-secondary-500">
-            Una vez al mes. Sin spam. Sólo lo nuevo de BIM, AutoCAD y construcción digital.
-          </p>
-        </div>
-
-        <form @submit.prevent class="relative z-10 flex gap-2 items-center bg-surface-page rounded-full p-1.5 border border-line">
-          <InputTextCore
-            class="field-bare flex-1"
-            type="email"
-            placeholder="tu@correo.com"
-          />
-          <LandingButton size="md" type="submit">Suscribirme</LandingButton>
-        </form>
-      </div>
-    </div>
-
     <!-- Contenido principal -->
-    <div class="pt-32 pb-10 px-6 md:px-16 grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-12">
+    <div
+      class="pt-16 pb-10 px-6 md:px-16 grid grid-cols-1 md:[grid-template-columns:var(--footer-cols)] gap-12"
+      :style="{ '--footer-cols': gridColumns }"
+    >
       <!-- Branding -->
       <div>
         <img src="@/assets/fractal.png" alt="Fractal Studio" class="h-10 w-auto" />
         <p class="font-body text-[0.875rem] leading-relaxed text-secondary-500 mt-6 mb-6 max-w-xs">
-          Centro Autodesk Authorized Training Center en Perú. Formación técnica especializada en BIM, AutoCAD y herramientas digitales para arquitectura, ingeniería y construcción.
+          {{ brandText }}
         </p>
         <p v-if="socialLinks.length" class="font-mono text-[0.625rem] text-secondary-400 tracking-widest uppercase mb-3">Síguenos</p>
         <div class="flex gap-2">
@@ -128,10 +127,9 @@ const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
               v-bind="item.href.startsWith('/')
                 ? { to: item.href }
                 : { href: item.href, target: item.external ? '_blank' : '_self', rel: item.external ? 'noopener' : undefined }"
-              class="font-body text-[0.844rem] text-secondary-900 inline-flex items-center gap-2 hover:opacity-60 transition-opacity">
-              <!-- icon -->
-              <svg v-if="item.icon === 'mail'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/></svg>
-              <svg v-else-if="item.icon === 'phone'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C20 21 19 21 18 21C10 21 3 14 3 6C3 5 3 4 3 4Z"/></svg>
+              class="font-body text-[0.844rem] text-secondary-900 inline-flex items-center gap-2 hover:opacity-60 transition-opacity"
+              @click="onLinkClick($event, item.href)">
+              <FooterIcon v-if="item.icon && item.icon !== 'pin' && item.icon !== 'whatsapp'" :name="item.icon" class="shrink-0 text-primary-500" />
               <svg v-else-if="item.icon === 'pin'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22S20 14 20 9A8 8 0 1 0 4 9C4 14 12 22 12 22Z"/><circle cx="12" cy="9" r="3"/></svg>
               <svg v-else-if="item.icon === 'whatsapp'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z"/></svg>
               {{ item.label }}
@@ -143,9 +141,9 @@ const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
 
     <!-- Copyright -->
     <div class="mx-6 md:mx-16 py-5 border-t border-line flex flex-col sm:flex-row justify-between items-center gap-3 font-mono text-[0.6875rem] text-secondary-400 tracking-[0.04em]">
-      <span>© {{ new Date().getFullYear() }} FRACTAL STUDIO S.A.C. · TODOS LOS DERECHOS RESERVADOS</span>
+      <span>© {{ new Date().getFullYear() }} {{ legalName }} · TODOS LOS DERECHOS RESERVADOS</span>
       <span class="flex items-center gap-4">
-        <span>HECHO EN LIMA · PERÚ</span>
+        <span>{{ locationText }}</span>
         <span class="text-primary-500 flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-dot" />
           OPERATIVO

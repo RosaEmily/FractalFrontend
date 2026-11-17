@@ -27,6 +27,24 @@ export const routesLanding: RouteRecordRaw[] = [
     component: () => import("../pages/ProgramDetailView.vue"),
   },
   {
+    path: "/info/:slug",
+    name: "info-page",
+    component: () => import("../pages/InfoPageView.vue"),
+  },
+  {
+    path: "/libro-de-reclamaciones",
+    name: "complaints-book",
+    component: () => import("../pages/ComplaintBookView.vue"),
+    meta: {
+      page: {
+        base: {
+          title: "Libro de reclamaciones",
+          description: "Registra un reclamo o una queja. Cada hoja recibe un código y una respuesta por escrito.",
+        },
+      },
+    },
+  },
+  {
     path: "/contact",
     name: "contact",
     component: () => import("../pages/ContactView.vue"),

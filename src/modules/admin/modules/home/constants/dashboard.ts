@@ -14,6 +14,8 @@ export const ATTENTION_ROUTES: Record<string, RouteLocationRaw | undefined> = {
   pending_payments: { name: "enrollments.list" },
   evaluation_weights: { name: "courseEvaluations.list" },
   certificates_pending: { name: "certificates.list" },
+  complaints_unanswered: { name: "complaints.list" },
+  contact_messages_new: { name: "contactMessages.list" },
 };
 
 /** Etiquetas de estado de una clase, según el diseño. */

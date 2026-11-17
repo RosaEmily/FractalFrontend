@@ -61,9 +61,9 @@
         <span class="font-mono text-[0.625rem] tracking-widest uppercase text-secondary-400 mb-3.5 block">Precio</span>
         <template v-if="priceHasRange">
           <RangeSlider v-model="filters.priceRange" :min="filterOptions.priceRange.min" :max="filterOptions.priceRange.max" />
-          <div class="flex justify-between font-mono text-[0.6875rem] text-secondary-500 mt-3.5">
-            <span>{{ filters.priceRange[0].toLocaleString() }}</span>
-            <span>{{ filters.priceRange[1].toLocaleString() }}</span>
+          <div class="flex justify-between items-center gap-2 mt-3">
+            <span class="font-mono text-[0.6875rem] text-secondary-900 px-2.5 py-1 rounded-full border border-line bg-surface-paper">{{ filters.priceRange[0].toLocaleString() }}</span>
+            <span class="font-mono text-[0.6875rem] text-secondary-900 px-2.5 py-1 rounded-full border border-line bg-surface-paper">{{ filters.priceRange[1].toLocaleString() }}</span>
           </div>
         </template>
         <!-- Un solo valor posible (ej. una única oferta activa): no hay rango que
@@ -79,9 +79,9 @@
         <span class="font-mono text-[0.625rem] tracking-widest uppercase text-secondary-400 mb-3.5 block">Duración (meses)</span>
         <template v-if="durationHasRange">
           <RangeSlider v-model="filters.durationRange" :min="filterOptions.durationRange.min" :max="filterOptions.durationRange.max" />
-          <div class="flex justify-between font-mono text-[0.6875rem] text-secondary-500 mt-3.5">
-            <span>{{ filters.durationRange[0] }} mes{{ filters.durationRange[0] !== 1 ? 'es' : '' }}</span>
-            <span>{{ filters.durationRange[1] }} meses</span>
+          <div class="flex justify-between items-center gap-2 mt-3">
+            <span class="font-mono text-[0.6875rem] text-secondary-900 px-2.5 py-1 rounded-full border border-line bg-surface-paper">{{ filters.durationRange[0] }} mes{{ filters.durationRange[0] !== 1 ? 'es' : '' }}</span>
+            <span class="font-mono text-[0.6875rem] text-secondary-900 px-2.5 py-1 rounded-full border border-line bg-surface-paper">{{ filters.durationRange[1] }} {{ filters.durationRange[1] === 1 ? 'mes' : 'meses' }}</span>
           </div>
         </template>
         <p v-else class="font-mono text-[0.75rem] text-secondary-500">

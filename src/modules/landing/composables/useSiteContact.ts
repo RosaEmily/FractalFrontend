@@ -56,5 +56,6 @@ export function useSiteContact() {
     socialNetworks: computed(() => store.data?.social_networks ?? []),
     faqs: computed(() => store.data?.faqs ?? []),
     complaintsBook: computed(() => store.data?.complaints_book ?? null),
+    footer: computed(() => store.data?.footer ?? null),
   };
 }
