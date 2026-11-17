@@ -181,7 +181,7 @@ const logout = async () => {
           pantalla, sin landing a la que volver. Acá sí hay una, y el logo es
           el gesto estándar para llegar a ella desde cualquier zona logueada.
         -->
-        <RouterLink :to="{ name: 'home' }">
+        <RouterLink :to="{ name: 'home' }" aria-label="Fractal Studio — ir al inicio">
           <ImageCore image-class="h-8" :src="Logo" />
         </RouterLink>
       </div>

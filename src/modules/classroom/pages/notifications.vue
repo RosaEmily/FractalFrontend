@@ -257,7 +257,7 @@ onMounted(load);
         <!-- Marcar leída sin abrir: revisar la lista es otra acción. -->
         <button
           type="button"
-          class="mt-1.5 grid size-5 shrink-0 place-items-center rounded-pill border-[1.5px] transition-colors"
+          class="relative mt-1.5 grid size-5 shrink-0 place-items-center rounded-pill border-[1.5px] transition-colors before:absolute before:-inset-2.5"
           :class="
             notification.read
               ? 'border-success-DEFAULT bg-success-DEFAULT'

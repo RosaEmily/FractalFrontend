@@ -17,6 +17,27 @@ import { routesSystem } from "../modules/system/router";
 
 import type { RouteRecordRaw } from "vue-router";
 
+/** Primera pantalla real (con nombre) de un grupo de rutas. */
+const firstLeafName = (route: RouteRecordRaw): string | symbol | undefined => {
+  const first = route.children?.[0];
+  return first ? firstLeafName(first) : route.name;
+};
+
+/**
+ * Un grupo sin componente (`/admin/catalog`, `/admin/people`…) solo agrupa
+ * rutas: abrirlo a mano o desde un enlace dejaba la página en BLANCO. Se
+ * redirige a su primera pantalla en vez de declarar un redirect por módulo.
+ */
+const withGroupRedirect = (route: RouteRecordRaw): RouteRecordRaw => {
+  if (!route.children?.length) return route;
+  const children = route.children.map(withGroupRedirect);
+  if (route.component || route.redirect) return { ...route, children } as RouteRecordRaw;
+  const name = firstLeafName({ ...route, children } as RouteRecordRaw);
+  return (name
+    ? { ...route, children, redirect: { name } }
+    : { ...route, children }) as RouteRecordRaw;
+};
+
 export const routesAdmin: RouteRecordRaw[] = [
   {
     path: "",
@@ -47,17 +68,19 @@ export const routesAdmin: RouteRecordRaw[] = [
         },
         children: [
           ...routesHome,
-          ...routesReports,
-          ...routesCatalog,
-          ...routesSecurity,
-          ...routesPeople,
-          ...routesContent,
-          ...routesEvaluations,
-          ...routesPayments,
-          ...routesJobs,
-          ...routesCertification,
-          ...routesAcademic,
-          ...routesSystem,
+          ...[
+            ...routesReports,
+            ...routesCatalog,
+            ...routesSecurity,
+            ...routesPeople,
+            ...routesContent,
+            ...routesEvaluations,
+            ...routesPayments,
+            ...routesJobs,
+            ...routesCertification,
+            ...routesAcademic,
+            ...routesSystem,
+          ].map(withGroupRedirect),
           ...routesProfile,
         ],
       },
