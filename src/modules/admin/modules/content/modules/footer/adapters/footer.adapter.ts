@@ -11,6 +11,8 @@ export const FooterAdapter = {
         brand_text: text(dto?.brand_text),
         legal_name: text(dto?.legal_name),
         location_text: text(dto?.location_text),
+        ruc: text(dto?.ruc),
+        legal_address: text(dto?.legal_address),
         cp_eyebrow: text(cp.eyebrow),
         cp_title: text(cp.title),
         cp_title_accent: text(cp.title_accent),
@@ -28,6 +30,7 @@ export const FooterAdapter = {
           type: l.type,
           page: l.page ?? null,
           url: l.url ?? null,
+          icon: l.icon ?? null,
         })),
       })),
     };
@@ -38,6 +41,8 @@ export const FooterAdapter = {
     brand_text: form.brand_text,
     legal_name: form.legal_name,
     location_text: form.location_text,
+    ruc: form.ruc || null,
+    legal_address: form.legal_address || null,
     columns: columns.map((c) => ({
       title: c.title,
       links: c.links.map((l) => ({
@@ -46,6 +51,7 @@ export const FooterAdapter = {
         // Solo viaja el destino que corresponde al tipo.
         page: l.type === "page" ? l.page : null,
         url: l.type === "url" ? l.url : null,
+        icon: l.icon || null,
       })),
     })),
     contact_page: {

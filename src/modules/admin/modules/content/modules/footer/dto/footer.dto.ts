@@ -5,6 +5,7 @@ export interface FooterLinkDTO {
   type: FooterLinkType;
   page?: string | null;
   url?: string | null;
+  icon?: string | null;
 }
 
 export interface FooterColumnDTO {
@@ -28,6 +29,8 @@ export interface FooterDTO {
   brand_text?: string | null;
   legal_name?: string | null;
   location_text?: string | null;
+  ruc?: string | null;
+  legal_address?: string | null;
   columns?: FooterColumnDTO[] | null;
   contact_page?: FooterContactPageDTO | null;
 }
@@ -37,6 +40,8 @@ export interface FooterBodyDTO {
   brand_text: string | null;
   legal_name: string | null;
   location_text: string | null;
+  ruc: string | null;
+  legal_address: string | null;
   cp_eyebrow: string | null;
   cp_title: string | null;
   cp_title_accent: string | null;

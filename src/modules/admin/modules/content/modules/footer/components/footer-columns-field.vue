@@ -8,6 +8,8 @@
  */
 import { mdiPlus } from "@mdi/js";
 import { ButtonCore, InputTextCore, SelectCore } from "@/shared/components";
+import FooterIcon from "@/shared/components/footer-icon.vue";
+import { FOOTER_ICON_OPTIONS, defaultFooterIcon } from "@/shared/utils/footer-icons";
 import type { FooterColumnDTO, FooterLinkDTO, FooterLinkType } from "../dto/footer.dto";
 
 const MAX_COLUMNS = 3;
@@ -36,7 +38,7 @@ const removeColumn = (index: number) => {
 };
 const addLink = (column: FooterColumnDTO) => {
   if (column.links.length >= MAX_LINKS) return;
-  const link: FooterLinkDTO = { label: "", type: "page", page: null, url: null };
+  const link: FooterLinkDTO = { label: "", type: "page", page: null, url: null, icon: null };
   column.links = [...column.links, link];
 };
 const removeLink = (column: FooterColumnDTO, index: number) => {
@@ -46,13 +48,11 @@ const removeLink = (column: FooterColumnDTO, index: number) => {
 
 <template>
   <div class="space-y-4">
-    <div>
-      <p class="text-adm-md font-semibold text-secondary-900">Columnas de enlaces</p>
-      <p class="text-adm-sm text-secondary-400">
-        Hasta {{ MAX_COLUMNS }} columnas, de {{ MAX_LINKS }} enlaces cada una. La columna de
-        Contacto se arma sola con Sitio web → Contactos.
-      </p>
-    </div>
+    <p class="text-adm-sm text-secondary-400">
+      Hasta {{ MAX_COLUMNS }} columnas, de {{ MAX_LINKS }} enlaces cada una. La columna de
+      Contacto se arma sola con Sitio web → Contactos. Si no eliges ícono, se usa uno según el
+      tipo de enlace.
+    </p>
 
     <p
       v-if="!columns.length"
@@ -88,7 +88,7 @@ const removeLink = (column: FooterColumnDTO, index: number) => {
       <div
         v-for="(link, linkIndex) in column.links"
         :key="linkIndex"
-        class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-start"
+        class="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-3 items-start border-t border-line pt-3"
       >
         <InputTextCore
           v-model="link.label"
@@ -97,6 +97,25 @@ const removeLink = (column: FooterColumnDTO, index: number) => {
           :invalid="!!errors[`${columnIndex}-${linkIndex}`]"
           :message-error="errors[`${columnIndex}-${linkIndex}`]"
         />
+        <div class="flex items-end gap-2">
+          <span
+            class="size-9 shrink-0 mb-px rounded-adm-md bg-primary-500/10 text-primary-500 flex items-center justify-center"
+            title="Así se verá"
+          >
+            <FooterIcon :name="link.icon || defaultFooterIcon(link.type)" :size="16" />
+          </span>
+          <div class="flex-1 min-w-0">
+            <SelectCore
+              v-model="link.icon"
+              label="Ícono"
+              :options="FOOTER_ICON_OPTIONS"
+              option-label="label"
+              option-value="value"
+              placeholder="Automático"
+              show-clear
+            />
+          </div>
+        </div>
         <SelectCore
           v-model="link.type"
           label="Lleva a"

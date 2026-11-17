@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useSiteContact } from '../composables/useSiteContact'
+import FooterIcon from '@/shared/components/footer-icon.vue'
 
 const route = useRoute()
 
@@ -19,7 +20,7 @@ function onLinkClick(event: MouseEvent, href: string) {
 }
 
 const {
-  email, phone, address, mailHref, telHref, whatsappHref, socialNetworks, complaintsBook, footer,
+  email, phone, address, mailHref, telHref, whatsappHref, socialNetworks, footer,
 } = useSiteContact()
 
 /* Respaldo mientras el panel no cargue estos textos, para que el pie no quede vacío. */
@@ -54,20 +55,19 @@ const footerCols = computed<{ title: string; items: FooterItem[] }[]>(() => {
       label: link.label,
       href: link.href,
       external: link.external,
+      icon: link.icon,
     })),
   }))
 
-  /* El Libro de reclamaciones se configura aparte (Configuración) y cierra la última columna. */
-  if (complaintsBook.value) {
-    const book: FooterItem = {
-      label: 'Libro de reclamaciones',
-      href: complaintsBook.value,
-      external: true,
-    }
-    const last = custom[custom.length - 1]
-    if (last) last.items.push(book)
-    else custom.push({ title: 'Compañía', items: [book] })
+  /* El Libro de reclamaciones es una página propia y cierra la última columna. */
+  const book: FooterItem = {
+    label: 'Libro de reclamaciones',
+    href: '/libro-de-reclamaciones',
+    icon: 'book',
   }
+  const last = custom[custom.length - 1]
+  if (last) last.items.push(book)
+  else custom.push({ title: 'Compañía', items: [book] })
 
   return [{ title: 'Contacto', items: contact }, ...custom]
 })
@@ -129,9 +129,7 @@ const gridColumns = computed(() => `1.5fr repeat(${footerCols.value.length}, min
                 : { href: item.href, target: item.external ? '_blank' : '_self', rel: item.external ? 'noopener' : undefined }"
               class="font-body text-[0.844rem] text-secondary-900 inline-flex items-center gap-2 hover:opacity-60 transition-opacity"
               @click="onLinkClick($event, item.href)">
-              <!-- icon -->
-              <svg v-if="item.icon === 'mail'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/></svg>
-              <svg v-else-if="item.icon === 'phone'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C20 21 19 21 18 21C10 21 3 14 3 6C3 5 3 4 3 4Z"/></svg>
+              <FooterIcon v-if="item.icon && item.icon !== 'pin' && item.icon !== 'whatsapp'" :name="item.icon" class="shrink-0 text-primary-500" />
               <svg v-else-if="item.icon === 'pin'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22S20 14 20 9A8 8 0 1 0 4 9C4 14 12 22 12 22Z"/><circle cx="12" cy="9" r="3"/></svg>
               <svg v-else-if="item.icon === 'whatsapp'" width="14" height="14" viewBox="0 0 24 24" fill="none" class="shrink-0 text-primary-500" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z"/></svg>
               {{ item.label }}

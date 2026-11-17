@@ -62,6 +62,7 @@ export interface FooterLinkDTO {
   type: FooterLinkType;
   page?: string | null;
   url?: string | null;
+  icon?: string | null;
 }
 
 /** Pie de página y textos de Contacto, tal cual los guarda el panel (Sitio web → Pie de página). */
@@ -69,6 +70,8 @@ export interface FooterDTO {
   brand_text?: string | null;
   legal_name?: string | null;
   location_text?: string | null;
+  ruc?: string | null;
+  legal_address?: string | null;
   columns?: { title: string; links?: FooterLinkDTO[] }[] | null;
   contact_page?: {
     eyebrow?: string | null;

@@ -59,6 +59,8 @@ export interface FooterLink {
   /** Destino ya resuelto: ruta interna (`/info/...`, `/contact#faqs`) o URL externa. */
   href: string;
   external: boolean;
+  /** Nombre del ícono (catálogo de footer-icons.ts); ya trae el de respaldo por tipo. */
+  icon: string;
 }
 
 export interface FooterColumn {
@@ -70,6 +72,9 @@ export interface FooterContent {
   brandText: string | null;
   legalName: string | null;
   locationText: string | null;
+  /** RUC y domicilio legal del proveedor (los muestra el Libro de Reclamaciones). */
+  ruc: string | null;
+  legalAddress: string | null;
   columns: FooterColumn[];
   contactPage: {
     eyebrow: string | null;
