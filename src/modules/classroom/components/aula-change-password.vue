@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { z } from "zod";
+import { strongPassword } from "@/shared/utils/password-schema";
 import { ButtonCore, InputPasswordCore, ModalCore } from "@/shared/components";
 import { useFormFields } from "@/shared/composables/useFormFields";
 import { safeRequest } from "@/shared/utils/request";
@@ -25,20 +26,13 @@ const loading = ref(false);
 const done = ref(false);
 const revokedCount = ref(0);
 
-/**
- * ⚠️ Mínimo SEIS, no los ocho que dibuja el diseño: la API valida
- * `min:6` (`ChangePasswordRequest`). Prometer 8 en el placeholder y aceptar 6
- * confundiría, y subirlo es una decisión de negocio, no un ajuste visual.
- */
+/** Misma política que la API (`StrongPassword`): 8 a 72, con letra y número. */
 const formSchema = z
   .object({
     current_password: z
       .string({ message: "Debes ingresar tu contraseña actual" })
       .min(1, { message: "Debes ingresar tu contraseña actual" }),
-    password: z
-      .string({ message: "La nueva contraseña es obligatoria" })
-      .min(6, { message: "Debe tener al menos 6 caracteres" })
-      .max(100, { message: "No puede tener más de 100 caracteres" }),
+    password: strongPassword("La nueva contraseña es obligatoria"),
     password_confirmation: z
       .string({ message: "Debes confirmar la nueva contraseña" })
       .min(1, { message: "Debes confirmar la nueva contraseña" }),
@@ -134,6 +128,7 @@ const onSubmit = handleSubmit(async (values: ChangePasswordBodyDTO) => {
       <InputPasswordCore
         v-model="fields.current_password.value"
         label="Contraseña actual"
+        autocomplete="current-password"
         toggle-mask
         :feedback="false"
         :invalid="!!errors.current_password"
@@ -142,7 +137,7 @@ const onSubmit = handleSubmit(async (values: ChangePasswordBodyDTO) => {
       <InputPasswordCore
         v-model="fields.password.value"
         label="Nueva contraseña"
-        hint-label="Mínimo 6 caracteres"
+        hint-label="Mín. 8, con letra y número"
         toggle-mask
         :feedback="false"
         :invalid="!!errors.password"

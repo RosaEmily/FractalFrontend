@@ -44,6 +44,9 @@ export interface InputPasswordCoreProps {
   ptOptions?: PasswordProps["ptOptions"];
   unstyled?: PasswordProps["unstyled"];
 
+  /** Por defecto `new-password`: evita que el navegador rellene la contraseña guardada del admin. Para el login: `current-password`. */
+  autocomplete?: string;
+
   messageError?: string | null;
   /** Aclaración corta junto al label (el diseño la llama hint). */
   hintLabel?: string | null;

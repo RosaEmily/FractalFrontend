@@ -95,6 +95,7 @@ const columns: GridUiColumnProps<Student>[] = [
       delete: (ids: (number | string)[]) => studentService.delete(ids),
     }"
     :show-updated-at="false"
+    import-route="students.import"
     title="Lista de estudiantes"
     module="people/students"
     :keys="{ identifier: 'document_number', status: 'status' }"

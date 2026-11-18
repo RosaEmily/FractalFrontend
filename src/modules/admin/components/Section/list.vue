@@ -19,7 +19,12 @@ import { useConfirmStore } from "@/shared/stores/useConfirmStore";
 import { FilterMatchMode } from "@primevue/core";
 import BulkBar from "@/modules/admin/components/ui/bulk-bar.vue";
 import { HeroCore } from "@/shared/components";
-import { mdiCheck, mdiClose, mdiTrashCanOutline } from "@mdi/js";
+import {
+  mdiCheck,
+  mdiClose,
+  mdiFileUploadOutline,
+  mdiTrashCanOutline,
+} from "@mdi/js";
 
 const router = useRouter();
 const toastStore = useToastStore();
@@ -51,6 +56,11 @@ interface SectionList {
    * pasarela, no el panel): oculta el botón Crear.
    */
   showCreate?: boolean;
+  /**
+   * Nombre de la ruta de importación masiva (Excel/CSV). Si viene, el menú de
+   * "Crear" ofrece "Importar desde Excel/CSV".
+   */
+  importRoute?: string;
   /**
    * Oculta el lápiz de editar. Los listados de solo lectura (logs, sesiones,
    * transacciones, matrículas) no tienen ruta `edit`: el botón navegaba a una
@@ -317,6 +327,18 @@ const selectedCount = computed<number>(() => rowsSelect.value.length);
 const actionsMassive = computed(() => {
   const noSelection = selectedCount.value === 0;
   const items: Record<string, unknown>[] = [];
+
+  if (props.importRoute) {
+    items.push(
+      {
+        label: "Importar desde Excel/CSV",
+        icon: mdiFileUploadOutline,
+        tone: "default",
+        command: () => router.push({ name: props.importRoute }),
+      },
+      { separator: true },
+    );
+  }
 
   /*
    * Cabecera "N SELECCIONADOS" del diseño. PrimeVue no expone un slot para la

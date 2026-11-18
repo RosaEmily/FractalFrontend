@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<InputPasswordCoreProps>(), {
   inputClass: "w-full",
   toggleMask: true,
   feedback: false,
+  autocomplete: "new-password",
 });
 
 const model = defineModel<string | null>({
@@ -43,7 +44,12 @@ const model = defineModel<string | null>({
       es la que hace que el input reserve el padding derecho. Sin ella el ojo
       se dibuja fuera del campo.
     -->
-    <Password v-trim v-bind="props" v-model="model">
+    <Password
+      v-trim
+      v-bind="props"
+      :input-props="{ autocomplete: props.autocomplete, ...props.inputProps }"
+      v-model="model"
+    >
       <template #maskicon="{ toggleCallback }">
         <HeroCore
           :path="mdiEyeOffOutline"
