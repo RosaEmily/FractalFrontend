@@ -158,6 +158,7 @@ const onSubmit = handleSubmit(async (values: ChangePasswordBodyDTO) => {
         <InputPasswordCore
           v-model="fields.current_password.value"
           label="Contraseña actual"
+          autocomplete="current-password"
           :invalid="!!errors.current_password"
           :message-error="errors.current_password"
           :feedback="false"
@@ -167,7 +168,7 @@ const onSubmit = handleSubmit(async (values: ChangePasswordBodyDTO) => {
           <InputPasswordCore
             v-model="fields.password.value"
             label="Nueva contraseña"
-            placeholder="Mín. 6 caracteres"
+            placeholder="Mín. 8, con letra y número"
             :invalid="!!errors.password"
             :message-error="errors.password"
           />

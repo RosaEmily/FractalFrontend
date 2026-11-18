@@ -1,6 +1,7 @@
 const ListPage = () => import("../pages/list.vue");
 const CreatePage = () => import("../pages/create.vue");
 const UpdatePage = () => import("../pages/update.vue");
+const ImportPage = () => import("../pages/import.vue");
 
 import type { RouteRecordRaw } from "vue-router";
 
@@ -27,6 +28,12 @@ export const routesTeachers: RouteRecordRaw[] = [
         name: "teachers.create",
         component: CreatePage,
         meta: { page: { base: { title: `${TitleBase} Crear` } } },
+      },
+      {
+        path: "import",
+        name: "teachers.import",
+        component: ImportPage,
+        meta: { page: { base: { title: `${TitleBase} Importar` } } },
       },
       {
         path: "edit/:id",

@@ -135,7 +135,9 @@ onMounted(async () => {
         >
           <HeroCore :path="navOpen ? mdiClose : mdiMenu" class="size-5" />
         </button>
-        <ImageCore image-class="h-10" :src="Logo" />
+        <RouterLink :to="{ name: 'home' }" aria-label="Fractal Studio — ir al inicio">
+          <ImageCore image-class="h-10" :src="Logo" />
+        </RouterLink>
       </div>
       <div>
         <div ref="menuRef" class="cursor-pointer" @click="openMenu = !openMenu">

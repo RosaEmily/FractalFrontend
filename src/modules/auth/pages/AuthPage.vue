@@ -463,6 +463,7 @@ const onSubmit = handleSubmit(async (values) => {
               v-model="fields.password.value"
               label="Contraseña"
               required
+              autocomplete="current-password"
               placeholder="••••••••••••"
               :invalid="!!errors.password"
               :message-error="errors.password"
