@@ -81,7 +81,8 @@ const formSchema = z
   .object({
     current_password: z
       .string({ message: "Debes ingresar tu contraseña actual" })
-      .min(1, { message: "Debes ingresar tu contraseña actual" }),
+      .min(1, { message: "Debes ingresar tu contraseña actual" })
+      .max(1024, { message: "Contraseña demasiado larga" }),
     password: strongPassword("La nueva contraseña es obligatoria"),
     password_confirmation: z
       .string({ message: "Debes confirmar la nueva contraseña" })

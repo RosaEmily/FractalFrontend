@@ -1,3 +1,4 @@
+import { safeWebUrl } from "@/shared/utils/safe-url";
 import {
   AcademicCapIcon,
   BriefcaseIcon,
@@ -46,10 +47,10 @@ const footerOf = (
             return [{ label: link.label, href: "/contact#faqs", external: false, icon: iconOf(link, "faqs") }];
           }
           if (link.type === "page" && link.page && published.has(link.page)) {
-            return [{ label: link.label, href: `/info/${link.page}`, external: false, icon: iconOf(link, "page") }];
+            return [{ label: link.label, href: `/info/${encodeURIComponent(link.page)}`, external: false, icon: iconOf(link, "page") }];
           }
-          if (link.type === "url" && link.url) {
-            return [{ label: link.label, href: link.url, external: true, icon: iconOf(link, "url") }];
+          if (link.type === "url" && safeWebUrl(link.url)) {
+            return [{ label: link.label, href: safeWebUrl(link.url)!, external: true, icon: iconOf(link, "url") }];
           }
           return [];
         }),
@@ -104,7 +105,10 @@ export const GeneralAdapter = {
       label: c.description,
       value: c.value,
     })),
-    social_networks: (dto.social_networks ?? []).map((n) => ({ name: n.name, url: n.url })),
+    social_networks: (dto.social_networks ?? []).flatMap((n) => {
+      const url = safeWebUrl(n.url);
+      return url ? [{ name: n.name, url }] : [];
+    }),
     faqs: dto.faqs ?? [],
     complaints_book: dto.complaints_book ?? null,
     footer: footerOf(dto.footer, dto.pages ?? []),

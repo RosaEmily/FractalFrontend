@@ -1,3 +1,4 @@
+import { safeWebUrl } from "@/shared/utils/safe-url";
 import type { OfferDTO, OfferListDTO } from "../dto/offer.dto";
 import type { Offer, OfferList, OfferStatus } from "../models/offer.model";
 
@@ -59,6 +60,15 @@ export const OfferAdapter = {
       courses: dto.courses.map((c) => ({
         ...c,
         image_alt: `Imagen representativa de ${c.name}`,
+        teacher_detail: c.teacher_detail ? {
+          ...c.teacher_detail,
+          cv: safeWebUrl(c.teacher_detail.cv),
+          social_networks: {
+            linkedin: safeWebUrl(c.teacher_detail.social_networks?.linkedin),
+            other: safeWebUrl(c.teacher_detail.social_networks?.other),
+            instagram: safeWebUrl(c.teacher_detail.social_networks?.instagram),
+          },
+        } : null,
       })),
       status,
       status_label: STATUS_LABEL[status],

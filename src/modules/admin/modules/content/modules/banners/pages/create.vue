@@ -98,7 +98,13 @@ const formSchema = z.object({
   cta: z.string().max(255).nullable().optional(),
   cta2: z.string().max(255).nullable().optional(),
   dark: z.boolean(),
-  order: z.number().int().nullable().optional(),
+  order: z
+    .number()
+    .int()
+    .min(0, { message: "No puede ser negativo" })
+    .max(9999, { message: "Valor demasiado alto" })
+    .nullable()
+    .optional(),
   offer_id: z.number().nullable().optional(),
 });
 

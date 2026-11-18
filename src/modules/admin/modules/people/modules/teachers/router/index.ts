@@ -33,7 +33,10 @@ export const routesTeachers: RouteRecordRaw[] = [
         path: "import",
         name: "teachers.import",
         component: ImportPage,
-        meta: { page: { base: { title: `${TitleBase} Importar` } } },
+        meta: {
+          roles: ["ADMIN"],
+          page: { base: { title: `${TitleBase} Importar` } },
+        },
       },
       {
         path: "edit/:id",

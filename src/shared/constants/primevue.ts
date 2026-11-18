@@ -1,4 +1,4 @@
-import Aura from "@primeuix/themes/aura";
+import Aura from "./primevue-preset";
 import { definePreset } from "@primeuix/themes";
 
 /**

@@ -6,11 +6,8 @@
  */
 export interface OfferQueryParams {
   page?: string;
-  offset?: string;
   limit?: string;
   order?: string;
-  /** Filtro genérico `filterSortAndPaginate` (JSON de PrimeVue), usado por el Home. */
-  filters?: string;
   types?: string[];
   tags?: number[];
   teachers?: string[];

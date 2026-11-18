@@ -17,7 +17,11 @@ const formSchema = z.object({
     .string({ message: "El nombre es obligatorio" })
     .min(3, { message: "Debe tener al menos 3 caracteres" })
     .max(100, { message: "No puede tener más de 100 caracteres" }),
-  description: z.string().nullable().optional(),
+  description: z
+    .string()
+    .max(1000, { message: "No puede tener más de 1000 caracteres" })
+    .nullable()
+    .optional(),
 });
 </script>
 

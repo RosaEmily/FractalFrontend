@@ -90,7 +90,7 @@ onMounted(async () => {
      * el pedido nunca llegaba a pedir `learning_path`.
      */
     offerStore.fetch({
-      offset: '0',
+      page: '1',
       limit: '8',
       order: 'enrollment_end_date:desc',
     }),
