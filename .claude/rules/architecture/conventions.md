@@ -63,6 +63,15 @@ z.string().pipe(withRefinements(z.string(), lettersSpaces))
 withRefinements(z.string().min(4), lettersSpaces)
 ```
 
+### Paridad con el backend
+
+El backend nunca debe ser más laxo que el esquema zod, y lo obligatorio debe coincidir. Antes de añadir o cambiar un campo, revisar el `FormRequest` correspondiente en `fractal-api` (`Domains/*/Http/Requests`) y mantener los mismos mínimos, máximos, formato y obligatoriedad:
+
+- Notas: 0–999,99 (`SCORE_LIMIT`). Experiencia: 0–80. Edad: 18–70. Permisos/roles: 4–200, solo mayúsculas y `_`.
+- Altas y ediciones de docente, estudiante y usuario exigen especialidad (mín. 2), biografía (mín. 3) y dirección (mín. 3); el backend los exige en alta y edición.
+- El slug de etiqueta que se edita es el que se guarda.
+- Un campo opcional en el formulario debe ser opcional (`nullable`) en el backend, no `required`.
+
 ## Formularios (reglas de campos)
 
 | Campo | Reglas |
@@ -82,7 +91,7 @@ v-keyfilter.lettersSpaces
 
 ## HTTP y manejo de errores
 
-- **En páginas/componentes**: siempre usar `safeRequest()`, nunca try/catch suelto
+- **En páginas/componentes CRUD**: usar `safeRequest()`. Los flujos persistentes como importación gestionan sus errores y cancelación en su composable; no duplicar alertas globales.
 - **En services/repositories**: dejar propagar errores (sin catch)
 - `showAlert: false` en `safeRequest` cuando se maneja el error manualmente
 - Los errores de campo del backend se mapean automáticamente en `CrudForm` si `error.details` es un objeto con keys = nombres de campo
@@ -104,7 +113,7 @@ La paginación espera `{ items, meta }` donde `meta.total` contiene el total de 
 ```ts
 {
   limit: number,
-  offset: number,           // página (número de página, no índice)
+  page: number,             // página desde 1; no offset
   order?: "field:asc|desc",
   filters?: {               // filtros serializados por primeToApiFilters()
     field: { value, matchMode }
@@ -181,4 +190,4 @@ Cada ítem de menú en `constants/menu/` tiene:
 
 ### Deuda conocida
 
-El módulo `landing/` tiene ~300 valores arbitrarios y hex crudos de antes de esta regla (`ProgramDetailView.vue` es el peor, con 110). No se migró en bloque para no mezclar ese cambio con otro trabajo. **Al tocar un componente de landing, migrar sus valores de paso.**
+Existen valores arbitrarios heredados en landing. No tomar conteos históricos como medición vigente. Al modificar un estilo dentro del alcance solicitado, reutilizar tokens; no extender la tarea a una migración masiva no pedida.

@@ -6,80 +6,31 @@ paths:
   - "Dockerfile*"
 ---
 
-# Proyecto — Stack y Configuración
+# Proyecto — stack y configuración
 
-## ¿Qué es?
+Contexto contrastado con el código local el 18-nov-2026. Ver `README.md` para instalación, límites y pendientes; no representa el estado del despliegue.
 
-Frontend de **Fractal Studio**, plataforma de formación técnica. Tiene dos zonas:
-- **Landing pública**: marketing con programas, instructores, reviews, KPIs, socios, contacto
-- **Panel admin** (`/admin`): backoffice con auth JWT y módulos CRUD extensibles
+## Áreas y stack
 
-## Stack
+Fractal Studio incluye web pública, acceso, administración, aula, checkout y pantallas de estado. Vue 3 con TypeScript 5.9, Vite 7, Tailwind 4/SCSS, PrimeVue 4, Pinia 3, Vue Router 4, Axios, vee-validate 4/Zod 3, Day.js y js-cookie. `read-excel-file` se carga bajo demanda en un worker para XLSX. Vitest tiene pruebas activas. ESLint 9 usa `eslint.config.js`.
 
-| Capa | Tecnología | Versión |
-|---|---|---|
-| Framework | Vue 3 + `<script setup>` + TypeScript | ~5.9 |
-| Build | Vite | 7.x |
-| Estilos | Tailwind CSS + SCSS | 4.x |
-| UI Components | PrimeVue | 4.x |
-| Estado | Pinia | 3.x |
-| Router | Vue Router | 4.x |
-| HTTP | Axios (cliente personalizado `ApiRequest`) | 1.x |
-| Formularios | vee-validate + Zod | 4.x / 3.x |
-| Fechas | Day.js | 1.x |
-| Cookies | js-cookie | 3.x |
-| Icons | MDI (`@mdi/js`) + Heroicons + `@jamescoyle/vue-icon` | — |
-| Testing | Vitest | 4.x |
-| Linting | ESLint 9 + Prettier | — |
-| CI/CD | GitHub Actions → GitHub Pages | — |
-| Mock | json-server (puerto 4000) | 0.17.x |
+## Configuración
 
-## Variables de entorno
+Los nombres se exportan desde `src/shared/config/env.config.ts`; ningún `VITE_*` debe contener secretos porque queda expuesto en el cliente.
 
-Copiar `.env.example` → `.env`:
+- `VITE_API_FRACTAL_V2`: base HTTP para toda la aplicación, incluida landing. El cliente agrega `/v1`; incluir `/api` en la base cuando corresponda.
+- `VITE_COOKIE_NAME_USER`, `VITE_COOKIE_NAME_EXPIRES`: prefijos del perfil y caducidad por zona, no del token HttpOnly.
+- `VITE_APP`, `VITE_HOME_BASE_URL`: opciones exportadas de entorno.
+- `VITE_API_FRACTAL`, `VITE_COOKIE_NAME_SESSION`: exportaciones heredadas; no dirigen el cliente ni la autenticación actuales.
 
-```env
-VITE_API_FRACTAL=""           # URL API v1 (landing)
-VITE_API_FRACTAL_V2=""        # URL API v2 admin (sin /v1, el cliente lo agrega)
-VITE_COOKIE_NAME_SESSION="app_session"
-VITE_COOKIE_NAME_EXPIRES="app_expires_at"
-VITE_COOKIE_NAME_USER="app_user"
-VITE_APP="local"              # local | dev | prod
-VITE_HOME_BASE_URL=""         # Opcional
-```
+Vite: base `/FractalFrontend/`, alias `@` a `src`, puerto 5173 estricto, `worker.format: es`. `host: 0.0.0.0` permite que Docker/Traefik llegue al proceso. `allowedHosts` contiene el dominio exacto `local.fractal.com`; CORS enumera HTTP/HTTPS con y sin 5173. `fs.strict` limita archivos al repo y `fs.deny` bloquea patrones sensibles. Estos filtros no autentican ni prueban que el proxy sea privado.
 
-Los valores se exportan desde `src/shared/config/env.config.ts`.
+## Ejecución y CI
 
-## Comandos
+- `npm run dev`: Vite; acceder por el dominio del proyecto.
+- `npm run build`, `build:dev`, `build:prod`: primero `vue-tsc -b`, luego Vite.
+- `npm run test`: Vitest; CSV/XLSX, importación y preset.
+- `npm run lint`: ESLint con `--fix`, modifica archivos.
+- `npm run preview`: revisión del build. `npm run mock`: datos ficticios.
 
-```bash
-npm install          # Instalar dependencias
-npm run dev          # Dev server (puerto 5173, host 0.0.0.0)
-npm run build        # Build producción con type-check (vue-tsc)
-npm run build:dev    # Build para rama dev
-npm run build:prod   # Build para rama master
-npm run preview      # Preview del build local
-npm run lint         # ESLint con auto-fix
-npm run test         # Vitest (sin tests activos por ahora)
-npm run mock         # json-server en puerto 4000
-```
-
-## CI/CD
-
-GitHub Actions (`.github/workflows/main.yml`):
-
-- Triggers: push a `master`, `dev`, `feature/*`
-- Pipeline: **lint → test → build** (secuencial)
-- **deploy-dev**: `dev` → branch `gh-pages-dev`
-- **deploy**: `master` → branch `gh-pages`
-- Node.js requerido: `20.19.0`
-- Secret en repo: `VITE_API_FRACTAL`
-
-## Configuración de Vite
-
-```ts
-// vite.config.ts
-server: { host: '0.0.0.0', port: 5173, allowedHosts: ['local.fractal.com'] }
-base: '/FractalFrontend/'
-resolve: { alias: { '@': './src' } }
-```
+El workflow fija Node 20.19.0 y corre lint → test en `master`, `dev`, `feature/*`; build/publicación solo en `master/dev`, a `gh-pages`/`gh-pages-dev`. Pendientes comprobados: usa `npm ci` sin lockfile versionado y configura `VITE_API_FRACTAL` aunque el cliente utiliza `VITE_API_FRACTAL_V2`. No considerar CI validado hasta resolverlo.
