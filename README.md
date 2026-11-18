@@ -1,218 +1,96 @@
 # FractalFrontend
 
-Panel de administración y landing pública para **Fractal Studio**, plataforma de formación técnica.
+Frontend de Fractal Studio, academia de formación técnica BIM/CAD en Perú.
 
-## ¿Qué hace este sistema?
+Contexto contrastado con el código local el **18 de noviembre de 2026**. Incluye cambios todavía sin commit; no describe necesariamente el despliegue activo.
 
-El proyecto tiene dos zonas funcionales:
+## Áreas de la aplicación
 
-- **Landing pública** — marketing con secciones de programas, instructores, reviews, KPIs, socios y contacto.
-- **Panel admin** (`/admin`) — backoffice con autenticación JWT, gestión de seguridad (roles y permisos) y estructura extensible para nuevos módulos CRUD.
+| Área | Rutas principales | Función |
+|---|---|---|
+| Web pública | `/`, `/programs`, `/programs/:id`, `/instructors`, `/instructors/:documentNumber`, `/contact`, `/info/:slug`, `/libro-de-reclamaciones` | Catálogo, contenido, contacto y reclamaciones |
+| Acceso | `/login`, `/aula/login` | Un formulario con variante por zona |
+| Administración | `/admin` y sus módulos | Inicio, catálogo, personas, seguridad, operación académica, contenido, reportes y sistema |
+| Aula | `/aula` | Alumno, docente y pantallas de coordinación |
+| Compra | `/checkout` | Carrito, validación y compra del alumno; utiliza la sesión del aula |
+| Estados | `src/modules/error/router/index.ts` | Pantallas de error y ruta no encontrada |
 
-## Stack
+Las rutas anteriores son relativas al router. En el navegador llevan la base `/FractalFrontend/`. El inicio del panel es `/admin`, no `/admin/home`.
 
-| Capa | Tecnología |
+## Stack y ejecución
+
+Vue 3, TypeScript 5.9, Vite 7, Tailwind CSS 4/SCSS, PrimeVue 4, Pinia 3, Vue Router 4, Axios, vee-validate 4/Zod 3, Day.js, js-cookie y MDI/Heroicons. XLSX se lee con `read-excel-file` dentro de un Web Worker, cargado al utilizar la importación.
+
+Node compatible con Vite 7: 20.19+ o 22.12+; el workflow fija 20.19.0. Instalar dependencias con `npm install`.
+
+| Comando | Efecto |
 |---|---|
-| Framework | Vue 3 + `<script setup>` + TypeScript |
-| Build | Vite 7 |
-| Estilos | Tailwind CSS 4 + SCSS |
-| UI | PrimeVue 4 |
-| Estado | Pinia |
-| Router | Vue Router 4 |
-| HTTP | Axios (cliente personalizado) |
-| Formularios | vee-validate 4 + Zod 3 |
-| Fechas | Day.js |
-| Cookies | js-cookie |
-| Icons | MDI + Heroicons |
-| Testing | Vitest |
-| CI/CD | GitHub Actions → GitHub Pages |
+| `npm run dev` | Vite en puerto 5173; usar el dominio `local.fractal.com` |
+| `npm run build` | `vue-tsc -b` y después Vite |
+| `npm run build:dev`, `npm run build:prod` | Mismo control de tipos, con base `/FractalFrontend/` |
+| `npm run test` | Vitest; existen pruebas de importación, CSV/XLSX y equivalencia del preset |
+| `npm run lint` | ESLint con `--fix`; modifica archivos |
+| `npm run preview` | Sirve el build para revisión local |
+| `npm run mock` | Servidor de datos ficticios de desarrollo |
 
-## Setup local
+Última verificación de esta sesión: Vite compila; el build completo sigue bloqueado por 63 errores TypeScript preexistentes. Esto no equivale a una compilación de producción aprobada.
 
-### Requisitos
+## Configuración
 
-- Node.js 20.x
-- npm
+`src/shared/config/env.config.ts` exporta los nombres de configuración. No colocar credenciales en variables `VITE_*`: forman parte del frontend público.
 
-### Instalación
+- `VITE_API_FRACTAL_V2`: base de la API, incluyendo `/api` si corresponde y **sin** `/v1`; `api-fractal.ts` agrega `/v1`. La usa también la landing.
+- `VITE_COOKIE_NAME_USER`, `VITE_COOKIE_NAME_EXPIRES`: prefijos del perfil y la caducidad visibles por zona.
+- `VITE_APP`, `VITE_HOME_BASE_URL`: opciones de entorno disponibles en el módulo de configuración.
+- `VITE_API_FRACTAL` y `VITE_COOKIE_NAME_SESSION` siguen exportadas por compatibilidad; no son la fuente de la autenticación actual.
 
-```bash
-npm install
-```
+`vite.config.ts` permite `local.fractal.com`, enumera orígenes HTTP/HTTPS con o sin el puerto 5173 y restringe los archivos servidos al repositorio. `host: 0.0.0.0` permite el acceso desde el proxy de Docker. Los filtros Host/CORS no autentican usuarios ni garantizan que el servidor de desarrollo sea privado; revisar la exposición del proxy por separado.
 
-### Variables de entorno
+## Arquitectura y contratos
 
-Copia `.env.example` a `.env` y completa los valores:
+- `src/router/index.ts`: composición de módulos, metadatos, guards y recuperación de sesión.
+- `src/shared/`: cliente HTTP, errores, componentes core/UI, validadores, stores y utilidades.
+- `src/modules/admin/`: `BaseRepository`, `BaseService`, `SectionList`, `CrudForm` y módulos funcionales.
+- `src/modules/{landing,auth,classroom,checkout,error}/`: páginas y capas propias.
+- `src/style.css`: tokens de diseño; `shared/constants/primevue.ts` y `primevue-preset.ts`: personalización y selección de componentes Aura.
 
-```env
-VITE_API_FRACTAL_V2=""       # URL base de la API (sin /v1 al final — el cliente lo agrega)
-VITE_COOKIE_NAME_SESSION="app_session"
-VITE_COOKIE_NAME_EXPIRES="app_expires_at"
-VITE_COOKIE_NAME_USER="app_user"
-VITE_APP="local"
-VITE_HOME_BASE_URL=""        # Opcional
-```
+En CRUD: página → servicio → repositorio → API; el repositorio adapta DTO → modelo. Las agregaciones de aula, reportes y checkout tienen repositorios específicos. El servicio extrae `data` del sobre `{ success, error, data }`.
 
-### Servidor de desarrollo
+El grid CRUD envía `page` desde 1 y `limit`; recibe `data.items` y `data.meta`. El listado público de programas también recibe `items/meta`; `OfferAdapter` lo transforma a `offers` en el modelo. No confundir esos niveles. Importaciones usa `offset` como índice de fila y páginas fijas de 25.
 
-```bash
-npm run dev
-# → http://localhost:5173/FractalFrontend/
-# También accesible en http://local.fractal.com:5173/FractalFrontend/
-```
+## Sesión y permisos
 
-### Mock server (datos locales)
+No se utiliza JWT. El servidor genera un token opaco, guarda su SHA-256 y lo entrega únicamente en cookies HttpOnly separadas: `fractal_admin_session` y `fractal_aula_session`.
 
-```bash
-npm run mock
-# → json-server en http://localhost:4000
-```
+Axios utiliza `withCredentials` y el header `X-Fractal-Zone`. El login envía `zone` en el cuerpo. JavaScript solo guarda perfil, caducidad y preferencia de rol; esas cookies no conceden permisos en la API. El guard no tiene un rol ADMIN por defecto y recupera el perfil mediante `auth/me` una vez por zona/carga cuando falta.
 
-## Comandos
+Un 401 limpia el perfil de esa zona y lleva a su login; un 403 no cierra la sesión. Los 429/500/502/503/504 llevan a la pantalla de estado salvo peticiones marcadas `background`, como la importación. No existe reintento automático general de mutaciones tras reautenticar.
 
-```bash
-npm run dev          # Servidor de desarrollo
-npm run build        # Build producción con type-check
-npm run build:dev    # Build para entorno dev
-npm run build:prod   # Build para producción
-npm run preview      # Preview del build
-npm run lint         # ESLint con auto-fix
-npm run test         # Tests unitarios (Vitest)
-npm run mock         # Mock server local (json-server)
-```
+## Importación de personas
 
-## Arquitectura
+Estudiantes y docentes usan `admin/components/ui/bulk-import.vue` y `admin/modules/people/shared/import/`. Solo ADMIN. Acepta XLSX (primera hoja), CSV/TSV y pegado desde Excel; hasta 50.000 registros y archivos de 20 MB.
 
-### Estructura de directorios
+El worker lee, valida, normaliza y detecta duplicados. La UI mantiene solo 25 filas de vista previa; envía las válidas en lotes de hasta 1.000 filas/1 MB. La API guarda el avance y ejecuta trabajos de 25 registros, con cuatro líneas de trabajo. Los reintentos de subida y creación son idempotentes. El enlace con `?import=<id>` permite consultar, pausar y continuar tras recargar.
 
-```
-src/
-├── main.ts                   # Bootstrap de la app
-├── router/index.ts           # Router con guards de auth y roles
-├── shared/                   # Código compartido
-│   ├── components/core/      # Primitivos del design system
-│   ├── components/ui/        # Grid (DataTable), modales compuestos
-│   ├── composables/          # useFormFields, useClickOutside
-│   ├── config/               # Variables de entorno, cookies
-│   ├── errors/               # BusinessError, RequestError
-│   ├── helpers/axios/        # Cliente HTTP (ApiRequest + instancia api-fractal)
-│   ├── interface/            # ApiResponse<T>, PaginationMeta, DataPaginationMeta<T>
-│   ├── plugins/directives/   # v-keyfilter, v-trim
-│   ├── stores/               # Toast, Alert, Confirm, Loading, Session
-│   └── utils/                # safeRequest, zod helpers, format
-├── modules/
-│   ├── auth/                 # Login y autenticación
-│   ├── admin/                # Panel de administración
-│   │   ├── components/Section/   # SectionList y CrudForm genéricos
-│   │   ├── repositories/         # BaseRepository (abstracto)
-│   │   ├── services/             # BaseService (abstracto)
-│   │   └── modules/security/     # Módulo de seguridad
-│   │       ├── permissions/      # CRUD Permisos
-│   │       └── roles/            # CRUD Roles
-│   └── landing/              # Landing pública (módulo autónomo)
-│       ├── dto/              # DTOs por entidad: general, teacher, offer, footer
-│       ├── models/           # Models por entidad
-│       ├── adapters/         # Adapters con one() y many()
-│       ├── repositories/     # Repositorios por entidad
-│       ├── services/         # Servicios por entidad
-│       ├── stores/           # useGeneralStore, useOfferStore, useFooterStore
-│       ├── composables/      # useCountUp, useIntersectionObserver
-│       ├── components/       # Secciones: Banner, Kpis, Courses, Teachers...
-│       ├── pages/            # HomeView, ProgramsView, InstructorsView, ContactView
-│       ├── layouts/          # LandingLayout.vue
-│       └── router/           # Rutas públicas
-```
+En la prueba aislada del worker, 50.000 filas se analizaron en aproximadamente 0,8 s (CSV) y 1,3 s (XLSX); la API estaba simulada en esa comprobación de navegador. Es una medición local de análisis/preview, no el tiempo completo de creación.
 
-### Patrón de capas
+El envío del archivo requiere mantener la pantalla abierta; después de encolarse, la creación continúa en el servidor. Las contraseñas temporales se generan allí, se guardan cifradas y solo salen en el reporte. La disponibilidad dura 72 horas desde la creación de la importación.
 
-Cada entidad del admin sigue este flujo:
+## Contexto versionado
 
-```
-API (DTO) → Adapter → Model → Service → Page
-```
+- [.claude/CLAUDE.md](.claude/CLAUDE.md): entrada al contexto para asistentes.
+- [.claude/rules/architecture](.claude/rules/architecture): arquitectura, autenticación, patrones y convenciones.
+- [.claude/rules/modules/modules.md](.claude/rules/modules/modules.md): áreas funcionales y contratos.
+- [.claude/rules/api/api-contract.md](.claude/rules/api/api-contract.md): integración con la API.
+- [.claude/rules/ui](.claude/rules/ui): reglas de diseño y componentes.
 
-- **DTO**: forma del JSON de la API
-- **Model**: forma interna usada en la UI
-- **Adapter**: transforma DTO → Model (`one()` y `many()`)
-- **Repository**: extiende `BaseRepository`, define ruta y adapter
-- **Service**: extiende `BaseService`, expone métodos de negocio
-- **Page**: consume el service vía `SectionList` o `CrudForm`
+Estos archivos pertenecen al repositorio. Los prototipos del workspace son referencias de diseño, no prueba de que una función esté implementada ni requisito para clonar este repo.
 
-### Componentes genéricos CRUD
+## CI/CD y pendientes comprobados
 
-**`SectionList`** — listado con DataTable lazy, filtros, ordenamiento, paginación, acciones masivas (habilitar/deshabilitar/eliminar) y botón de crear. Agrega automáticamente columnas de `updated_at`, `status` y `actions`.
+`.github/workflows/main.yml` ejecuta lint y test en `master`, `dev` y `feature/*`; build y publicación solo en `master/dev`. Publica `gh-pages` y `gh-pages-dev`.
 
-**`CrudForm`** — formulario con validación Zod, manejo de errores de campo del backend, toast de éxito y cancelación.
-
-## Rutas del sistema
-
-```
-/                              → Landing Home
-/programs                      → Programas
-/instructors                   → Instructores
-/contact                       → Contacto
-/login                         → Login (redirige a /admin si autenticado)
-/admin/home                    → Dashboard
-/admin/security/permissions    → Lista de permisos
-/admin/security/permissions/create   → Crear permiso
-/admin/security/permissions/edit/:id → Editar permiso
-/admin/security/roles          → Lista de roles
-/admin/security/roles/create   → Crear rol
-/admin/security/roles/edit/:id → Editar rol
-```
-
-## Autenticación
-
-- JWT almacenado en cookie (`app_session` por defecto)
-- Guard en router: `meta.auth = true` requiere cookie válida
-- Control de roles: `meta.roles: string[]` verifica contra cookie `roles`
-- Modal de sesión expirada con reintento automático de la última request
-
-## Cómo agregar un módulo CRUD
-
-1. Crear `src/modules/admin/modules/{dominio}/modules/{entidad}/`
-2. Definir `dto/entity.dto.ts` (forma del JSON de la API)
-3. Definir `models/entity.model.ts` (`interface Entity` + `EntityRepositoryTypes`)
-4. Crear `adapters/entity.adapter.ts` con `{ one(), many() }`
-5. Crear `repositories/entity.repository.ts` extendiendo `BaseRepository<EntityRepositoryTypes>`
-6. Crear `services/entity.service.ts` extendiendo `BaseService`
-7. Crear páginas: `list.vue`, `create.vue`, `update.vue`
-8. Crear `router/index.ts` y registrarlo en el módulo padre
-9. Agregar ítem al menú en `src/modules/admin/constants/menu/`
-
-## Convenciones
-
-- Componentes con `<script setup lang="ts">` siempre
-- Alias `@` → `src/`
-- Base URL del router: `/FractalFrontend/` (GitHub Pages)
-- Nombres de permisos/roles: `MAYUSCULAS_CON_GUION_BAJO`
-- Las páginas del admin consumen services, nunca HTTP directo
-- `safeRequest` para wrappear calls en componentes (no lanza, devuelve `{ status, data, error }`)
-- Bulk delete: `POST /route/bulk-delete` con `{ ids: [] }`
-- Cambio de estado: `PATCH /route/actions/update-status` con `{ ids: [], status: 0|1 }`
-
-## CI/CD
-
-GitHub Actions (`.github/workflows/main.yml`):
-- **lint → test → build** en cada push a `master`, `dev`, `feature/*`
-- **deploy-dev**: `dev` → branch `gh-pages-dev`
-- **deploy**: `master` → branch `gh-pages`
-
-Secret requerido en el repo: `VITE_API_FRACTAL`
-
-## Troubleshooting
-
-**El servidor dev no carga en el navegador**
-Asegúrate de acceder con la base URL: `http://localhost:5173/FractalFrontend/`
-
-**Error 401 en las llamadas al admin**
-Verifica que `VITE_API_FRACTAL_V2` esté configurado sin `/v1` al final (el cliente lo agrega).
-
-**Los filtros del DataTable no persisten entre recargas**
-El estado se guarda en `sessionStorage` con key `dt-fractal`. Limpiar el storage del navegador los resetea.
-
-**El mock server no arranca**
-Verifica que existan `mock/db.json` y `mock/routes.json`. El json-server usa la versión `0.17.x` (no la v1).
-
-**Build falla con errores de tipos**
-El build incluye `vue-tsc` con check estricto. Asegúrate de que todos los types estén definidos antes de hacer build.
+- El workflow configura `VITE_API_FRACTAL`, pero el cliente activo necesita `VITE_API_FRACTAL_V2`.
+- Usa `npm ci`, pero `package-lock.json` no está versionado y está ignorado: hace falta resolver la instalación reproducible antes de confiar en CI.
+- El login admite MANAGER/COORDINATOR en el panel, pero `admin-home` exige ADMIN. Hay pantallas del aula para COORDINATOR y su login no admite ese rol por sí solo. La matriz de acceso necesita alineación; no ampliar permisos por suposición.
+- Importaciones requiere la migración, cola persistente, workers y scheduler del backend. No se ha verificado su activación en el servidor compartido.

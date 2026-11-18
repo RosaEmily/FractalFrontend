@@ -9,12 +9,12 @@ paths:
 
 Tokens V3 (landing/aula/checkout) y ADM (admin) en el bloque `@theme` de
 `src/style.css`. **`tailwind.config.js` está vacío y así debe quedar** (Tailwind
-4). Los 23 colores V3 y los 5 ADM coinciden hex a hex con el diseño.
+4). Los valores deben contrastarse con la referencia vigente y con `getComputedStyle`; una coincidencia histórica no valida toda la pantalla actual.
 
 El preset de PrimeVue (`shared/constants/primevue.ts`) es `FractalPreset` sobre
 Aura: es el punto de entrada para cualquier ajuste visual global.
 
-Fuente de verdad del diseño: `../Design/fractal/project/diseño fractal/*.jsx`.
+Referencia de diseño del workspace, si se proporciona: `../Design/fractal/project/diseño fractal/*.jsx`. Es opcional y externa a este repo; el contexto y los tokens versionados deben seguir siendo utilizables al clonar solo el frontend. Confirmar la versión antes de comparar.
 
 ### Trabajar con el diseño — reglas que costaron varias rondas
 
@@ -27,21 +27,9 @@ Fuente de verdad del diseño: `../Design/fractal/project/diseño fractal/*.jsx`.
 > problema de anchos y es de mecanismo. **Replicar el grid**, no parchear con
 > `w-full`. Pasó en la grilla de notas y en "Próximas clases".
 
-> ⚠️ **Pedir una CAPTURA del diseño renderizado cuando algo no cuadra tras leer
-> el `.jsx`.** Un ternario anidado entre 200 líneas de estilos inline se lee al
-> revés con facilidad. En Actas, la imagen mostró en un vistazo que cuando el
-> acta SÍ se puede cerrar no hay lista de requisitos, sino un aviso con el botón
-> dentro — algo que el JSX escondía en un `paso === 'revisar' ?`.
+Extraer primero propiedades como texto del JSX/HTML/panel y conservar una especificación de trabajo. Revisar de afuera hacia adentro: contenedor, tarjetas/columnas, filas y contenido. Contrastar con `getComputedStyle` en escritorio y móvil: colores, tipografía, medidas, espacios, bordes, radios y sombras. Usar la vista renderizada como verificación visual complementaria; no deducir medidas solo de capturas recortadas.
 
-> ⚠️ **Antes de "corregir" algo que no ves en la captura, comprobar que el
-> diseño no lo tenga**: las capturas llegan recortadas. Estuve a punto de quitar
-> la nota al pie de Sesiones, que sí está (jsx:337).
-
-> ⚠️ **Una captura con los textos viejos suele ser la CACHÉ del dev server**, no
-> un cambio que no se aplicó. Antes de reescribir nada: `grep` del texto nuevo
-> en el archivo, y si está, limpiar
-> (`docker exec fractal-front_frontend rm -rf /app/node_modules/.vite` +
-> `docker restart fractal-front_frontend`).
+Si el navegador muestra texto antiguo, comprobar fuente, recurso servido y errores de carga antes de atribuirlo a caché. No borrar cachés ni reiniciar contenedores compartidos sin autorización.
 
 > ⚠️ **En `modules/classroom/**` NUNCA `admin-bg`.** El aula es V3
 > (`surface-page` = `#FAF6EE`), el panel es ADM (`admin-bg` = `#F5F0E5`). Nueve

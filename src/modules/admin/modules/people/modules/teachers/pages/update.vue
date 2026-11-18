@@ -64,6 +64,21 @@ const formSchema = z.object({
   document_number: documentNumberSchema(documentType.value),
 
   phone: phoneSchema(),
+  specialty: z
+    .string({ message: "La especialidad es obligatoria" })
+    .min(2, { message: "Debe tener al menos 2 caracteres" })
+    .max(255, { message: "No puede tener más de 255 caracteres" }),
+  experience_years: z
+    .number({ message: "Los años de experiencia son obligatorios" })
+    .int()
+    .min(EXPERIENCE_YEARS_LIMIT.min, { message: "No puede ser negativo" })
+    .max(EXPERIENCE_YEARS_LIMIT.max, {
+      message: `No puede superar ${EXPERIENCE_YEARS_LIMIT.max} años`,
+    }),
+  description: z
+    .string({ message: "La biografía es obligatoria" })
+    .min(3, { message: "Debe tener al menos 3 caracteres" })
+    .max(1000, { message: "No puede tener más de 1000 caracteres" }),
   is_favorite: z.boolean().optional(),
 });
 

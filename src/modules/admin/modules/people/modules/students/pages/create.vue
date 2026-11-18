@@ -134,7 +134,10 @@ const formSchema = z.object({
     .refine(isValidBirthDate, {
       message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
     }),
-  address: z.string().nullable().optional(),
+  address: z
+    .string({ message: "La dirección es obligatoria" })
+    .min(3, { message: "Debe tener al menos 3 caracteres" })
+    .max(255, { message: "No puede tener más de 255 caracteres" }),
 });
 
 /** Manda el rol y la foto junto al resto: `BaseRepository` arma el multipart. */

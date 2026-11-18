@@ -3,143 +3,50 @@ paths:
   - "src/modules/auth/**"
   - "src/router/**"
   - "src/shared/utils/session.ts"
+  - "src/shared/helpers/axios/**"
 ---
 
-# Autenticación y Sesión
+# Autenticación y sesión por zona
 
-## Flujo de login
+Fuentes: `src/shared/utils/session.ts`, `src/router/index.ts`, `src/main.ts`, `src/shared/helpers/axios/api-fractal.ts` y `src/modules/auth/`.
 
-1. Usuario submite email + password en `AuthPage.vue`
-2. `authService.login()` → `POST /auth/login` via `authRepository`
-3. Respuesta: `{ token, expires_at }`
-4. Se guardan dos cookies:
-   - `app_session` (o `VITE_COOKIE_NAME_SESSION`) → JWT token
-   - `app_expires_at` (o `VITE_COOKIE_NAME_EXPIRES`) → fecha de expiración
-5. Router redirige a `admin-home` (o al `redirect` query param)
+## Login y persistencia
 
-## Guard de router
+1. `AuthPage.vue` selecciona variante mediante `meta.loginVariant`.
+2. `POST auth/login` envía email, password y `zone` (`admin` o `classroom`) en el cuerpo. El header por sí solo no elige la puerta del login.
+3. El backend entrega cookie HttpOnly de su zona y JSON con `expires_at`, `zone` y `roles`; no entrega un token usable en `data.token`.
+4. Se consulta el perfil y se guardan cookies visibles con sufijo de zona: perfil y caducidad. Las del aula usan sufijo `aula`; la preferencia de rol es otra cookie.
+5. Se navega al redirect pendiente o al inicio permitido. El aula elige entre sus roles disponibles.
 
-`src/router/index.ts` — `router.beforeEach`:
+No JWT ni token accesible por JS. Las cookies de perfil sirven para presentación/navegación; pueden ser alteradas por el cliente y no conceden permisos de API.
 
-```ts
-// meta.auth = true  → requiere cookie válida
-if (to.meta.auth && !isAuthenticated) {
-  return next({ name: "login", query: { redirect: to.fullPath } });
-}
+## Peticiones
 
-// meta.guestOnly → redirige si ya está autenticado
-if (to.meta.guestOnly && isAuthenticated) {
-  return next({ name: "admin-home" });
-}
+Axios utiliza `withCredentials: true`. En cada request añade `X-Fractal-Zone` según el path actual. `/aula` y `/checkout` son zona classroom; `/admin` es admin. El helper acepta rutas del router y paths con la base `/FractalFrontend`.
 
-// meta.roles: string[] → verifica roles del usuario
-if (to.meta.roles) {
-  const hasAccess = allowedRoles.some(r => userRoles.includes(r));
-  if (!hasAccess) return next({ name: "error-403" });
-}
-```
+Las dos cookies HttpOnly viajan juntas al backend porque ambas tienen path `/`; el header desambigua la sesión. CORS debe permitir el origen real y credenciales. No sustituir este mecanismo por un interceptor Bearer leyendo una cookie de JS.
 
-**Roles**: se leen de la cookie `roles` (separados por coma). Si no existe la cookie, el guard asume `["ADMIN"]` como fallback (ver `getUserRoles()`).
+## Guard y recuperación
 
-## Token en requests
+- `meta.auth` requiere perfil de esa zona o recuperación mediante `auth/me`.
+- Sin perfil, se intenta recuperar una vez por zona y carga de página antes de redirigir. El token HttpOnly puede seguir vigente.
+- `getUserRoles` acepta los roles del perfil; sin perfil/roles devuelve una lista vacía, nunca ADMIN por defecto.
+- `guestOnly` devuelve al inicio de la zona únicamente cuando hay sesión utilizable en esa zona.
+- Si el perfil no permite la ruta, el guard lo descarta en esa zona y dirige a su login con el destino pendiente. Un usuario con varios roles de aula puede cambiar la vista al entrar en una ruta de otro de sus roles.
+- La API sigue siendo la autoridad: validar cookie de perfil o menú no autoriza operaciones.
 
-`api-fractal.ts` intercepta cada request y agrega:
+## Caducidad y errores
 
-```
-Authorization: Bearer <token_de_cookie>
-```
+El 401 llama a `handleSessionExpired`: limpia cookies visibles de la zona y redirige una sola vez mediante el callback inyectado desde `main.ts`. Un 403 no cierra la sesión. La duración real la fija el backend desde el login; navegar/editar perfil no la renueva.
 
-El token se lee de `Cookies.get(COOKIE_NAME_SESSION)` en cada request.
+`clearSession` no borra la cookie HttpOnly. El logout debe pasar por la API para revocar la sesión y expirar esa cookie. No hay reintento automático general de la última mutación después del login; el store/modal heredado no es el flujo montado actualmente.
 
-## Sesión expirada (401)
+429/500/502/503/504 usan pantalla completa, salvo `background` en la configuración de una petición. Importaciones usa esa excepción para conservar avance y manejar sus reintentos; 401 conserva la gestión de caducidad.
 
-El interceptor de respuesta de `ApiRequest` (`shared/helpers/axios/base.ts`) detecta
-el 401 de **cualquier** petición y llama a `handleSessionExpired()`:
+## Perfil reactivo del aula
 
-1. Borra las tres cookies (`clearSession()` en `shared/utils/session.ts`)
-2. Redirige a `login` con `?redirect=<ruta actual>` para volver tras reingresar
+`classroom/composables/useClassroomRole.ts` mantiene un ref compartido. `syncClassroomUser` relee la cookie en login/recuperación; `updateClassroomUser` actualiza ref y persistencia conservando caducidad. Un computed sobre `Cookies.get` no reacciona a cambios externos.
 
-```ts
-if (httpCode === 401 && data.code !== ErrorCode.INSUFFICIENT_PERMISSIONS) {
-  handleSessionExpired();
-}
-```
+## Matriz pendiente de alinear
 
-**Se decide por el HTTP 401, no por `code: "UNAUTHORIZED"`**: el código viaja en el
-body, y ante una caída de la API, un HTML de error o un 401 emitido por un proxy/WAF
-no hay body que leer — el usuario quedaría atrapado con la cookie muerta.
-
-**Un 403 NO cierra la sesión.** Los permisos insuficientes son `403` +
-`INSUFFICIENT_PERMISSIONS` (`AuthorizationMiddleware` de la API): la sesión es
-válida, solo falta el rol.
-
-Detalles:
-
-- `handleSessionExpired` es idempotente: N peticiones en paralelo que fallen con
-  401 producen **una sola** redirección.
-- Si no hay cookie de sesión no hace nada: un 401 en una pantalla pública o en un
-  login fallido lo maneja la propia pantalla.
-- La redirección se **inyecta** desde `main.ts` con `setSessionExpiredHandler()`,
-  porque el interceptor no puede importar el router sin crear un ciclo
-  (router → páginas → servicios → axios).
-- `clearSession()` borra pasando `cookieOptions`: sin el mismo `path` js-cookie no
-  encuentra la cookie y el borrado falla en silencio.
-- `AuthPage` llama a `clearSession()` al montarse, para que no sobreviva la cookie
-  de usuario de una sesión anterior.
-
-### useSessionStore (sin uso)
-
-`shared/stores/useSessionStore.ts` y `modules/components/alert/session.vue` existen
-pero **no están montados ni se invocan**. Fueron pensados para otro escenario (abrir
-el login en otra pestaña vía `HOME_BASE_URL` sin perder el trabajo en curso). El
-admin usa la redirección directa descrita arriba.
-
-## Configuración de cookies
-
-`src/shared/config/cookie.config.ts` define `cookieOptions`:
-- `sameSite`: configurado para el entorno
-- `secure`: según entorno (HTTPS en prod)
-
-## Menú y roles
-
-El menú del admin (`constants/menu/security.ts`) incluye `roles: ["ADMIN"]` por ítem, pero el filtrado visual del menú es independiente del guard del router — ambos deben estar configurados.
-
----
-
-## Reglas y trampas vigentes
-
-## Sesión — dos zonas independientes
-
-Cookie de sesión **HttpOnly por zona** que emite el backend; el JS no la toca.
-Más una cookie de perfil por zona: `app_user_admin` / `app_user_aula`.
-
-Cada petición declara su zona en **`X-Fractal-Zone`**, que pone un interceptor
-en `shared/helpers/axios/api-fractal.ts` usando `zoneFromPath(location.pathname)`.
-
-> ⚠️ **La sesión son DOS cookies y el guard solo puede leer UNA.** La HttpOnly
-> es invisible para el JS (es lo que impide que un XSS robe el token), así que
-> el guard usa `app_user_{zona}` como señal. Si esa falta pero el token sigue
-> vivo —el login falló entre un paso y otro, o `max_sessions=1` rechazó el
-> segundo— el usuario quedaba **encerrado fuera**: entraba, rebotaba al login,
-> entraba otra vez. Desde sep 2026 el guard consulta `auth/me` **una vez por
-> zona y carga de página** antes de rebotar, y rehace el perfil si el token
-> sirve. ⚠️ `clearSession()` solo borra las cookies VISIBLES: para descartar una
-> sesión de verdad hay que llamar al logout, o queda el token huérfano.
-
-> La zona sale del **path**, no de la cookie ni del rol. Pedir `/admin/...`
-> pregunta siempre por la sesión del panel, exista o no la del aula.
-
-Panel y aula pueden estar abiertos a la vez. `hasSession(zone)`,
-`clearSession(zone)` y `getUserRoles(zone)` siempre reciben la zona.
-
-**El perfil del AULA vive en un `ref` de módulo (`classroomUser`,
-`classroom/composables/useClassroomRole.ts`), no en un `computed` que lea la
-cookie** — una cookie no es reactiva, así que un `computed` la lee una vez y
-queda congelado hasta recargar. La cookie es solo la persistencia entre
-recargas. `syncClassroomUser()` la relee (login nuevo, sesión recuperada por
-el guard); `updateClassroomUser(patch)` la actualiza (se guardó el perfil): el
-`ref` primero, para que la UI reaccione al instante, la cookie después con
-`restoreSessionUser` (que CONSERVA la caducidad real de la sesión). Como es un
-`ref` de módulo, toda llamada a `useClassroomRole()` en cualquier componente
-—incluida la landing pública, que puede montarse antes o después de que el
-aula exista— comparte la misma instancia y ve los mismos cambios.
+El backend admite ADMIN/COORDINATOR/MANAGER en login de panel y STUDENT/TEACHER en aula. `admin-home` exige ADMIN; el aula contiene pantallas para COORDINATOR, cuyo rol por sí solo no pasa su login. No describir esas vistas como accesibles de punta a punta hasta alinear `AuthZone`, variantes, guards y rutas API. La aceptación de múltiples roles en un componente no anula la restricción del alta TEACHER+STUDENT.

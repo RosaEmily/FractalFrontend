@@ -221,6 +221,7 @@ const formSchema = computed(() => {
   if (isTeacher.value) {
     base.specialty = z
       .string({ message: "La especialidad es obligatoria" })
+      .min(2, { message: "Debe tener al menos 2 caracteres" })
       .max(255);
     base.experience_years = z
       .number({ message: "Los años de experiencia son obligatorios" })
@@ -229,7 +230,10 @@ const formSchema = computed(() => {
       .max(EXPERIENCE_YEARS_LIMIT.max, {
         message: `No puede superar ${EXPERIENCE_YEARS_LIMIT.max} años`,
       });
-    base.description = z.string({ message: "La descripción es obligatoria" });
+    base.description = z
+      .string({ message: "La descripción es obligatoria" })
+      .min(3, { message: "Debe tener al menos 3 caracteres" })
+      .max(1000, { message: "No puede tener más de 1000 caracteres" });
     base.academic_degree = z.string({
       message: "El título académico es obligatorio",
     });
@@ -247,7 +251,10 @@ const formSchema = computed(() => {
       .refine(isValidBirthDate, {
         message: `La edad debe estar entre ${AGE_LIMIT.min} y ${AGE_LIMIT.max} años`,
       });
-    base.address = z.string({ message: "La dirección es obligatoria" });
+    base.address = z
+      .string({ message: "La dirección es obligatoria" })
+      .min(3, { message: "Debe tener al menos 3 caracteres" })
+      .max(255, { message: "No puede tener más de 255 caracteres" });
   }
 
   return z.object(base).passthrough();

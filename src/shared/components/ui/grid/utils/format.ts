@@ -1,3 +1,4 @@
+import { safeHref } from "@/shared/utils/safe-url";
 import type { GridUiColumnProps } from "../column/type";
 import { formatNumber } from "@/shared/utils/format";
 import dayjs from "dayjs";
@@ -52,7 +53,7 @@ export const formatUrlValue = <T>(col: GridUiColumnProps<T>, row: T) => {
   const text = cfg.textKey
     ? (row[cfg.textKey] ?? cfg.fallbackText ?? href)
     : (cfg.fallbackText ?? href);
-  return { href, text };
+  return { href: safeHref(href), text };
 };
 
 export const buildFiltersFromColumns = <T>(

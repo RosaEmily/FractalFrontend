@@ -7,63 +7,35 @@ paths:
   - "src/**/stores/**"
 ---
 
-## Datos de la API: lo que se muestra vs lo que se calcula
+# Contrato de integración con la API
 
-> ⚠️ **El listado público (`landing/offers`) devuelve `price` FORMATEADO**
-> (`"$ 199.99"`), porque el Resource lo mapea a `price_format`. Hacer
-> `Number(offer.price)` sobre eso da **`NaN`** — el carrito entero mostraba
-> `S/ NaN`. Usar **`price_raw`** para calcular y `price` solo para mostrar. Es
-> el mismo patrón `_raw` del panel.
+## Transporte y paginación
 
-> ⚠️ **`JSON.stringify(NaN)` produce `null`.** Un carrito guardado en
-> `localStorage` con un precio roto se relee como `price: null` → `S/ 0.00`,
-> y **sobrevive al despliegue que arregló el cálculo**. Por eso
-> `useCartStore.refreshStaleItems()` vuelve a pedir los ítems cuyo precio no sea
-> un número finito y positivo.
+`api-fractal.ts` utiliza `${VITE_API_FRACTAL_V2}/v1`, `withCredentials` y `X-Fractal-Zone`. El token no se lee desde JavaScript. Ver `architecture/auth.md`.
 
-> ⚠️ **El listado público devuelve `offers`, NO `items`**, a diferencia del otro
-> listado paginado del proyecto. Confundirlos compila igual y deja la sección
-> vacía.
+La respuesta ordinaria es `{ success, error: { code, message, details }, data }`. Los listados paginados usan `data.items` y `data.meta`; `page` empieza en 1, `limit` vale 10 por defecto y la paginación SQL limita a 200. `paginate=false` omite la paginación: reservarlo para catálogos pequeños. El grid no envía `offset` como página.
 
-> ⚠️ **La landing solo pinta lo que tiene tabla detrás** (diseño v4). Se quitaron
-> syllabus, FAQs de curso, testimonios, beneficios y "TOTAL DE HORAS": eran
-> constantes del mockup. Antes de agregar un dato, comprobar que exista columna.
+`GET landing/offers` también devuelve `items/meta`. `OfferAdapter` transforma `items` en `offers` del modelo UI; no atribuir ese nombre al JSON del servidor. La consulta de resultados de importación sí usa `offset` como índice de fila, con páginas de 25.
 
-## Contrato con la API — patrones que se repiten
+## Presentación y cálculo
 
-> ⚠️ **Un servicio que devuelve `boolean` sobre un POST que responde un OBJETO
-> está tirando datos.** Pasó tres veces: `saveEvaluations`, `saveGrades` y
-> `setPassingScore` devolvían `success` y la pantalla lanzaba un GET extra para
-> releer lo que el POST ya había mandado. Antes de escribir `await load()` tras
-> guardar, mirar qué devuelve el controlador.
->
-> ⚠️ Pero el GET **sí** hace falta cuando el POST responde otra cosa:
-> `closeActa` devuelve un resumen del cierre, `uploadMaterial` solo `{id}`.
+- `price` puede venir formateado (`"$ 199.99"`); calcular con `price_raw` o el número normalizado por el adapter. No aplicar `Number()` al texto con símbolo.
+- `JSON.stringify(NaN)` produce `null`. El carrito revisa datos persistidos con `refreshStaleItems()`. El precio y cupo de compra se recalculan en servidor.
+- No sustituir por un valor constante un dato que ya conoce el backend: usar `passing_score` resuelto por la API.
+- Renderizar contenido editorial y datos académicos desde sus fuentes reales. Landing combina S3 y base de datos; testimonios, páginas, footer y formularios ya tienen integración.
 
-> ⚠️ **Un `DEFAULT_*` que sustituye a un valor que el backend conoce es señal de
-> endpoint incompleto.** `passing_score` no venía en el cuadro ni en el
-> gradebook, y el front asumía un 13 fijo que mentía en cuanto el grupo definía
-> el suyo. Se arregla la API, no el default.
+## Mutaciones y relaciones
 
-> ⚠️ **Al crear filas nuevas, refrescar desde la RESPUESTA.** El servidor asigna
-> los `id`; si la UI sigue mandando `id: null`, el upsert borra la fila y crea
-> otra — la evaluación pierde su identidad y las notas quedan colgando de un
-> `course_evaluation_id` eliminado.
+- Si un POST devuelve el recurso actualizado, propagarlo desde el servicio y usarlo para refrescar; no reducirlo a `boolean` y disparar un GET innecesario.
+- Sí hace falta releer cuando la respuesta no es el recurso completo: cierre de acta y alta de material tienen contratos específicos.
+- Mantener los `id` asignados por el servidor en evaluaciones, cursos de oferta y horarios. Reenviar `id: null` puede crear filas nuevas y romper referencias.
+- `toFormData` debe representar objetos/arrays con claves anidadas que Laravel reconozca. Un array serializado como string JSON no equivale a `courses.0.course_id`.
+- Actualizar archivos mediante POST con `_method: PUT` cuando el endpoint requiere multipart; PHP no procesa esos archivos en PUT directo.
+- La validación de materiales del aula permite extensiones de formatos técnicos. No trasladar esa excepción a todas las subidas: imágenes y otros archivos mantienen las reglas de MIME/contenido del backend.
+- Los filtros de relaciones complejas necesitan una query explícita en servidor; no inventar columnas inexistentes. Incluir relaciones en `defaultWith()` y claves necesarias en el `select` para evitar N+1 o relaciones nulas.
 
-> ⚠️ **`toFormData` recorre los objetos, no los serializa.** Un array de objetos
-> con `JSON.stringify` llega como texto y Laravel no ve `courses.0.course_id`:
-> responde "es obligatorio" con los datos delante. Solo pasa **con archivo**
-> (sin `File` el body va como JSON normal).
+## Errores e importación
 
-> ⚠️ **Para validar subidas, `extensions:` y NUNCA `mimes:`.** `mimes` compara el
-> MIME real del contenido: un `.docx` es un ZIP por dentro y `.rvt` no tiene MIME
-> conocido, así que eran **imposibles** de subir.
+401 inicia la expiración de la zona; 403 no desconecta; 409/422 se resuelven en la pantalla. `background: true` mantiene los errores 429/5xx dentro del flujo de importación sin anular el manejo de 401. No reintentar automáticamente una creación ordinaria: la importación utiliza UUID, posiciones y hashes para su propia idempotencia.
 
-> ⚠️ **Los filtros por relación no caben en el filtro genérico.** `class_sessions`
-> no tiene `offer_id` (va por `schedule → offer_course`): se sobrescribe
-> `index()` y se pasa la query a `filterSortAndPaginate($params, $query)`.
-
-> ⚠️ **Toda relación que lea un Resource necesita `defaultWith()`**, o cada fila
-> del listado dispara sus consultas (N+1). Y el `select` del eager loading debe
-> incluir la CLAVE de la relación: sin `offer_courses.teacher_id`, `teacher`
-> llegaba siempre nulo.
+Importación: crear borrador → subir lotes → iniciar → consultar/pausar/reanudar → descargar reporte. Las contraseñas temporales solo se entregan en el CSV del propietario; no forman parte del listado ni de los logs.

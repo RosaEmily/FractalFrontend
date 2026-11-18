@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/shared/interface/api-response";
+
 export interface Teacher {
   id?: string;
   document_number: string;
@@ -19,6 +21,16 @@ export interface Teacher {
 
 export interface TeacherList {
   teachers: Teacher[];
+  meta?: PaginationMeta;
+  stats?: { teachers: number; specialties: number; avgYears: number | null };
+  specialties?: string[];
+}
+
+export interface TeacherQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  specialty?: string;
 }
 
 export interface TeacherDetailSchedule {

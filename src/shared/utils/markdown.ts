@@ -1,3 +1,5 @@
+import { safeHref } from "./safe-url";
+
 /**
  * Markdown mínimo y seguro para las páginas informativas del sitio.
  *
@@ -16,14 +18,12 @@ const escapeHtml = (text: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-const SAFE_URL = /^(https?:\/\/|mailto:|tel:|\/)/i;
-
 const inline = (escaped: string): string =>
   escaped
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, url: string) => {
       // `&amp;` dentro de la URL ya viene escapado; se desescapa solo para comprobar el esquema.
       const raw = url.replace(/&amp;/g, "&");
-      if (!SAFE_URL.test(raw)) return `${label} (${url})`;
+      if (!safeHref(raw)) return `${label} (${url})`;
       // Una ruta del propio sitio (`/contact`) se abre en la misma pestaña; el resto, en una nueva.
       return raw.startsWith("/")
         ? `<a href="${url}">${label}</a>`

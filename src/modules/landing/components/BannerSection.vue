@@ -117,7 +117,7 @@ onUnmounted(() => clearInterval(timer))
           v-if="!props.skeleton && slide && hasPhoto"
           class="relative z-10 w-11/12 max-w-105 overflow-hidden shadow-md bg-black"
         >
-          <img :src="slide.desktop" :alt="slide.image_alt" class="block w-full h-auto" />
+          <img :src="slide.desktop" :alt="slide.image_alt" class="block w-full h-auto" fetchpriority="high" decoding="async" />
         </div>
         <div
           v-else-if="!props.skeleton && slide"

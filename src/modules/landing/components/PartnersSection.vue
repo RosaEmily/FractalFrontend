@@ -83,6 +83,8 @@ const gridCols = computed(() => {
                   :src="partner.image_url"
                   :alt="partner.name"
                   class="h-8 object-contain"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </template>

@@ -28,10 +28,15 @@
     "js-cookie": "^3.0.5",
     "pinia": "^3.0.4",
     "primevue": "^4.5.4",
+    "read-excel-file": "^9.3.17",
     "vee-validate": "^4.15.1",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3",
     "zod": "^3.24.2"
+  },
+  "overrides": {
+    "brace-expansion@1": "^1.1.22",
+    "qs": "^6.16.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

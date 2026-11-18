@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
+import { STRING_REGEX } from "@/shared/constants/zod";
 import { ref } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
@@ -35,6 +36,16 @@ const formSchema = z.object({
     .min(3, { message: "Debe tener al menos 3 caracteres" })
     .max(255, { message: "No puede tener más de 255 caracteres" }),
   isFavorite: z.boolean(),
+}).superRefine((data, ctx) => {
+  if (data.type === "email" && !STRING_REGEX.emailSimple.test(data.value)) {
+    ctx.addIssue({ code: "custom", path: ["value"], message: "Debe ser un correo válido" });
+  }
+  if (
+    (data.type === "mobile" || data.type === "phone") &&
+    !STRING_REGEX.phoneSimple.test(data.value)
+  ) {
+    ctx.addIssue({ code: "custom", path: ["value"], message: "Debe ser un teléfono válido" });
+  }
 });
 </script>
 

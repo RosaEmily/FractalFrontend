@@ -38,7 +38,11 @@ const formSchema = z.object({
     .max(SCORE_LIMIT.max, { message: "Valor demasiado alto" })
     .nullable()
     .optional(),
-  feedback: z.string().nullable().optional(),
+  feedback: z
+    .string()
+    .max(2000, { message: "Máximo 2000 caracteres" })
+    .nullable()
+    .optional(),
   evaluated_at: z.string().nullable().optional(),
 });
 

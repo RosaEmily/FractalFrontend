@@ -11,6 +11,10 @@ import axios, {
   type Method,
 } from "axios";
 
+export interface ApiRequestConfig extends AxiosRequestConfig {
+  background?: boolean;
+}
+
 export class ApiRequest {
   private readonly axios: AxiosInstance;
   private controllers = new Map<string, AbortController>();
@@ -73,7 +77,7 @@ export class ApiRequest {
            * aquí: esos los muestra el propio formulario junto al campo que
            * falló, y sacar al usuario de donde está sería peor.
            */
-          handleHttpError(httpCode);
+          if (!(error.config as ApiRequestConfig | undefined)?.background) handleHttpError(httpCode);
 
           // ⛔ Otros errores → flujo normal
           return Promise.reject(
@@ -188,18 +192,18 @@ export class ApiRequest {
   // Métodos públicos — TIPADOS y limpios
   // =======================================================
 
-  get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  get<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
     return this.handleRequest<T>("GET", url, undefined, config);
   }
 
-  delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  delete<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
     return this.handleRequest<T>("DELETE", url, undefined, config);
   }
 
   post<T>(
     url: string,
     data: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<ApiResponse<T>> {
     return this.handleRequest<T>("POST", url, data, config);
   }
@@ -207,7 +211,7 @@ export class ApiRequest {
   put<T>(
     url: string,
     data: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<ApiResponse<T>> {
     return this.handleRequest<T>("PUT", url, data, config);
   }
@@ -215,7 +219,7 @@ export class ApiRequest {
   patch<T>(
     url: string,
     data: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<ApiResponse<T>> {
     return this.handleRequest<T>("PATCH", url, data, config);
   }
@@ -223,7 +227,7 @@ export class ApiRequest {
   // =======================================================
   // Descargar archivo
   // =======================================================
-  async getFileBlob(url: string, config?: AxiosRequestConfig): Promise<Blob> {
+  async getFileBlob(url: string, config?: ApiRequestConfig): Promise<Blob> {
     try {
       const response = await this.axios.get(url, {
         ...config,

@@ -69,7 +69,7 @@ jobs:
       - name: Build project
         env:
           GITHUB_REF: ${{ github.ref }}
-          VITE_API_FRACTAL: ${{ secrets.VITE_API_FRACTAL }}
+          VITE_API_FRACTAL_V2: ${{ secrets.VITE_API_FRACTAL_V2 }}
         run: |
           if [ "${GITHUB_REF##*/}" = "dev" ]; then
             npm run build:dev

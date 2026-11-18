@@ -13,15 +13,6 @@ import {
   zoneFromPath,
   type AppZone,
 } from "@/shared/utils/session";
-import meService from "@/modules/admin/services/auth.service";
-import {
-  CLASSROOM_ROLE_PRIORITY,
-  classroomHomeFor,
-} from "@/modules/classroom/constants/menu";
-import {
-  syncActiveRole,
-  syncClassroomUser,
-} from "@/modules/classroom/composables/useClassroomRole";
 
 import { routesLanding } from "@/modules/landing/router";
 import { routesAuth } from "@/modules/auth/router";
@@ -106,6 +97,7 @@ const tryRecoverSession = async (zone: AppZone): Promise<boolean> => {
   recoveryTried.add(zone);
 
   try {
+    const { default: meService } = await import("@/modules/admin/services/auth.service");
     const user = await meService.me();
     if (!user) return false;
 
@@ -113,7 +105,10 @@ const tryRecoverSession = async (zone: AppZone): Promise<boolean> => {
 
     // El perfil del aula vive en un ref compartido: sin releerlo, la sesión
     // recuperada dejaría la topbar en blanco hasta la siguiente recarga.
-    if (zone === "classroom") syncClassroomUser();
+    if (zone === "classroom") {
+      const { syncClassroomUser } = await import("@/modules/classroom/composables/useClassroomRole");
+      syncClassroomUser();
+    }
 
     return true;
   } catch {
@@ -163,11 +158,11 @@ router.beforeEach(async (to, _, next) => {
    * panel — son sesiones distintas y puede querer abrir la segunda.
    */
   if (to.meta.guestOnly && isAuthenticated) {
+    const home = zone === "admin"
+      ? "admin-home"
+      : (await import("@/modules/classroom/constants/menu")).classroomHomeFor(userRoles, getActiveRole());
     return next({
-      name:
-        zone === "admin"
-          ? "admin-home"
-          : classroomHomeFor(userRoles, getActiveRole()),
+      name: home,
     });
   }
 
@@ -222,11 +217,13 @@ router.beforeEach(async (to, _, next) => {
       const fits = active && allowedRoles.includes(active);
 
       if (!fits) {
+        const { CLASSROOM_ROLE_PRIORITY } = await import("@/modules/classroom/constants/menu");
         const target = CLASSROOM_ROLE_PRIORITY.find(
           (role) => allowedRoles.includes(role) && userRoles.includes(role),
         );
 
         if (target) {
+          const { syncActiveRole } = await import("@/modules/classroom/composables/useClassroomRole");
           setActiveRole(target);
           // La cookie es la persistencia; el ref del composable es lo que el
           // menú mira. Sin esto el shell se dibujaría con la vista anterior.

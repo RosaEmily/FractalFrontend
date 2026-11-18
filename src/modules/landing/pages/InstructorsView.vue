@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import { safeRequest } from '@/shared/utils/request'
@@ -21,7 +21,9 @@ const PALETTES = [
   { bg: '#DCEAFA', fg: '#2D6FCF' },
   { bg: '#F4EBD9', fg: '#1F1A14' },
   { bg: '#FFF1E8', fg: '#E94E1B' },
-]
+] as const
+
+const palette = (index: number) => PALETTES[(index + (currentPage.value - 1) * PAGE_SIZE) % PALETTES.length] ?? PALETTES[0]
 
 function initials(t: Teacher) {
   return `${t.first_name?.[0] ?? ''}${t.last_name?.[0] ?? ''}`.toUpperCase()
@@ -32,48 +34,40 @@ function specialtyList(t: Teacher): string[] {
   return (t.specialty as string ?? '').split(',').map((s: string) => s.trim()).filter(Boolean)
 }
 
-/*
- * Las cifras del hero salen de los docentes cargados: eran 12 / 8 / 11 fijos.
- * `specialty` es texto libre, así que se cuenta cada valor distinto.
- */
-const stats = computed(() => {
-  if (loading.value) return { teachers: '—', specialties: '—', avgYears: '—' }
-  const specs = new Set(teachers.value.map((t) => String(t.specialty ?? '').trim().toLowerCase()).filter(Boolean))
-  const years = teachers.value.map((t) => t.experience_years).filter((y): y is number => typeof y === 'number' && y > 0)
-  return {
-    teachers: teachers.value.length,
-    specialties: specs.size,
-    avgYears: years.length ? Math.round(years.reduce((a, b) => a + b, 0) / years.length) : '—',
+const stats = ref<{ teachers: number | string; specialties: number | string; avgYears: number | string }>({ teachers: '—', specialties: '—', avgYears: '—' })
+const SPECIALTY_FILTERS = ref<string[]>(['Todos'])
+const totalRecords = ref(0)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalRecords.value / PAGE_SIZE)))
+const paginated = computed(() => teachers.value)
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+let requestVersion = 0
+
+async function loadTeachers() {
+  const version = ++requestVersion
+  loading.value = true
+  const { data, status } = await safeRequest(() => teacherService.get(false, {
+    page: currentPage.value, limit: PAGE_SIZE,
+    search: search.value.trim() || undefined,
+    specialty: activeFilter.value === 'Todos' ? undefined : activeFilter.value,
+  }), { showAlert: false })
+  if (version !== requestVersion) return
+  if (status && data) {
+    teachers.value = data.teachers
+    totalRecords.value = data.meta?.total ?? data.teachers.length
+    if (data.stats) stats.value = { ...data.stats, avgYears: data.stats.avgYears ?? '—' }
+    SPECIALTY_FILTERS.value = ['Todos', ...(data.specialties ?? [])]
+  } else {
+    teachers.value = []
+    totalRecords.value = 0
   }
-})
+  loading.value = false
+}
 
-/** Chips del filtro: las especialidades reales de los docentes cargados. */
-const SPECIALTY_FILTERS = computed(() => {
-  const seen = new Map<string, string>()
-  for (const t of teachers.value) {
-    for (const s of specialtyList(t)) {
-      if (!seen.has(s.toLowerCase())) seen.set(s.toLowerCase(), s)
-    }
-  }
-  return ['Todos', ...[...seen.values()].sort((a, b) => a.localeCompare(b, 'es'))]
+watch(search, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => { currentPage.value = 1; loadTeachers() }, 300)
 })
-
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return teachers.value.filter(t => {
-    const name = `${t.first_name} ${t.last_name}`.toLowerCase()
-    const matchName = !q || name.includes(q)
-    const specs = specialtyList(t).map((s) => s.toLowerCase())
-    const matchSpec = activeFilter.value === 'Todos' || specs.includes(activeFilter.value.toLowerCase())
-    return matchName && matchSpec
-  })
-})
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
-const paginated  = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE
-  return filtered.value.slice(start, start + PAGE_SIZE)
-})
+onBeforeUnmount(() => { clearTimeout(searchTimer); requestVersion++ })
 
 const pageNumbers = computed(() => {
   const total = totalPages.value
@@ -90,25 +84,16 @@ const pageNumbers = computed(() => {
 function setFilter(f: string) {
   activeFilter.value = f
   currentPage.value  = 1
+  loadTeachers()
 }
 
 function goPage(n: number) {
   if (n < 1 || n > totalPages.value) return
   currentPage.value = n
+  loadTeachers()
 }
 
-onMounted(async () => {
-  loading.value = true
-  /*
-   * `favoritesOnly = false`: este listado (con búsqueda/paginación
-   * client-side) necesita TODOS los docentes activos, no solo los 5
-   * marcados como favoritos —de lo contrario "Ver perfil" solo podría
-   * enlazar a esos 5.
-   */
-  const { data, status } = await safeRequest(() => teacherService.get(false), { showAlert: false })
-  if (status) teachers.value = data?.teachers ?? []
-  loading.value = false
-})
+onMounted(loadTeachers)
 </script>
 
 <template>
@@ -217,13 +202,13 @@ onMounted(async () => {
           <!-- Photo / Placeholder -->
           <div
             class="relative aspect-4/5 flex items-center justify-center overflow-hidden"
-            :style="{ background: PALETTES[(i + (currentPage - 1) * PAGE_SIZE) % 6].bg }"
+            :style="{ background: palette(i).bg }"
           >
             <!-- Dot pattern -->
             <div
               class="absolute inset-0"
               :style="{
-                backgroundImage: `radial-gradient(${PALETTES[(i + (currentPage - 1) * PAGE_SIZE) % 6].fg}26 1px, transparent 1px)`,
+                backgroundImage: `radial-gradient(${palette(i).fg}26 1px, transparent 1px)`,
                 backgroundSize: '14px 14px',
                 maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
                 WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
@@ -234,6 +219,8 @@ onMounted(async () => {
             <img
               v-if="teacher.photo_url"
               :src="teacher.photo_url"
+              loading="lazy"
+              decoding="async"
               :alt="`${teacher.first_name} ${teacher.last_name}`"
               @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
               class="absolute inset-0 w-full h-full object-cover object-top z-10"
@@ -242,7 +229,7 @@ onMounted(async () => {
             <!-- Initials -->
             <span
               class="relative font-display font-extrabold leading-none select-none z-0"
-              :style="{ fontSize: '140px', color: PALETTES[(i + (currentPage - 1) * PAGE_SIZE) % 6].fg, letterSpacing: '-0.05em' }"
+              :style="{ fontSize: '140px', color: palette(i).fg, letterSpacing: '-0.05em' }"
             >{{ initials(teacher) }}</span>
 
             <!-- Top chips -->
@@ -261,11 +248,11 @@ onMounted(async () => {
             <!-- Bottom name overlay -->
             <div
               class="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-8 z-20"
-              :style="{ background: `linear-gradient(to top, ${PALETTES[(i + (currentPage - 1) * PAGE_SIZE) % 6].bg} 30%, transparent)` }"
+              :style="{ background: `linear-gradient(to top, ${palette(i).bg} 30%, transparent)` }"
             >
               <p
                 class="font-mono text-[0.594rem] tracking-widest uppercase opacity-70"
-                :style="{ color: PALETTES[(i + (currentPage - 1) * PAGE_SIZE) % 6].fg }"
+                :style="{ color: palette(i).fg }"
               >{{ teacher.academic_degree_name }}</p>
               <p class="font-display font-bold text-[1.375rem] leading-[1.05] tracking-tight text-secondary-900 mt-1">
                 {{ teacher.first_name }} {{ teacher.last_name }}
@@ -343,7 +330,7 @@ onMounted(async () => {
       <!-- Pagination -->
       <div v-if="!loading && totalPages > 1" class="mt-14 pt-8 border-t border-line flex items-center justify-between gap-4 flex-wrap">
         <span class="font-mono text-[0.625rem] tracking-widest uppercase text-secondary-400">
-          MOSTRANDO {{ paginated.length }} DE {{ filtered.length }} INSTRUCTORES
+          MOSTRANDO {{ paginated.length }} DE {{ totalRecords }} INSTRUCTORES
         </span>
         <div class="flex items-center gap-1.5">
           <button

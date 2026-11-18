@@ -147,8 +147,8 @@ const chooseRole = (role: string) => {
  * que el campo no venga vacío; de la credencial se encarga la API.
  */
 const loginSchema = z.object({
-  email: z.string().min(1, "Ingresa tu correo").email("Correo inválido"),
-  password: z.string().min(1, "Ingresa tu contraseña"),
+  email: z.string().min(1, "Ingresa tu correo").email("Correo inválido").max(150, "Máximo 150 caracteres"),
+  password: z.string().min(1, "Ingresa tu contraseña").max(1024, "Contraseña demasiado larga"),
 });
 
 const { fields, handleSubmit, errors } = useFormFields<{

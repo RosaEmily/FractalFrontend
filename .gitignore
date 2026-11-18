@@ -35,4 +35,5 @@ dist-ssr
 .env*
 !.env.example
 
+# Lockfile de npm: el proyecto no lo versiona
 package-lock.json

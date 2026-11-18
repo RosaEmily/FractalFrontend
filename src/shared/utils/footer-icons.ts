@@ -67,7 +67,7 @@ export const FOOTER_ICON_OPTIONS: { value: FooterIconName; label: string }[] = [
 ];
 
 export const isFooterIcon = (value: unknown): value is FooterIconName =>
-  typeof value === "string" && value in FOOTER_ICONS;
+  typeof value === "string" && Object.hasOwn(FOOTER_ICONS, value);
 
 /** Ícono que se usa cuando el enlace no eligió uno. */
 export const defaultFooterIcon = (type: "page" | "url" | "faqs"): FooterIconName =>

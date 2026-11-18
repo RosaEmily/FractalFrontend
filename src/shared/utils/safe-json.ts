@@ -11,11 +11,8 @@ export function safeJsonParse<T = unknown>(
 
   try {
     return JSON.parse(json) as T;
-  } catch (error) {
-    console.error("Error al decodificar JSON:", {
-      error: (error as Error).message,
-      input: json,
-    });
+  } catch {
+    console.error("Error al decodificar JSON.");
     return json; // mismo fallback que en PHP
   }
 }
@@ -31,11 +28,8 @@ export function safeJsonStringify(data: unknown): string {
 
   try {
     return JSON.stringify(data);
-  } catch (error) {
-    console.error("Error al codificar JSON:", {
-      error: (error as Error).message,
-      input: data,
-    });
+  } catch {
+    console.error("Error al codificar JSON.");
     return "";
   }
 }

@@ -180,7 +180,7 @@ Se activa automáticamente desde `safeRequest` cuando `showAlert = true` (defaul
 
 ### useSessionStore
 
-Maneja el modal de sesión expirada. `openSessionModal(retryFn?)` muestra el modal. `retryLastRequest()` reintenta la última call.
+Store heredado del modal de sesión, sin montaje en el layout actual. El flujo vigente de 401 limpia el perfil de la zona y redirige al login; no hay reintento general automático. Consultar `architecture/auth.md`.
 
 ## Directives personalizados
 
@@ -222,7 +222,7 @@ Auto-trim en blur del input:
 
 ## Sistema visual — tokens y preset de PrimeVue
 
-El diseño (`Design/diseño fractal/`) define **dos capas**: `V3` (base compartida con la landing) y `ADM` (el admin redefine superficies y radios — *"admin UI shouldn't feel warm marketing"*).
+La referencia de diseño del workspace, cuando esté disponible, define **dos capas**: `V3` (base compartida con la landing) y `ADM` (el admin redefine superficies y radios — *"admin UI shouldn't feel warm marketing"*).
 
 **Dónde van los tokens:** en el bloque `@theme` de `src/style.css`. Es Tailwind 4 — `tailwind.config.js` está vacío a propósito y debe quedarse así.
 
@@ -240,7 +240,7 @@ Micro-interacciones disponibles (definidas en `style.css`): `.adm-row` (hover de
 
 ### El preset de PrimeVue manda sobre las clases
 
-`src/shared/constants/primevue.ts` exporta `FractalPreset` — `definePreset(Aura, {...})` con `primary` en el naranja `#e94e1b` y la escala `surface` en los grises cálidos de V3.
+`src/shared/constants/primevue.ts` exporta `FractalPreset` sobre `primevue-preset.ts`, que selecciona base y tokens/CSS Aura de los componentes utilizados con `primary` en el naranja `#e94e1b` y la escala `surface` en los grises cálidos de V3.
 
 Esto importa: antes se usaba **Aura sin personalizar**, cuyo primary esmeralda y superficies frías teñían todos los componentes (tablas, botones, inputs, modales) sin importar qué clases Tailwind se pusieran encima. **Para cualquier ajuste visual global, empezar por el preset**; las clases sueltas no alcanzan.
 

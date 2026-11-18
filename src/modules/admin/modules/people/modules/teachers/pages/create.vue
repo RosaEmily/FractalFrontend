@@ -130,6 +130,7 @@ const formSchema = computed(() =>
   phone: phoneSchema(),
   specialty: z
     .string({ message: "La especialidad es obligatoria" })
+    .min(2, { message: "Debe tener al menos 2 caracteres" })
     .max(255),
   experience_years: z
     .number({ message: "Los años de experiencia son obligatorios" })
@@ -140,7 +141,10 @@ const formSchema = computed(() =>
     }),
   academic_degree: z.string({ message: "El título académico es obligatorio" }),
   other_academic_degree: z.string().max(100).nullable().optional(),
-    description: z.string().nullable().optional(),
+    description: z
+      .string({ message: "La biografía es obligatoria" })
+      .min(3, { message: "Debe tener al menos 3 caracteres" })
+      .max(1000, { message: "No puede tener más de 1000 caracteres" }),
   }),
 );
 

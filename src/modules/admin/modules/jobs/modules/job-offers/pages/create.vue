@@ -38,7 +38,11 @@ const formSchema = z.object({
     .nullable()
     .optional(),
   source: z.string().max(255).nullable().optional(),
-  description: z.string().nullable().optional(),
+  description: z
+    .string()
+    .max(20000, { message: "No puede tener más de 20 000 caracteres" })
+    .nullable()
+    .optional(),
   salary: z.string().max(255).nullable().optional(),
   employment_type: z.string().max(255).nullable().optional(),
   posted_at: z.string().nullable().optional(),

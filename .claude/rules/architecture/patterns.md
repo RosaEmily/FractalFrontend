@@ -64,7 +64,7 @@ export default new RoleRepository();
 
 | Método | HTTP | Endpoint |
 |---|---|---|
-| `list(params)` | GET | `/route?limit=&offset=&filters=&order=` |
+| `list(params)` | GET | `/route?limit=&page=&filters=&order=` |
 | `all(params)` | GET | `/route?paginate=false` |
 | `edit(id)` | GET | `/route/:id` |
 | `create(body)` | POST | `/route` |
@@ -113,13 +113,14 @@ Métodos heredados: `list()`, `all()`, `edit()`, `create()`, `update()`, `delete
 
 `src/shared/helpers/axios/base.ts`
 
-- Auto-cancela requests del mismo `method:url` con `AbortController`
+- Deduplica por método, URL y parámetros ordenados; una petición nueva con la misma clave cancela la anterior con `AbortController`. El cuerpo no forma parte de esa clave.
 - Errores Axios → `RequestError` → `BusinessError` (en `handleRequest`)
 - Métodos: `get`, `post`, `put`, `patch`, `delete`, `uploadFile`, `getFileBlob`
 
 `src/shared/helpers/axios/api-fractal.ts` instancia `ApiRequest` con:
 - `baseURL`: `${VITE_API_FRACTAL_V2}/v1`
-- Interceptor que inyecta `Authorization: Bearer <token_cookie>`
+- Cookies HttpOnly mediante `withCredentials` y header `X-Fractal-Zone` según la ruta. No se construye Bearer desde JS.
+- `background: true` evita la navegación global de 429/5xx en importaciones; el 401 conserva su manejo de sesión.
 
 ## safeRequest
 

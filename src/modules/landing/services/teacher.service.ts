@@ -1,9 +1,9 @@
 import { teacherRepository } from "../repositories/teacher.repository";
-import type { TeacherDetail, TeacherList } from "../models/teacher.model";
+import type { TeacherDetail, TeacherList, TeacherQuery } from "../models/teacher.model";
 
 class TeacherService {
-  async get(favoritesOnly = true): Promise<TeacherList | null> {
-    const resp = await teacherRepository.get(favoritesOnly);
+  async get(favoritesOnly = true, params: TeacherQuery = {}): Promise<TeacherList | null> {
+    const resp = await teacherRepository.get(favoritesOnly, params);
     return resp.data;
   }
 

@@ -19,7 +19,10 @@ const formSchema = z.object({
     .string({ message: "La descripción es obligatoria" })
     .min(4, { message: "Debe tener al menos 4 caracteres" })
     .max(255, { message: "No puede tener más de 255 caracteres" }),
-  number: z.number({ message: "El valor es obligatorio" }),
+  number: z
+    .number({ message: "El valor es obligatorio" })
+    .min(0, { message: "No puede ser negativo" })
+    .max(999999999, { message: "Valor demasiado alto" }),
   format: z
     .string({ message: "El formato es obligatorio" })
     .max(20, { message: "No puede tener más de 20 caracteres" })

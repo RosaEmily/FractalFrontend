@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps<{
   src?: string | null
@@ -8,11 +8,12 @@ const props = defineProps<{
   fallbackText?: string
   imgClass?: string
   fallbackClass?: string
+  loading?: 'lazy' | 'eager'
 }>()
 
 const failed = ref(false)
 
-const showFallbackText = !props.fallbackSrc
+watch(() => props.src, () => { failed.value = false })
 </script>
 
 <template>
@@ -22,6 +23,8 @@ const showFallbackText = !props.fallbackSrc
       :src="src"
       :alt="alt"
       :class="imgClass"
+      :loading="loading ?? 'lazy'"
+      decoding="async"
       @error="failed = true"
     />
   </template>
@@ -32,6 +35,8 @@ const showFallbackText = !props.fallbackSrc
       :src="fallbackSrc"
       :alt="alt"
       :class="imgClass"
+      :loading="loading ?? 'lazy'"
+      decoding="async"
     />
   </template>
 
