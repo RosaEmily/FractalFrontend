@@ -143,6 +143,7 @@ const onClick = async (action: Action) => {
   -->
   <div class="flex w-full gap-2 items-center justify-center">
     <template v-for="(rawAction, index) in col.actions" :key="index">
+      <template v-if="!rawAction.hideWhen?.(data)">
       <ButtonCore
         v-if="rawAction.type == 'delete' || rawAction.type == 'button'"
         v-bind="normalizeAction(rawAction).buttonProps"
@@ -178,6 +179,7 @@ const onClick = async (action: Action) => {
         :true-value="'1'"
         :false-value="'0'"
       />
+      </template>
     </template>
   </div>
 </template>

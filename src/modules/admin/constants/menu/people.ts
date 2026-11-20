@@ -10,13 +10,11 @@ export const MENU_PEOPLE: MenuItem[] = [
     id: "people",
     label: "Personas",
     icon: mdiAccountGroupOutline,
-    roles: ["ADMIN"],
     children: [
       {
         id: "people.teachers",
         label: "Instructores",
         icon: mdiBriefcaseAccountOutline,
-        roles: ["ADMIN"],
         route: { name: "teachers.list" },
         module: "teachers",
       },
@@ -24,7 +22,6 @@ export const MENU_PEOPLE: MenuItem[] = [
         id: "people.students",
         label: "Estudiantes",
         icon: mdiSchoolOutline,
-        roles: ["ADMIN"],
         route: { name: "students.list" },
         module: "students",
       },

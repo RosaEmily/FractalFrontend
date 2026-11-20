@@ -14,26 +14,19 @@ import permissionService from "../services/permission.service";
 
 const route = useRoute();
 
-const initialValues = ref<PermissionCreateBodyDTO>({
-  name: null,
+/*
+ * El nombre es del catálogo del backend y no se edita: se muestra para saber
+ * qué permiso es, pero no forma parte del formulario ni se envía.
+ */
+const permissionName = ref<string>("");
+
+const initialValues = ref<Pick<PermissionCreateBodyDTO, "description">>({
   description: null,
 });
 
 const identifier = ref<string>(route.params.id);
 
 const formSchema = z.object({
-  name: withRefinements(
-    z
-      .string({
-        message: "El campo nombre es obligatorio",
-      })
-      .min(4, { message: "Debe tener al menos 4 caracteres" })
-      .max(200, { message: "No puede tener más de 200 caracteres" })
-      .regex(/^[A-Z](?:[A-Z_]*[A-Z])?$/, {
-        message:
-          "Solo letras mayúsculas y guion bajo, sin empezar ni terminar en _",
-      }),
-  ),
   description: withRefinements(
     z
       .string({
@@ -51,8 +44,8 @@ onMounted(async () => {
   const resp = await permissionService.edit(identifier.value);
   loadingData.value = false;
   if (!resp) return;
+  permissionName.value = resp.name;
   initialValues.value = {
-    name: resp.name,
     description: resp.description,
   };
 });
@@ -70,13 +63,7 @@ onMounted(async () => {
     skeleton-textarea
   >
     <template #default="{ fields, errors }">
-      <InputTextCore
-        v-model="fields.name.value"
-        label="Nombre"
-        :invalid="!!errors.name"
-        :message-error="errors.name"
-        v-keyfilter="/^[A-Za-z_]+$/"
-      />
+      <InputTextCore :model-value="permissionName" label="Nombre" disabled />
       <TextAreaCore
         v-model="fields.description.value"
         label="Descripción"

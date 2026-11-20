@@ -15,6 +15,8 @@ import { routesCertification } from "../modules/certification/router";
 import { routesAcademic } from "../modules/enrollments/router";
 import { routesSystem } from "../modules/system/router";
 
+import { withPermissions } from "../constants/permissions";
+
 import type { RouteRecordRaw } from "vue-router";
 
 /** Primera pantalla real (con nombre) de un grupo de rutas. */
@@ -49,25 +51,25 @@ export const routesAdmin: RouteRecordRaw[] = [
     children: [
       {
         /*
-         * Los roles del panel se declaran ACÁ, en el padre: vue-router los hace
-         * visibles en `to.meta` de toda ruta hija, así que ningún módulo del
-         * admin puede nacer sin protección por olvidarse de ponerlos.
+         * El acceso al panel se decide por PERMISOS, no por nombre de rol: un
+         * rol propio (p. ej. «OPERADOR») entra con los permisos que tenga.
          *
-         * Hasta sep 2026 solo Home y Reportes llevaban `meta.roles`; los otros
-         * ~23 módulos quedaban abiertos a cualquier autenticado, y un STUDENT
-         * podía abrir `/admin/security/users` y ver el shell completo del panel.
+         * `panel` va en el padre y vue-router lo hace visible en `to.meta` de
+         * toda ruta hija: exige al menos un permiso. Cada pantalla trae el suyo
+         * (`meta.permission`, asignado por `withPermissions` según su nombre) y
+         * una pantalla SIN permiso ni `anyPanelUser` se cierra: un módulo nuevo
+         * no puede nacer abierto por olvidarse de declararlo.
          *
-         * Un módulo que necesite ser más estricto lo redefine en su propia ruta
-         * (Reportes ya lo hace con ADMIN a secas) — la meta de la hija gana.
+         * ⚠️ Es UX. La API autoriza cada petición por su cuenta.
          */
         path: "/admin",
         name: "layout.main.admin",
         component: LayoutAdminMain,
         meta: {
-          roles: ["ADMIN", "COORDINATOR", "MANAGER"],
+          panel: true,
         },
         children: [
-          ...routesHome,
+          ...routesHome.map(withPermissions),
           ...[
             ...routesReports,
             ...routesCatalog,
@@ -80,8 +82,8 @@ export const routesAdmin: RouteRecordRaw[] = [
             ...routesCertification,
             ...routesAcademic,
             ...routesSystem,
-          ].map(withGroupRedirect),
-          ...routesProfile,
+          ].map(withGroupRedirect).map(withPermissions),
+          ...routesProfile.map(withPermissions),
         ],
       },
     ],

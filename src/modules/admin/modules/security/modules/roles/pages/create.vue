@@ -78,7 +78,7 @@ const formSchema = z.object({
         v-model="fields.permissions.value"
         label="Permisos"
         filter
-        optionLabel="name"
+        optionLabel="description"
         optionValue="id"
         placeholder="Seleccione los permisos"
         autoLoad

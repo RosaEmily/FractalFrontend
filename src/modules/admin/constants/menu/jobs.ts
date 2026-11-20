@@ -10,7 +10,6 @@ export const MENU_JOBS: MenuItem[] = [
     id: "jobs.offers",
     label: "Bolsa de trabajo",
     icon: mdiBriefcaseSearchOutline,
-    roles: ["ADMIN"],
     route: { name: "jobOffers.list" },
     module: "jobOffers",
   },

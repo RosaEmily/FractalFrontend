@@ -1,5 +1,6 @@
 import type { MeResponse } from "../models/auth.model";
 import type { MeResponseDTO } from "../dto/auth.dto";
+import { permissionNames } from "@/shared/utils/permissions";
 
 export const meAdapter = {
   one: (dto: MeResponseDTO): MeResponse => ({
@@ -11,6 +12,8 @@ export const meAdapter = {
     gender: dto.gender,
     max_sessions: dto.max_sessions,
     roles: dto.roles.map((role) => role.name),
+    roleDescriptions: dto.roles.map((role) => role.description ?? ""),
+    permissions: permissionNames(dto.permissions),
   }),
 
   many: (dtos: MeResponseDTO[]): MeResponse[] =>

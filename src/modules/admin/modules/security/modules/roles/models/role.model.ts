@@ -10,6 +10,8 @@ export interface Role {
   updated_at: Date;
   permissions: string[];
   permissionIds: number[];
+  /** Rol base del sistema: el panel no ofrece editarlo ni borrarlo. */
+  isSystem: boolean;
 }
 
 export interface RoleRepositoryTypes {

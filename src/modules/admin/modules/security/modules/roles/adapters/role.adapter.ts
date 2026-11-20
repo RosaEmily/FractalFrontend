@@ -11,6 +11,7 @@ export const RoleAdapter = {
     updated_at: dto.updated_at,
     permissions: dto.permissions,
     permissionIds: dto.permissionIds,
+    isSystem: Boolean(Number(dto.is_system ?? 0)),
   }),
 
   many: (dtos: RoleDTO[]): Role[] => dtos.map((dto) => RoleAdapter.one(dto)),

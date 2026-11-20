@@ -145,4 +145,6 @@ export interface Action {
   columnKey?: string;
   columnKeyId?: string;
   buttonProps?: ButtonCoreProps;
+  /** Oculta la acción en las filas donde devuelve true (p. ej. un registro bloqueado). */
+  hideWhen?: (row: any) => boolean;
 }

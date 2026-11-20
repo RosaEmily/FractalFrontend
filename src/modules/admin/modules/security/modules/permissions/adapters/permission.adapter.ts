@@ -7,6 +7,7 @@ export const permissionAdapter = {
     name: dto.name,
     description: dto.description,
     status: dto.status,
+    isSystem: Boolean(Number(dto.is_system ?? 0)),
     created_at: dto.created_at,
     updated_at: dto.updated_at,
   }),

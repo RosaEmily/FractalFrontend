@@ -258,7 +258,16 @@ const onSubmit = handleSubmit(async (values) => {
        */
       const userRoles = roleNames(user.roles);
 
-      if (!userRoles.some((role) => variant.value.roles.includes(role))) {
+      /*
+       * Al panel entra quien tenga alguno de los roles del panel O permisos
+       * concedidos: un rol propio (p. ej. «OPERADOR») no está en la lista de
+       * nombres, pero sus permisos lo acreditan.
+       */
+      const belongsHere =
+        userRoles.some((role) => variant.value.roles.includes(role)) ||
+        (variant.value.zone === "admin" && (user.permissions ?? []).length > 0);
+
+      if (!belongsHere) {
         await discardSession();
         messageError.value =
           "No pudimos confirmar tu acceso a esta zona. Vuelve a intentarlo.";

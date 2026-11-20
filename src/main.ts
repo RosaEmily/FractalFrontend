@@ -7,6 +7,8 @@ import ToastService from "primevue/toastservice";
 import ConfirmationService from "primevue/confirmationservice";
 import { DirectiveKeyFilter, DirectiveTrim } from "./shared/plugins/directives";
 import "./style.css";
+import { z } from "zod";
+import { spanishErrorMap } from "@/shared/utils/zod/error-map";
 import { CONFIG } from "@/shared/constants/primevue";
 import {
   setErrorScreenHandler,
@@ -45,6 +47,7 @@ const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
+z.setErrorMap(spanishErrorMap);
 app.use(PrimeVue, CONFIG);
 app.use(ToastService);
 app.use(ConfirmationService);

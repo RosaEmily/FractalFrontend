@@ -7,4 +7,8 @@ export interface MeResponse {
   gender: "m" | "f" | "o";
   max_sessions: number;
   roles: string[];
+  /** Descripción de cada rol, en el mismo orden que `roles`. Falta en sesiones guardadas antes. */
+  roleDescriptions?: string[];
+  /** Permisos del panel (`["*"]` = todos). La cookie de perfil no los guarda. */
+  permissions: string[];
 }

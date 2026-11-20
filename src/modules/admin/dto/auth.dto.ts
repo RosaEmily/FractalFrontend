@@ -17,4 +17,6 @@ export interface MeResponseDTO {
   created_at: string; // ISO Date
   updated_at: string; // ISO Date
   roles: MeRoleDTO[];
+  /** `["*"]` para ADMIN; vacío fuera del panel. */
+  permissions?: string[];
 }

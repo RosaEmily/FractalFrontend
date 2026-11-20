@@ -16,13 +16,11 @@ export const MENU_CATALOG: MenuItem[] = [
     id: "catalog",
     label: "Catálogo",
     icon: mdiBookOpenPageVariantOutline,
-    roles: ["ADMIN"],
     children: [
       {
         id: "catalog.courses",
         label: "Cursos",
         icon: mdiPlayCircleOutline,
-        roles: ["ADMIN"],
         route: {
           name: "courses.list",
         },
@@ -32,7 +30,6 @@ export const MENU_CATALOG: MenuItem[] = [
         id: "catalog.learningPaths",
         label: "Líneas de carrera",
         icon: mdiSignDirection,
-        roles: ["ADMIN"],
         route: {
           name: "learningPaths.list",
         },
@@ -42,7 +39,6 @@ export const MENU_CATALOG: MenuItem[] = [
         id: "catalog.tags",
         label: "Etiquetas",
         icon: mdiTagOutline,
-        roles: ["ADMIN"],
         route: {
           name: "tags.list",
         },

@@ -16,13 +16,11 @@ export const MENU_SECURITY: MenuItem[] = [
     id: "security",
     label: "Seguridad",
     icon: mdiShieldAccountOutline,
-    roles: ["ADMIN"],
     children: [
       {
         id: "security.users",
         label: "Usuarios",
         icon: mdiAccountMultipleOutline,
-        roles: ["ADMIN"],
         route: { name: "users.list" },
         module: "users",
       },
@@ -30,7 +28,6 @@ export const MENU_SECURITY: MenuItem[] = [
         id: "security.roles",
         label: "Roles",
         icon: mdiAccountKeyOutline,
-        roles: ["ADMIN"],
         route: {
           name: "roles.list",
         },
@@ -40,7 +37,6 @@ export const MENU_SECURITY: MenuItem[] = [
         id: "security.permissions",
         label: "Permisos",
         icon: mdiShieldKeyOutline,
-        roles: ["ADMIN"],
         route: {
           name: "permissions.list",
         },
@@ -50,7 +46,6 @@ export const MENU_SECURITY: MenuItem[] = [
         id: "security.sessions",
         label: "Sesiones activas",
         icon: mdiCellphoneLink,
-        roles: ["ADMIN"],
         route: { name: "systemSessions.list" },
         module: "systemSessions",
       },

@@ -9,15 +9,18 @@
 import { ref } from "vue";
 import StatusPill from "@/modules/admin/components/ui/status-pill.vue";
 import { safeRequest } from "@/shared/utils/request";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import contactMessageService from "../services/contact-message.service";
 
 const props = defineProps<{ id: number; attended: boolean }>();
 
 const isAttended = ref(props.attended);
 const saving = ref(false);
+// Marcar como atendido edita el mensaje: sin ese permiso el estado solo se lee.
+const canUpdate = useUserStore().can("CONTACT_MESSAGES_UPDATE");
 
 const toggle = async () => {
-  if (saving.value) return;
+  if (saving.value || !canUpdate) return;
   const next = !isAttended.value;
   saving.value = true;
   const { error } = await safeRequest(() => contactMessageService.attended([props.id], next ? 1 : 0));
@@ -30,7 +33,7 @@ const toggle = async () => {
   <button
     type="button"
     class="cursor-pointer disabled:opacity-60"
-    :disabled="saving"
+    :disabled="saving || !canUpdate"
     :title="isAttended ? 'Marcar como pendiente' : 'Marcar como atendido'"
     :aria-label="isAttended ? 'Atendido, marcar como pendiente' : 'Nuevo, marcar como atendido'"
     @click.stop="toggle"

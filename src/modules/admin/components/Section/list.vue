@@ -18,6 +18,8 @@ import { useToastStore } from "@/shared/stores/useToastStore";
 import { useConfirmStore } from "@/shared/stores/useConfirmStore";
 import { FilterMatchMode } from "@primevue/core";
 import BulkBar from "@/modules/admin/components/ui/bulk-bar.vue";
+import { useResourcePermissions } from "@/modules/admin/composables/useResourcePermissions";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import { HeroCore } from "@/shared/components";
 import {
   mdiCheck,
@@ -68,6 +70,11 @@ interface SectionList {
    */
   showEdit?: boolean;
   /**
+   * Filas bloqueadas (p. ej. los roles del sistema): no ofrecen editar, cambiar
+   * el estado ni eliminar. La API también las rechaza; esto evita el botón inútil.
+   */
+  rowLocked?: (row: T) => boolean;
+  /**
    * Orden inicial del listado, enviado a la API como `order=campo:dir`.
    *
    * Sin esto la API devuelve el orden que salga de la BD — inservible en los
@@ -86,6 +93,26 @@ const props = withDefaults(defineProps<SectionList>(), {
   showCreate: true,
   showEdit: true,
 });
+/*
+ * Las banderas `show*` dicen qué operaciones EXISTE el recurso; los permisos
+ * dicen cuáles puede hacer este usuario. Un botón aparece solo si se cumplen
+ * las dos: lo que la API no tiene ni lo que respondería 403 se ofrece.
+ */
+const { canCreate, canUpdate, canDelete } = useResourcePermissions();
+const user = useUserStore();
+const allowCreate = computed(() => props.showCreate && canCreate.value);
+const allowEdit = computed(() => props.showEdit && canUpdate.value);
+const allowStatus = computed(() => props.showStatus && canUpdate.value);
+const allowDelete = computed(() => props.showDelete && canDelete.value);
+/** Sin acción masiva permitida no se ofrece seleccionar filas. */
+const hasBulkActions = computed(
+  () =>
+    (allowStatus.value && !!props.services.status) ||
+    (allowDelete.value && !!props.services.delete),
+);
+const allowImport = computed(
+  () => Boolean(props.importRoute) && user.can("PEOPLE_IMPORTS_CREATE"),
+);
 const gripUiRefs = useTemplateRef<GridUiTableExpose>("gripUiRefs");
 
 const rowsSelect = computed<T[]>(() => gripUiRefs.value?.rowsSelected ?? []);
@@ -143,7 +170,7 @@ const statusColumn: GridUiColumnProps<T> = {
 };
 
 const rowActions: Action[] = [
-  ...(props.showEdit
+  ...(allowEdit.value
     ? ([
         {
           type: "edit" as const,
@@ -156,10 +183,11 @@ const rowActions: Action[] = [
           redirect: `/admin/${props.module}/edit/{${keys.value.identifier}}`,
           params: keys.value.identifier,
           columnKeyId: keys.value.identifier,
+          hideWhen: props.rowLocked,
         },
       ] as Action[])
     : []),
-  ...(props.showStatus && props.services.status
+  ...(allowStatus.value && props.services.status
     ? ([
         {
           type: "state" as const,
@@ -167,16 +195,18 @@ const rowActions: Action[] = [
             props.services.status?.(ids, state ?? 1) ?? Promise.resolve(null),
           columnKeyId: keys.value.identifier,
           columnKey: keys.value.status,
+          hideWhen: props.rowLocked,
         },
       ] as Action[])
     : []),
-  ...(props.showDelete && props.services.delete
+  ...(allowDelete.value && props.services.delete
     ? ([
         {
           type: "delete" as const,
           handler: (ids: (number | string)[]) =>
             props.services.delete?.(ids) ?? Promise.resolve(null),
           columnKeyId: keys.value.identifier,
+          hideWhen: props.rowLocked,
         },
       ] as Action[])
     : []),
@@ -328,7 +358,7 @@ const actionsMassive = computed(() => {
   const noSelection = selectedCount.value === 0;
   const items: Record<string, unknown>[] = [];
 
-  if (props.importRoute) {
+  if (props.importRoute && allowImport.value) {
     items.push(
       {
         label: "Importar desde Excel/CSV",
@@ -360,7 +390,7 @@ const actionsMassive = computed(() => {
    * acción un icono en cuadrito de color (verde / ámbar / rojo), no una lista
    * de texto plano.
    */
-  if (props.showStatus && props.services.status) {
+  if (allowStatus.value && props.services.status) {
     items.push(
       {
         label: "Habilitar",
@@ -379,7 +409,7 @@ const actionsMassive = computed(() => {
     );
   }
 
-  if (props.showDelete && props.services.delete) {
+  if (allowDelete.value && props.services.delete) {
     if (items.length) items.push({ separator: true });
     items.push({
       label: "Eliminar",
@@ -401,7 +431,7 @@ const actionsMassive = computed(() => {
       :columns="newColumns"
       :sort-field="sortField"
       :sort-order="sortOrder"
-      selection-mode="multiple"
+      :selection-mode="hasBulkActions ? 'multiple' : undefined"
       lazy
     >
       <template #header>
@@ -416,7 +446,7 @@ const actionsMassive = computed(() => {
           </template>
           <template #end>
             <SplitButtonCore
-              v-if="showCreate"
+              v-if="allowCreate"
               label="Crear"
               severity="contrast"
               @click="router.replace(`/admin/${props.module}/create`)"
@@ -460,8 +490,8 @@ const actionsMassive = computed(() => {
   -->
   <BulkBar
     :count="selectedCount"
-    :show-status="showStatus && !!services.status"
-    :show-delete="showDelete && !!services.delete"
+    :show-status="allowStatus && !!services.status"
+    :show-delete="allowDelete && !!services.delete"
     @enable="enableSelected"
     @disable="disableSelected"
     @delete="deleteSelected"

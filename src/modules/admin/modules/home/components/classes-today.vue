@@ -3,6 +3,9 @@ import { HeroCore } from "@/shared/components";
 import { mdiLinkVariant } from "@mdi/js";
 import type { ClassToday } from "../models/dashboard.model";
 import { CLASS_STATE_LABELS } from "../constants/dashboard";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
+
+const user = useUserStore();
 
 defineProps<{
   items: ClassToday[];
@@ -39,6 +42,7 @@ const shortTime = (time: string | null) => time?.slice(0, 5) ?? "--:--";
         Clases de hoy
       </h3>
       <router-link
+        v-if="user.can('CLASS_SESSIONS_VIEW')"
         :to="{ name: 'classSessions.list' }"
         class="text-adm-sm text-primary-500 font-semibold no-underline hover:underline"
       >

@@ -31,7 +31,7 @@ const columns: GridUiColumnProps<Role>[] = [
       component: "multiselect",
       multiselectProps: {
         filter: true,
-        optionLabel: "name",
+        optionLabel: "description",
         optionValue: "id",
         placeholder: "Ingrese permisos",
         service: () => permissionService.all(),
@@ -50,6 +50,7 @@ const columns: GridUiColumnProps<Role>[] = [
         roleService.status(ids, state ?? 1),
       delete: (ids: (number | string)[]) => roleService.delete(ids),
     }"
+    :row-locked="(role: Role) => role.isSystem"
     title="Lista de roles"
     module="security/roles"
   />

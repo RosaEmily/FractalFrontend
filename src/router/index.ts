@@ -2,9 +2,11 @@ import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 
 import { safeJsonParse } from "@/shared/utils/safe-json";
+import { hasAnyPermission, hasPermission } from "@/shared/utils/permissions";
 import {
   clearSession,
   getActiveRole,
+  getSessionPermissions,
   getSessionUserRaw,
   hasSession,
   restoreSessionUser,
@@ -115,6 +117,34 @@ const tryRecoverSession = async (zone: AppZone): Promise<boolean> => {
     // 401/403/red caída: no hay sesión que rescatar, sigue el flujo normal.
     return false;
   }
+};
+
+/**
+ * Permisos de la zona, preguntando a la API si no están guardados.
+ *
+ * Faltan cuando el almacenamiento se borró, o en una sesión abierta ANTES de que
+ * existieran los permisos. `null` ≠ `[]`: lo primero es «no sé», lo segundo
+ * «no tiene ninguno». Se intenta UNA vez por zona y carga de página, igual que
+ * el rescate del perfil: sin ese tope, una API caída dispararía una petición por
+ * navegación.
+ */
+const permissionsTried = new Set<AppZone>();
+
+const ensurePermissions = async (zone: AppZone): Promise<string[]> => {
+  const saved = getSessionPermissions(zone);
+  if (saved !== null) return saved;
+  if (permissionsTried.has(zone)) return [];
+  permissionsTried.add(zone);
+
+  try {
+    const { default: meService } = await import("@/modules/admin/services/auth.service");
+    const user = await meService.me();
+    if (user) restoreSessionUser(zone, user);
+  } catch {
+    // Sin respuesta no hay permisos que mostrar: la pantalla se cierra.
+  }
+
+  return getSessionPermissions(zone) ?? [];
 };
 
 router.beforeEach(async (to, _, next) => {
@@ -246,6 +276,41 @@ router.beforeEach(async (to, _, next) => {
           redirect: to.fullPath,
         },
       });
+    }
+  }
+
+  /*
+   * 🔑 Permisos del panel.
+   *
+   * Un usuario entra a una pantalla si tiene su permiso (`meta.permission`).
+   * Una pantalla sin permiso declarado y sin `anyPanelUser` se CIERRA: un
+   * módulo nuevo no nace abierto por olvido.
+   *
+   * Sin ningún permiso no hay nada que ver en el panel: 403, no un bucle de
+   * login — la credencial es correcta, lo que falta es acceso.
+   */
+  if (zone === "admin" && to.meta.panel && isAuthenticated) {
+    const permissions = await ensurePermissions(zone);
+    const required = to.meta.permission as string | undefined;
+    const allowed =
+      hasAnyPermission(permissions) &&
+      (Boolean(to.meta.anyPanelUser) || (required !== undefined && hasPermission(permissions, required)));
+
+    if (!allowed) {
+      /*
+       * Sin permiso de «Inicio» se lo lleva a lo primero que sí puede abrir:
+       * un 403 justo después de iniciar sesión parecería que la cuenta no sirve.
+       */
+      if (to.name === "admin-home" && hasAnyPermission(permissions)) {
+        const [{ MENU }, { firstAccessibleRoute }] = await Promise.all([
+          import("@/modules/admin/constants/menu"),
+          import("@/modules/admin/constants/permissions"),
+        ]);
+        const target = firstAccessibleRoute(MENU, permissions);
+        if (target) return next(target);
+      }
+
+      return next({ name: "error-403" });
     }
   }
 
