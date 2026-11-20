@@ -36,7 +36,12 @@ const apply = () => emit("apply", { from: from.value, to: to.value });
       >
         DESDE
       </span>
-      <DatePicketCore v-model="from" dayjs-format-value="YYYY-MM-DD" />
+      <DatePicketCore
+        v-model="from"
+        dayjs-format-value="YYYY-MM-DD"
+        :manual-input="false"
+        input-class="caret-transparent cursor-pointer"
+      />
     </div>
 
     <div class="min-w-37.5">
@@ -45,7 +50,12 @@ const apply = () => emit("apply", { from: from.value, to: to.value });
       >
         HASTA
       </span>
-      <DatePicketCore v-model="to" dayjs-format-value="YYYY-MM-DD" />
+      <DatePicketCore
+        v-model="to"
+        dayjs-format-value="YYYY-MM-DD"
+        :manual-input="false"
+        input-class="caret-transparent cursor-pointer"
+      />
     </div>
 
     <!-- Filtro propio de cada reporte (moneda, cohorte, tipo…) -->

@@ -3,6 +3,7 @@ export interface PermissionDTO {
   name: string;
   description: string;
   status: number;
+  is_system?: number | boolean;
   created_at: Date;
   updated_at: Date;
 }

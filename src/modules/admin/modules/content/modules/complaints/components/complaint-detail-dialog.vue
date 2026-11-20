@@ -8,6 +8,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { ButtonCore, ModalCore, TextAreaCore } from "@/shared/components";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import StatusPill from "@/modules/admin/components/ui/status-pill.vue";
 import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
@@ -21,6 +22,8 @@ const visible = defineModel<boolean>({ default: false });
 
 const toast = useToastStore();
 const response = ref("");
+// Responder es un permiso aparte de ver las hojas.
+const canRespond = useUserStore().can("COMPLAINTS_RESPOND");
 const saving = ref(false);
 const error = ref<string | null>(null);
 
@@ -125,7 +128,7 @@ const send = async (state: "in_progress" | "answered") => {
       </div>
 
       <!-- Pendiente o en proceso: responder -->
-      <div v-else class="border-t border-line pt-4 space-y-3">
+      <div v-else-if="canRespond" class="border-t border-line pt-4 space-y-3">
         <TextAreaCore
           v-model="response"
           label="Respuesta al consumidor"

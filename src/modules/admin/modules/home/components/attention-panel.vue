@@ -4,6 +4,17 @@ import { HeroCore } from "@/shared/components";
 import { mdiChevronRight } from "@mdi/js";
 import type { AttentionItem } from "../models/dashboard.model";
 import { ATTENTION_ROUTES } from "../constants/dashboard";
+import { permissionForRoute } from "@/modules/admin/constants/permissions";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
+
+const user = useUserStore();
+
+/** Solo es enlace si el usuario puede abrir esa pantalla. */
+const linkFor = (key: string) => {
+  const to = ATTENTION_ROUTES[key];
+  if (!to || typeof to === "string" || !("name" in to)) return undefined;
+  return user.can(permissionForRoute(to.name) ?? []) ? to : undefined;
+};
 
 const props = defineProps<{
   items: AttentionItem[];
@@ -66,15 +77,15 @@ const criticalCount = computed(
     </div>
 
     <component
-      :is="ATTENTION_ROUTES[item.key] ? 'router-link' : 'div'"
+      :is="linkFor(item.key) ? 'router-link' : 'div'"
       v-for="(item, index) in items"
       v-else
       :key="item.key"
-      :to="ATTENTION_ROUTES[item.key]"
+      :to="linkFor(item.key)"
       class="px-5.5 py-4 flex items-center gap-4 no-underline"
       :class="[
         index < items.length - 1 ? 'border-b border-line-soft' : '',
-        ATTENTION_ROUTES[item.key] ? 'adm-row cursor-pointer' : '',
+        linkFor(item.key) ? 'adm-row cursor-pointer' : '',
       ]"
     >
       <span

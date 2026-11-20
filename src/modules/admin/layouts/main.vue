@@ -11,11 +11,12 @@ import Logo from "@/assets/fractal.png";
 import authService from "../services/auth.service";
 import { useUserStore } from "../stores/useUserStore";
 import { onMounted, ref, watch } from "vue";
-import { mdiClose, mdiMenu } from "@mdi/js";
+import { mdiChevronDown, mdiClose, mdiMenu } from "@mdi/js";
 import { safeJsonParse, safeJsonStringify } from "@/shared/utils/safe-json";
 import {
   clearSession,
   getSessionExpires,
+  getSessionPermissions,
   getSessionUserRaw,
   hasSession,
   roleNames,
@@ -86,7 +87,13 @@ onMounted(async () => {
    */
   if (hasSession("admin")) {
     let user = safeJsonParse<MeResponse>(getSessionUserRaw("admin"));
-    if (!user) {
+    // Los permisos no van en la cookie de perfil: si faltan (almacenamiento
+    // borrado, sesión abierta antes de que existieran) se piden de nuevo.
+    let permissions = getSessionPermissions("admin");
+    // El login solo devuelve los nombres de los roles; las descripciones (lo que
+    // muestra el menú de usuario) vienen del perfil, así que se piden una vez.
+    const lacksDescriptions = !!user && !user.roleDescriptions?.some(Boolean);
+    if (!user || permissions === null || lacksDescriptions) {
       // Si el token está vencido esto responde 401: el interceptor ya limpió
       // la sesión y redirige al login, así que no hay que cachear la falla.
       const { data } = await safeRequest(() => authService.me(), {
@@ -100,6 +107,7 @@ onMounted(async () => {
         safeJsonStringify(user),
         expires_at ?? new Date(Date.now() + 60 * 60 * 1000),
       );
+      permissions = getSessionPermissions("admin");
     }
     if (user) {
       const { first_name, last_name, photo_url, roles, email } =
@@ -112,9 +120,11 @@ onMounted(async () => {
         // `roles` llega como objetos {name, description}: sin normalizar, el
         // store guardaría el objeto entero donde espera el nombre del rol.
         role: roleNames(roles)[0] ?? "",
+        roleDescription: user.roleDescriptions?.[0] ?? "",
         // La lista completa: el menú se filtra con TODOS los roles, no solo
         // con el principal (un usuario puede ser ADMIN y COORDINATOR).
         roles: roleNames(roles),
+        permissions: permissions ?? [],
       });
     }
   }
@@ -140,13 +150,26 @@ onMounted(async () => {
         </RouterLink>
       </div>
       <div>
-        <div ref="menuRef" class="cursor-pointer" @click="openMenu = !openMenu">
+        <button
+          ref="menuRef"
+          type="button"
+          class="flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0"
+          aria-haspopup="menu"
+          :aria-expanded="openMenu"
+          aria-label="Menú de usuario"
+          @click="openMenu = !openMenu"
+        >
           <AvatarCore
             :text="userStore.photo ?? userStore.fullName"
             :fallback-text="userStore.fullName"
             shape="circle"
           />
-        </div>
+          <HeroCore
+            :path="mdiChevronDown"
+            class="size-4 text-secondary-500 transition-transform duration-200"
+            :class="openMenu ? 'rotate-180' : ''"
+          />
+        </button>
         <transition name="fade-scale">
           <div
             v-if="openMenu"
@@ -171,8 +194,17 @@ onMounted(async () => {
                   {{ userStore.email }}
                 </div>
               </div>
+            </div>
+
+            <!-- Rol: la descripción para quien no conoce el nombre técnico -->
+            <div
+              v-if="userStore.role"
+              class="px-3.5 py-2.5 border-b border-line-soft flex items-center justify-between gap-3"
+            >
+              <span class="text-adm-sm text-secondary-500 min-w-0">
+                {{ userStore.roleDescription || "Rol asignado" }}
+              </span>
               <span
-                v-if="userStore.role"
                 class="font-mono text-adm-xs text-primary-500 px-1.5 py-0.5 bg-accent-soft rounded-adm-sm tracking-wider font-bold shrink-0"
               >
                 {{ userStore.role }}

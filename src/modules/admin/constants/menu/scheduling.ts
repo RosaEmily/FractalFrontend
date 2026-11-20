@@ -14,13 +14,11 @@ export const MENU_SCHEDULING: MenuItem[] = [
     id: "scheduling",
     label: "Programación",
     icon: mdiCalendarMonthOutline,
-    roles: ["ADMIN"],
     children: [
       {
         id: "scheduling.offers",
         label: "Programas",
         icon: mdiCalendarStarOutline,
-        roles: ["ADMIN"],
         route: { name: "offers.list" },
         module: "offers",
       },
@@ -28,7 +26,6 @@ export const MENU_SCHEDULING: MenuItem[] = [
         id: "scheduling.classes",
         label: "Clases",
         icon: mdiPlayCircleOutline,
-        roles: ["ADMIN"],
         route: { name: "classSessions.list" },
         module: "classSessions",
       },

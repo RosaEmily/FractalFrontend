@@ -12,14 +12,13 @@ export const routesReports: RouteRecordRaw[] = [
     path: "reports/revenue",
     name: "reports.revenue",
     component: () => import("../pages/revenue.vue"),
-    meta: { roles: ["ADMIN"], page: { base: { title: "Ingresos y cobranza" } } },
+    meta: { page: { base: { title: "Ingresos y cobranza" } } },
   },
   {
     path: "reports/enrollments",
     name: "reports.enrollments",
     component: () => import("../pages/enrollments.vue"),
     meta: {
-      roles: ["ADMIN"],
       page: { base: { title: "Matrículas por programa" } },
     },
   },
@@ -28,7 +27,6 @@ export const routesReports: RouteRecordRaw[] = [
     name: "reports.occupancy",
     component: () => import("../pages/occupancy.vue"),
     meta: {
-      roles: ["ADMIN"],
       page: { base: { title: "Ocupación de cohortes" } },
     },
   },
@@ -37,7 +35,6 @@ export const routesReports: RouteRecordRaw[] = [
     name: "reports.academic",
     component: () => import("../pages/academic.vue"),
     meta: {
-      roles: ["ADMIN"],
       page: { base: { title: "Rendimiento académico" } },
     },
   },
@@ -46,7 +43,6 @@ export const routesReports: RouteRecordRaw[] = [
     name: "reports.certificates",
     component: () => import("../pages/certificates.vue"),
     meta: {
-      roles: ["ADMIN"],
       page: { base: { title: "Certificados emitidos" } },
     },
   },
@@ -54,6 +50,6 @@ export const routesReports: RouteRecordRaw[] = [
     path: "reports/attendance",
     name: "reports.attendance",
     component: () => import("../pages/attendance.vue"),
-    meta: { roles: ["ADMIN"], page: { base: { title: "Asistencia" } } },
+    meta: { page: { base: { title: "Asistencia" } } },
   },
 ];

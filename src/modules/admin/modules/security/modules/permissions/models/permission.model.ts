@@ -9,6 +9,8 @@ export interface Permission {
   name: string;
   description: string;
   status: number;
+  /** Permiso del catálogo: no se deshabilita ni se elimina. */
+  isSystem: boolean;
   created_at: Date;
   updated_at: Date;
 }

@@ -36,7 +36,7 @@ const columns: GridUiColumnProps<User>[] = [
       component: "multiselect",
       multiselectProps: {
         filter: true,
-        optionLabel: "name",
+        optionLabel: "description",
         optionValue: "id",
         placeholder: "Ingrese roles",
         service: () => roleService.all(),

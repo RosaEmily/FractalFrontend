@@ -1,6 +1,8 @@
 import Cookies from "js-cookie";
 import { COOKIE_NAME_EXPIRES, COOKIE_NAME_USER } from "@/shared/config/env.config";
 import { cookieOptions } from "@/shared/config/cookie.config";
+import { safeJsonParse } from "@/shared/utils/safe-json";
+import { permissionNames } from "@/shared/utils/permissions";
 
 /**
  * Sesión del lado del cliente, SEPARADA POR ZONA.
@@ -37,6 +39,14 @@ export type AppZone = "admin" | "classroom";
  * con `AuthZone::ZONE_HEADER` de la API.
  */
 export const ZONE_HEADER = "X-Fractal-Zone";
+
+/**
+ * Los permisos NO van en la cookie de perfil: un rol con ~100 permisos supera
+ * el tope de ~4 KB de una cookie y el navegador la descartaría en silencio,
+ * dejando al usuario en un bucle de login. Van aparte, en `localStorage`.
+ */
+const permissionsKey = (zone: AppZone): string =>
+  `${COOKIE_NAME_USER}_permissions_${zone === "admin" ? "admin" : "aula"}`;
 
 /** Nombres reales de las cookies visibles de una zona. */
 const userCookie = (zone: AppZone): string =>
@@ -121,12 +131,62 @@ export const getSessionUserRaw = (zone: AppZone): string | undefined =>
   Cookies.get(userCookie(zone));
 
 /** Guarda el perfil y la caducidad de UNA zona, sin tocar la otra. */
+/**
+ * Permisos guardados de una zona, o `null` si no hay (nunca se guardaron, se
+ * borró el almacenamiento o el valor no es una lista). `null` ≠ `[]`: lo
+ * primero significa «pregúntale a la API», lo segundo «no tiene ninguno».
+ */
+export const getSessionPermissions = (zone: AppZone): string[] | null => {
+  try {
+    const raw = localStorage.getItem(permissionsKey(zone));
+    if (raw === null) return null;
+
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? permissionNames(parsed) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const setSessionPermissions = (zone: AppZone, permissions: string[]) => {
+  try {
+    localStorage.setItem(permissionsKey(zone), JSON.stringify(permissions));
+  } catch {
+    // Almacenamiento bloqueado (modo privado, cuota): sin permisos guardados el
+    // guard vuelve a preguntar a la API, que es lo correcto.
+  }
+};
+
+const clearSessionPermissions = (zone: AppZone) => {
+  try {
+    localStorage.removeItem(permissionsKey(zone));
+  } catch {
+    // Nada que borrar si el almacenamiento no está disponible.
+  }
+};
+
+/**
+ * Separa los permisos del perfil: la cookie guarda el perfil SIN ellos y los
+ * permisos van a su propio almacenamiento. Si el perfil no trae el campo (p. ej.
+ * el aula reescribe su perfil con lo que ya tenía) se deja lo guardado como está.
+ */
+const splitPermissions = (zone: AppZone, user: string): string => {
+  const parsed = safeJsonParse<Record<string, unknown>>(user);
+  if (!parsed || typeof parsed !== "object" || !("permissions" in parsed)) return user;
+
+  const { permissions, ...profile } = parsed;
+  setSessionPermissions(zone, permissionNames(permissions));
+
+  return JSON.stringify(profile);
+};
+
 export const setSessionUser = (
   zone: AppZone,
   user: string,
   expiresAt: string | Date,
 ) => {
   const expires = new Date(expiresAt);
+  user = splitPermissions(zone, user);
 
   Cookies.set(expiresCookie(zone), new Date(expiresAt).toISOString(), {
     expires,
@@ -168,6 +228,7 @@ export const clearSession = (zone: AppZone) => {
   // no encuentra la cookie si el `path` no coincide.
   Cookies.remove(expiresCookie(zone), cookieOptions);
   Cookies.remove(userCookie(zone), cookieOptions);
+  clearSessionPermissions(zone);
 
   // El rol elegido muere con la sesión del aula: al volver a entrar se elige de
   // nuevo, y dejarlo puesto haría que el siguiente usuario heredara la vista.

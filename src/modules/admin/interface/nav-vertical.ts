@@ -5,7 +5,6 @@ export interface MenuItem {
   label: string;
   icon?: string | null;
   route?: RouteLocationRaw | null;
-  roles?: string[];
   children?: MenuItem[];
   module?: string;
 }

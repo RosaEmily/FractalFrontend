@@ -148,7 +148,7 @@ onMounted(async () => {
   const roleIds = resp.roleIds?.length
     ? resp.roleIds
     : roles.value
-        .filter((role) => resp.roles.includes(role.name))
+        .filter((role) => resp.roles.includes(role.description))
         .map((role) => role.id);
 
   selectedRoles.value = roleIds;

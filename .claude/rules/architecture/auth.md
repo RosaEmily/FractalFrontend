@@ -30,7 +30,7 @@ Las dos cookies HttpOnly viajan juntas al backend porque ambas tienen path `/`; 
 
 - `meta.auth` requiere perfil de esa zona o recuperación mediante `auth/me`.
 - Sin perfil, se intenta recuperar una vez por zona y carga de página antes de redirigir. El token HttpOnly puede seguir vigente.
-- `getUserRoles` acepta los roles del perfil; sin perfil/roles devuelve una lista vacía, nunca ADMIN por defecto.
+- `getUserRoles` acepta los roles del perfil (solo el aula; el panel usa permisos, ver abajo); sin perfil/roles devuelve una lista vacía, nunca ADMIN por defecto.
 - `guestOnly` devuelve al inicio de la zona únicamente cuando hay sesión utilizable en esa zona.
 - Si el perfil no permite la ruta, el guard lo descarta en esa zona y dirige a su login con el destino pendiente. Un usuario con varios roles de aula puede cambiar la vista al entrar en una ruta de otro de sus roles.
 - La API sigue siendo la autoridad: validar cookie de perfil o menú no autoriza operaciones.
@@ -49,4 +49,17 @@ El 401 llama a `handleSessionExpired`: limpia cookies visibles de la zona y redi
 
 ## Matriz pendiente de alinear
 
-El backend admite ADMIN/COORDINATOR/MANAGER en login de panel y STUDENT/TEACHER en aula. `admin-home` exige ADMIN; el aula contiene pantallas para COORDINATOR, cuyo rol por sí solo no pasa su login. No describir esas vistas como accesibles de punta a punta hasta alinear `AuthZone`, variantes, guards y rutas API. La aceptación de múltiples roles en un componente no anula la restricción del alta TEACHER+STUDENT.
+El backend admite en el panel los roles base ADMIN/COORDINATOR/MANAGER y cualquier rol propio de zona `admin`; en el aula STUDENT/TEACHER. El aula contiene pantallas para COORDINATOR, cuyo rol por sí solo no pasa su login. No describir esas vistas como accesibles de punta a punta hasta alinear `AuthZone`, variantes, guards y rutas API. La aceptación de múltiples roles en un componente no anula la restricción del alta TEACHER+STUDENT.
+
+## Permisos del panel
+
+El panel se controla por **permisos**, no por nombre de rol (`/admin` ya no lleva `meta.roles`).
+
+- `auth/me` devuelve `permissions`: `["*"]` para ADMIN y los nombres exactos para el resto (`[]` en el aula). **No van en la cookie de perfil** (una cookie pasa de ~4 KB con un rol de ~100 permisos y el navegador la descarta en silencio): `setSessionUser` los separa y los guarda en `localStorage` (`getSessionPermissions`). `null` significa «no sé, pregunta a la API»; `[]`, «no tiene ninguno».
+- `src/modules/admin/constants/permissions.ts` es la tabla ruta → permiso (`users.list` → `USERS_VIEW`, `.create` → `_CREATE`, `.edit`/`.update` → `_UPDATE`, `reports.x` → `REPORTS_X_VIEW`). `withPermissions` la aplica a `meta.permission` al armar el router. **Es un espejo del catálogo del backend** (`Permissions`/`PermissionModules`): al agregar un recurso, agregarlo en `RESOURCE_BY_ROUTE`.
+- Guard: el padre `/admin` lleva `meta.panel` (exige algún permiso). Una pantalla **sin** `meta.permission` y sin `meta.anyPanelUser` se **cierra** (403): un módulo nuevo no nace abierto. Solo `profile.show` es abierta. Sin permiso de «Inicio» se redirige a la primera pantalla permitida.
+- Menú (`filterMenuByPermissions`) y botones salen del mismo mapeo: los ítems del menú ya no declaran `roles`. `SectionList` oculta crear/editar/estado/eliminar según `useResourcePermissions()`; las acciones propias (revocar sesión, destacar, atendido, responder) leen `useUserStore().can(...)`.
+- ⚠️ Todo esto es UX: la API autoriza cada petición. Pruebas en `tests/access-control.test.ts` (cada pantalla tiene permiso, el menú coincide con el guard).
+- Permisos: la pantalla de crear existe y los botones crear/estado/eliminar salen solo con `PERMISSIONS_*` (el backend exige además ADMIN y bloquea por fila los del catálogo con `rowLocked`/`isSystem`). De un permiso del catálogo solo se edita la descripción.
+- Los enlaces del Inicio (avisos, «Ver todas») solo son enlace si el usuario puede abrir el destino. `SectionList` no ofrece selección de filas si no hay acción masiva permitida.
+- Menú de usuario: muestra la descripción del rol (`roleDescriptions` del adaptador de `auth/me`; el login solo trae nombres, así que se pide el perfil una vez) y un chevron que indica abierto/cerrado.

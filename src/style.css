@@ -988,3 +988,21 @@
   border: 3px solid transparent;
   background-clip: content-box;
 }
+
+
+/* Popover del panel: fondo sólido (el del tema deja ver la tabla de abajo),
+   mismo borde, radio y sombra que el menú de usuario. Sin flecha. */
+.p-popover.adm-popover {
+  background: var(--color-surface-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-adm-md, 10px);
+  box-shadow: 0 12px 32px -8px rgb(31 26 20 / 0.18), 0 2px 6px rgb(31 26 20 / 0.06);
+  color: var(--color-secondary-900, #1f1a14);
+}
+.p-popover.adm-popover::before,
+.p-popover.adm-popover::after {
+  display: none;
+}
+.p-popover.adm-popover .p-popover-content {
+  padding: 0;
+}

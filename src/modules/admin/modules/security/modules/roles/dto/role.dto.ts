@@ -7,6 +7,8 @@ export interface RoleDTO {
   updated_at: Date;
   permissions: string[];
   permissionIds: number[];
+  /** Rol base del sistema: no se edita, deshabilita ni elimina. */
+  is_system?: boolean | number;
 }
 
 export interface RoleBodyDTO {

@@ -7,6 +7,7 @@ import { ButtonCore } from "@/shared/components";
 import { safeRequest } from "@/shared/utils/request";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import { useConfirmStore } from "@/shared/stores/useConfirmStore";
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import sessionService from "../services/session.service";
 import type { SystemSession } from "../models/session.model";
 import type { GridUiColumnProps } from "@/shared/components/type";
@@ -14,6 +15,8 @@ import { FilterMatchMode } from "@primevue/core";
 
 const listRef = ref<{ refresh?: () => void } | null>(null);
 const revoking = ref<number | null>(null);
+// Revocar es un permiso aparte de ver: sin él la columna no se ofrece.
+const canRevoke = useUserStore().can("SESSIONS_REVOKE");
 
 /**
  * La API revoca de a una sesión (sin bulk-delete), y rechaza cerrar la
@@ -116,22 +119,26 @@ const columns: GridUiColumnProps<SystemSession>[] = [
         row.expiresAt,
       ),
   },
-  {
-    field: "actions",
-    header: "Acciones",
-    showFilterMenu: false,
-    type: "custom",
-    render: (row: SystemSession) =>
-      h(ButtonCore, {
-        class: "!w-auto",
-        severity: "danger",
-        outlined: true,
-        size: "small",
-        label: "Revocar",
-        loading: revoking.value === row.id,
-        onClick: () => onRevoke(row),
-      }),
-  },
+  ...(canRevoke
+    ? [
+    {
+      field: "actions",
+      header: "Acciones",
+      showFilterMenu: false,
+      type: "custom",
+      render: (row: SystemSession) =>
+        h(ButtonCore, {
+          class: "!w-auto",
+          severity: "danger",
+          outlined: true,
+          size: "small",
+          label: "Revocar",
+          loading: revoking.value === row.id,
+          onClick: () => onRevoke(row),
+        }),
+    },
+      ]
+    : []),
 ];
 </script>
 <template>

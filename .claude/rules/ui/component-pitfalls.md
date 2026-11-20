@@ -150,3 +150,13 @@ Todas verificadas; cada una costó tiempo.
   `GripUi` ya anotado abajo. Si el valor inicial de un `ref` puede confundirse
   con un dato real (`0`, `[]`, `""`), inicializarlo en `null` y ramificar la
   etiqueta/el estado vacío sobre `=== null` en vez del falsy directo.
+
+
+## Textos en español y futuro multilenguaje
+
+- Los textos de PrimeVue (incluido el bloque `aria`: «Mostrar menú de filtros», «Ampliar imagen», etc.) están en `shared/constants/primevue.ts`; los mensajes por defecto de zod, en `shared/utils/zod/error-map.ts` (`z.setErrorMap` en `main.ts`). Los mensajes propios de cada esquema mandan sobre el mapa.
+- No hay librería i18n: los textos son literales. Para soportar otro idioma hay tres puntos: ese mapa de zod, `CONFIG.locale` de PrimeVue y las descripciones de permisos/roles que vienen del backend (moverlas a archivos de idioma de Laravel).
+
+## Chips de columna con «+N»
+
+`grid/column/type/array.vue`: el «+N» abre un `Popover` de PrimeVue con el resto, con la clase `adm-popover` (fondo sólido, borde, radio y sombra del menú de usuario; el del tema deja ver la tabla). Lo usan todas las columnas array (permisos, etiquetas, cursos…).

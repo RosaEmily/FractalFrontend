@@ -15,13 +15,11 @@ export const MENU_SYSTEM: MenuItem[] = [
     id: "system",
     label: "Sistema",
     icon: mdiCogOutline,
-    roles: ["ADMIN"],
     children: [
       {
         id: "system.currencies",
         label: "Monedas",
         icon: mdiCurrencyUsd,
-        roles: ["ADMIN"],
         route: { name: "currencies.list" },
         module: "currencies",
       },
@@ -29,7 +27,6 @@ export const MENU_SYSTEM: MenuItem[] = [
         id: "system.logs",
         label: "Logs",
         icon: mdiTextBoxSearchOutline,
-        roles: ["ADMIN"],
         route: { name: "logs.list" },
         module: "logs",
       },

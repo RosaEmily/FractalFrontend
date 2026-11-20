@@ -5,6 +5,12 @@ import type { Permission } from "../models/permission.model";
 import type { GridUiColumnProps } from "@/shared/components/type";
 import { FilterMatchMode } from "@primevue/core";
 
+/*
+ * Los permisos del catálogo los define el backend: de ellos solo se edita la
+ * descripción. Crear, deshabilitar y eliminar existen solo para ADMIN y solo
+ * sobre permisos creados a mano (los del catálogo quedan bloqueados por fila).
+ * Los botones aparecen únicamente con los permisos PERMISSIONS_*.
+ */
 const columns: GridUiColumnProps<Permission>[] = [
   {
     field: "name",
@@ -31,6 +37,7 @@ const columns: GridUiColumnProps<Permission>[] = [
         permissionService.status(ids, state ?? 1),
       delete: (ids: (number | string)[]) => permissionService.delete(ids),
     }"
+    :row-locked="(permission: Permission) => permission.isSystem"
     title="Lista de permisos"
     module="security/permissions"
   />

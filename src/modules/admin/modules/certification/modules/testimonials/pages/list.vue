@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import { h } from "vue";
 import SectionList from "@/modules/admin/components/Section/list.vue";
 import StackedCell from "@/modules/admin/components/ui/stacked-cell.vue";
@@ -13,6 +14,8 @@ import type { GridUiColumnProps } from "@/shared/components/type";
 import { FilterMatchMode } from "@primevue/core";
 
 const toastStore = useToastStore();
+// Destacar es un permiso aparte de editar: sin él la estrella solo se mira.
+const canFeature = useUserStore().can("TESTIMONIALS_FEATURE");
 
 /**
  * Curación editorial inline: clic en la estrella alterna `is_featured` sin
@@ -23,6 +26,7 @@ const toastStore = useToastStore();
  * (relleno/contorno) se resuelve solo con ese cambio.
  */
 async function toggleFeatured(row: Testimonial) {
+  if (!canFeature) return;
   const nextValue = !row.isFeatured;
   const { status } = await safeRequest(
     () => testimonialService.featured([row.id], nextValue),
@@ -142,6 +146,7 @@ const columns: GridUiColumnProps<Testimonial>[] = [
           title: row.isFeatured
             ? "Quitar de la landing"
             : "Destacar en la landing",
+          disabled: !canFeature,
           onClick: () => toggleFeatured(row),
         },
         [h(HeroCore, { path: row.isFeatured ? mdiStar : mdiStarOutline, class: "size-4" })],
