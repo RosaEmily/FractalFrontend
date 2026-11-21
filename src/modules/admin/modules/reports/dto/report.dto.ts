@@ -5,26 +5,83 @@ export interface ReportDTO<T, K> {
 }
 
 // ── Ingresos y cobranza ──────────────────────────────────────────────
-export interface RevenueRowDTO {
+/*
+ * Moneda, símbolo, decimales y los textos de cada monto (`*_formatted`) los
+ * resuelve la API desde la tabla `currencies`: la pantalla solo los pinta y
+ * nunca suma montos de monedas distintas.
+ */
+interface CurrencyDTO {
+  currency: string | null;
+  symbol: string | null;
+  /** Nombre de la moneda ("Sol peruano"), de `currencies`. */
+  name: string | null;
+  decimals: number;
+}
+
+export interface RevenueRowDTO extends CurrencyDTO {
   offer_id: number;
   offer_name: string;
   offer_prefix: string | null;
-  currency: string | null;
-  symbol: string | null;
   enrollments: number;
   paid: number;
   pending: number;
   average: number;
   paid_percent: number;
+  paid_formatted: string;
+  pending_formatted: string;
+  average_formatted: string;
 }
 
+/** Totales sin moneda (conteos): estos sí se pueden sumar. */
 export interface RevenueTotalsDTO {
+  enrollments: number;
+  offers: number;
+  currencies: number;
+}
+
+/** Resumen de una moneda en el periodo. */
+export interface RevenueSummaryDTO extends CurrencyDTO {
   paid: number;
   pending: number;
+  billed: number;
   enrollments: number;
   average: number;
   pending_percent: number;
-  offers: number;
+  previous_paid: number;
+  /** null cuando el periodo anterior no tuvo cobros con qué comparar. */
+  change_percent: number | null;
+  cancelled: number;
+  cancelled_count: number;
+  paid_formatted: string;
+  pending_formatted: string;
+  billed_formatted: string;
+  average_formatted: string;
+  previous_formatted: string;
+  cancelled_formatted: string;
+}
+
+export interface RevenueSeriesDTO extends CurrencyDTO {
+  period: string;
+  label: string;
+  paid: number;
+  payments: number;
+  formatted: string;
+}
+
+export interface RevenueMethodDTO extends CurrencyDTO {
+  method: string;
+  paid: number;
+  payments: number;
+  share_percent: number;
+  formatted: string;
+}
+
+export interface RevenueStatusDTO extends CurrencyDTO {
+  status: string;
+  label: string;
+  enrollments: number;
+  amount: number;
+  formatted: string;
 }
 
 // ── Matrículas por programa ──────────────────────────────────────────
@@ -145,4 +202,6 @@ export interface ReportFilters {
   currency_id?: number;
   offer_id?: number;
   type?: "course" | "learning_path";
+  /** Fecha de corte del resumen ejecutivo. */
+  cutoff?: string;
 }

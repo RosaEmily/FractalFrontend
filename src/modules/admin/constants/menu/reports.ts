@@ -7,6 +7,10 @@ import {
   mdiSchoolOutline,
   mdiCertificateOutline,
   mdiCheckboxMarkedCircleOutline,
+  mdiViewDashboardOutline,
+  mdiClockAlertOutline,
+  mdiMessageAlertOutline,
+  mdiAccountMinusOutline,
 } from "@mdi/js";
 
 /**
@@ -23,6 +27,13 @@ export const MENU_REPORTS: MenuItem[] = [
     label: "Reportes",
     icon: mdiChartBoxOutline,
     children: [
+      {
+        id: "reports.executive",
+        label: "Resumen ejecutivo",
+        icon: mdiViewDashboardOutline,
+        route: { name: "reports.executive" },
+        module: "reports.executive",
+      },
       {
         id: "reports.revenue",
         label: "Ingresos y cobranza",
@@ -64,6 +75,27 @@ export const MENU_REPORTS: MenuItem[] = [
         icon: mdiCheckboxMarkedCircleOutline,
         route: { name: "reports.attendance" },
         module: "reports.attendance",
+      },
+      {
+        id: "reports.aging",
+        label: "Antigüedad de cobranza",
+        icon: mdiClockAlertOutline,
+        route: { name: "reports.aging" },
+        module: "reports.aging",
+      },
+      {
+        id: "reports.retention",
+        label: "Retención por cohorte",
+        icon: mdiAccountMinusOutline,
+        route: { name: "reports.retention" },
+        module: "reports.retention",
+      },
+      {
+        id: "reports.complaints",
+        label: "Reclamos por vencer",
+        icon: mdiMessageAlertOutline,
+        route: { name: "reports.complaints" },
+        module: "reports.complaints",
       },
     ],
   },

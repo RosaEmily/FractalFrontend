@@ -8,6 +8,10 @@ class ReportService {
   academic = (filters?: ReportFilters) => reportRepository.academic(filters);
   certificates = (filters?: ReportFilters) => reportRepository.certificates(filters);
   attendance = (filters?: ReportFilters) => reportRepository.attendance(filters);
+  executive = (filters?: ReportFilters) => reportRepository.executive(filters);
+  aging = () => reportRepository.aging();
+  complaints = () => reportRepository.complaints();
+  retention = (filters?: ReportFilters) => reportRepository.retention(filters);
 }
 
 export default new ReportService();

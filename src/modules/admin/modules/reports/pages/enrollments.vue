@@ -11,7 +11,7 @@ import ReportBar from "../components/report-bar.vue";
 import { exportCsv } from "../utils/export-csv";
 import { OFFER_TYPE_OPTIONS, OFFER_TYPE_LABELS } from "../constants/reports";
 
-const { data, loading, apply } = useReport<EnrollmentReport>((filters) =>
+const { data, loading, initializing, refreshing, apply } = useReport<EnrollmentReport>((filters) =>
   reportService.enrollments(filters),
 );
 
@@ -66,11 +66,12 @@ const onExport = () =>
   <ReportLayout
     title="Matrículas por programa"
     :count="items.length"
-    :loading="loading"
+    :loading="initializing"
+    :refreshing="refreshing"
     :empty="!items.length"
   >
     <template #totals>
-      <ReportTotals :items="totalCards" />
+      <ReportTotals :items="totalCards" :loading="initializing" />
     </template>
 
     <template #filters>

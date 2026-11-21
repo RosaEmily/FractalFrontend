@@ -1006,3 +1006,71 @@
 .p-popover.adm-popover .p-popover-content {
   padding: 0;
 }
+
+/*
+ * Tooltip v2 (directiva `v-tooltip`, shared/plugins/directives/tooltip).
+ * Tinta oscura del sistema con flecha real; entra desde el lado del elemento.
+ */
+.fx-tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  max-width: min(20rem, calc(100vw - 1rem));
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  background: var(--color-secondary-900);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 500;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgb(31 26 20 / 0.22), 0 1px 3px rgb(31 26 20 / 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s linear 0.12s;
+  --fx-shift: 0.25rem;
+}
+.fx-tooltip[data-state="measuring"] { visibility: hidden; transition: none; }
+.fx-tooltip[data-placement^="top"]    { transform: translateY(var(--fx-shift)); }
+.fx-tooltip[data-placement^="bottom"] { transform: translateY(calc(var(--fx-shift) * -1)); }
+.fx-tooltip[data-placement^="left"]   { transform: translateX(var(--fx-shift)); }
+.fx-tooltip[data-placement^="right"]  { transform: translateX(calc(var(--fx-shift) * -1)); }
+
+/* Va después de los de `data-placement` y con más especificidad: al abrir, sin desplazamiento. */
+.fx-tooltip[data-state="open"][data-placement] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.fx-tooltip__arrow {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: inherit;
+  border-radius: 0.1rem;
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-tooltip { transition: none; transform: none !important; }
+}
+
+/* Variante con botón de cerrar (`TooltipCore show clearable`): sí recibe clics. */
+.fx-tooltip--interactive { display: flex; align-items: center; gap: 0.5rem; pointer-events: auto; }
+.fx-tooltip__clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  color: inherit;
+  padding: 0;
+}
+.fx-tooltip__clear:hover { opacity: 1; }

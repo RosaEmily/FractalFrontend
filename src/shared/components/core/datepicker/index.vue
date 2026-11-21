@@ -72,9 +72,20 @@ const prevDisabled = computed(() => {
   if (view.currentView === "month") return view.currentYear <= minYear;
   return view.currentYear * 12 + view.currentMonth <= minYear * 12 + min.getMonth();
 });
+// Lo mismo hacia adelante con `maxDate`: sin esto la flecha lleva a meses sin ningún día elegible.
+const nextDisabled = computed(() => {
+  const max = propsInit.maxDate;
+  const view = picker.value;
+  if (!max || !view) return false;
+  const maxYear = max.getFullYear();
+  if (view.currentView === "year") return view.currentYear - (view.currentYear % 10) + 9 >= maxYear;
+  if (view.currentView === "month") return view.currentYear >= maxYear;
+  return view.currentYear * 12 + view.currentMonth >= maxYear * 12 + max.getMonth();
+});
 const pt = computed(() => ({
   ...(propsInit.pt as object | undefined),
   pcPrevButton: { root: { disabled: prevDisabled.value } },
+  pcNextButton: { root: { disabled: nextDisabled.value } },
 }));
 </script>
 

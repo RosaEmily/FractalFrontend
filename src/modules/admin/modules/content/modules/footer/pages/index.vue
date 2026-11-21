@@ -15,6 +15,9 @@ import { InputTextCore, TextAreaCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
 import FooterColumnsField from "../components/footer-columns-field.vue";
 import FooterSection from "../components/footer-section.vue";
+import FooterPreview from "../../../components/footer-preview.vue";
+import ContactIntroPreview from "../../../components/contact-intro-preview.vue";
+import ContactFormNotePreview from "../components/contact-form-note-preview.vue";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import { useToastStore } from "@/shared/stores/useToastStore";
 import footerService from "../services/footer.service";
@@ -195,14 +198,11 @@ onMounted(async () => {
           />
         </div>
         <FieldPreview hint="así se ve al pie de la web">
-          <div class="w-full text-adm-base text-secondary-500 space-y-1">
-            <p>{{ fields.brand_text.value || "Descripción de la marca" }}</p>
-            <p class="font-mono text-adm-xs text-secondary-400">
-              © {{ new Date().getFullYear() }}
-              {{ fields.legal_name.value || "RAZÓN SOCIAL" }} · TODOS LOS DERECHOS RESERVADOS ·
-              {{ fields.location_text.value || "UBICACIÓN" }}
-            </p>
-          </div>
+          <FooterPreview
+            :brand-text="fields.brand_text.value"
+            :legal-name="fields.legal_name.value"
+            :location-text="fields.location_text.value"
+          />
         </FieldPreview>
       </FooterSection>
 
@@ -213,6 +213,14 @@ onMounted(async () => {
         description="Los enlaces a páginas informativas, preguntas frecuentes o sitios externos."
       >
         <FooterColumnsField v-model="columns" :page-options="pageOptions" :errors="columnErrors" />
+        <FieldPreview hint="así se ve al pie de la web">
+          <FooterPreview
+            :brand-text="fields.brand_text.value"
+            :legal-name="fields.legal_name.value"
+            :location-text="fields.location_text.value"
+            :columns="columns"
+          />
+        </FieldPreview>
       </FooterSection>
 
       <FooterSection
@@ -252,6 +260,18 @@ onMounted(async () => {
           :invalid="!!errors.cp_description"
           :message-error="errors.cp_description"
         />
+        <FieldPreview hint="así se ve en la página de Contacto">
+          <ContactIntroPreview
+            :eyebrow="fields.cp_eyebrow.value"
+            :title="fields.cp_title.value"
+            :title-accent="fields.cp_title_accent.value"
+            :description="fields.cp_description.value"
+            :email-note="fields.cp_email_note.value"
+            :phone-note="fields.cp_phone_note.value"
+            :address-note="fields.cp_address_note.value"
+            :whatsapp-note="fields.cp_whatsapp_note.value"
+          />
+        </FieldPreview>
       </FooterSection>
 
       <FooterSection
@@ -290,6 +310,18 @@ onMounted(async () => {
             :message-error="errors.cp_whatsapp_note"
           />
         </div>
+        <FieldPreview hint="así se ve en la página de Contacto">
+          <ContactIntroPreview
+            :eyebrow="fields.cp_eyebrow.value"
+            :title="fields.cp_title.value"
+            :title-accent="fields.cp_title_accent.value"
+            :description="fields.cp_description.value"
+            :email-note="fields.cp_email_note.value"
+            :phone-note="fields.cp_phone_note.value"
+            :address-note="fields.cp_address_note.value"
+            :whatsapp-note="fields.cp_whatsapp_note.value"
+          />
+        </FieldPreview>
       </FooterSection>
 
       <FooterSection
@@ -305,6 +337,9 @@ onMounted(async () => {
           :invalid="!!errors.cp_form_note"
           :message-error="errors.cp_form_note"
         />
+        <FieldPreview hint="así se ve bajo el botón de enviar">
+          <ContactFormNotePreview :note="fields.cp_form_note.value" />
+        </FieldPreview>
       </FooterSection>
     </template>
   </CrudForm>

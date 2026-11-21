@@ -1,7 +1,11 @@
 export interface Revenue {
   currency: string;
+  symbol: string;
+  name: string | null;
   total: number;
   count: number;
+  /** Monto ya formateado por la API con el símbolo de `currencies`. */
+  formatted: string;
   /** Variación vs. el mes previo; null si no hay base de comparación. */
   percent: number | null;
 }

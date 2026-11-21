@@ -5,6 +5,7 @@ import { ref } from "vue";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
+import FooterPreview from "../../../components/footer-preview.vue";
 import socialNetworkService from "../services/social-network.service";
 import type { SocialNetworkBodyDTO } from "../dto/social-network.dto";
 
@@ -48,17 +49,8 @@ const formSchema = z.object({
         messages-info="URL válida, máx. 255 caracteres."
       />
 
-      <FieldPreview hint="Así se ve en el pie de página.">
-        <a
-          v-if="fields.url.value"
-          :href="fields.url.value"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-adm-base text-primary-500 underline"
-        >
-          {{ fields.name.value || fields.url.value }}
-        </a>
-        <span v-else class="text-adm-base text-secondary-400">—</span>
+      <FieldPreview hint="así se ve al pie de la web">
+        <FooterPreview :social="{ name: fields.name.value as string | null, url: fields.url.value as string | null }" />
       </FieldPreview>
     </template>
   </CrudForm>

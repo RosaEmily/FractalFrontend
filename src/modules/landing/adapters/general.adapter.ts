@@ -10,6 +10,7 @@ import type { FunctionalComponent } from "vue";
 import type { FooterDTO, FooterLinkDTO, GeneralDTO } from "../dto/general.dto";
 import { defaultFooterIcon, isFooterIcon } from "@/shared/utils/footer-icons";
 import type { FooterContent, General } from "../models/general.model";
+import { splitKpiFormat } from "../composables/format";
 
 const KPI_ICONS: FunctionalComponent[] = [
   AcademicCapIcon,
@@ -91,7 +92,8 @@ export const GeneralAdapter = {
       id: String(k.id),
       label: k.description,
       value: k.number,
-      suffix: k.format.replace('{n}', '').trim() || undefined,
+      prefix: splitKpiFormat(k.format).prefix || undefined,
+      suffix: splitKpiFormat(k.format).suffix || undefined,
       icon: KPI_ICONS[i] ?? KeyIcon,
     })),
     partners: dto.partners.map((p) => ({

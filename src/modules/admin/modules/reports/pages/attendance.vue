@@ -12,7 +12,7 @@ import ReportBar from "../components/report-bar.vue";
 import { exportCsv } from "../utils/export-csv";
 import offerService from "@/modules/admin/modules/catalog/modules/offers/services/offer.service";
 
-const { data, loading, apply } = useReport<AttendanceReport>((filters) =>
+const { data, loading, initializing, refreshing, apply } = useReport<AttendanceReport>((filters) =>
   reportService.attendance(filters),
 );
 
@@ -71,11 +71,12 @@ const onExport = () =>
   <ReportLayout
     title="Asistencia"
     :count="items.length"
-    :loading="loading"
+    :loading="initializing"
+    :refreshing="refreshing"
     :empty="!items.length"
   >
     <template #totals>
-      <ReportTotals :items="totalCards" />
+      <ReportTotals :items="totalCards" :loading="initializing" />
     </template>
 
     <template #filters>
@@ -172,7 +173,7 @@ const onExport = () =>
 
     <!-- Nota del diseño: qué se reporta y qué no -->
     <div
-      class="px-5.5 py-3.5 border-t border-line bg-admin-bg flex gap-2.5 items-start"
+      class="mx-5.5 mt-4 mb-1 px-4 py-3 border border-line-soft rounded-adm-sm bg-admin-bg flex gap-2.5 items-start"
     >
       <HeroCore
         :path="mdiInformationOutline"

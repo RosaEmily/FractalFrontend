@@ -117,7 +117,7 @@ const menuClick = () => {
     <li
       v-if="hasChildren"
       class="flex justify-center pt-1.5 pb-0.5 opacity-50"
-      :title="item.label"
+      v-tooltip.right="item.label"
     >
       <HeroCore v-if="item.icon" :path="item.icon" class="size-3.5 text-secondary-500" />
     </li>
@@ -130,7 +130,7 @@ const menuClick = () => {
           ? 'is-active bg-surface-paper border-line shadow-sm'
           : 'border-transparent'
       "
-      :title="item.label"
+      v-tooltip.right="item.label"
       @click="menuClick"
     >
       <span
