@@ -145,7 +145,7 @@ const offerOptions = ref<{ label: string; value: number }[]>([])
 const currencyOptions = ref<{ label: string; value: number }[]>([])
 onMounted(async () => {
   const [offers, filters] = await Promise.all([
-    safeRequest(() => offerService.list({ limit: '50' }), { showAlert: false }),
+    safeRequest(() => offerService.list({ limit: '48' }), { showAlert: false }),
     safeRequest(() => offerFiltersService.get(), { showAlert: false }),
   ])
   offerOptions.value = (offers.data?.offers ?? []).map((o) => ({ label: o.name, value: o.id }))
