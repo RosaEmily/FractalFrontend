@@ -192,7 +192,7 @@ const mapsHref = computed(() =>
 /* Los programas del selector son los que están a la venta, más "Otro". */
 const programOptions = ref<{ label: string; value: string }[]>([])
 onMounted(async () => {
-  const { data } = await safeRequest(() => offerService.list({ limit: '50' }), { showAlert: false })
+  const { data } = await safeRequest(() => offerService.list({ limit: '48' }), { showAlert: false })
   programOptions.value = [
     ...(data?.offers ?? []).map((o) => ({ label: o.name, value: o.name })),
     { label: 'Otro / aún no decido', value: 'Otro / aún no decido' },

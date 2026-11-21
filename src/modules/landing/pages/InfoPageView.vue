@@ -8,7 +8,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
 import InfoArticle from '../components/blocks/InfoArticle.vue'
 import { safeRequest } from '@/shared/utils/request'
-import { renderMarkdown } from '@/shared/utils/markdown'
+import { toRichHtml } from '@/shared/utils/rich-text'
 import { pageService } from '../services/page.service'
 import type { PageDTO } from '../dto/page.dto'
 
@@ -29,14 +29,15 @@ async function load(slug: string) {
 watch(() => route.params.slug, (slug) => load(String(slug)), { immediate: true })
 
 /*
- * renderMarkdown escapa el HTML y solo deja pasar enlaces seguros: es seguro para v-html.
+ * toRichHtml sanea el HTML (lista blanca) y convierte el Markdown de antes del editor:
+ * es seguro para v-html.
  *
  * Los enlaces internos del contenido (`/contact`, `/info/...`) se escriben sin la
  * base `/FractalFrontend/` del router; un `<a href="/contact">` suelto daría 404,
  * así que se resuelven contra el router.
  */
 const html = computed(() =>
-  renderMarkdown(page.value?.content).replace(
+  toRichHtml(page.value?.content).replace(
     /href="(\/[^"]*)"/g,
     (_, path: string) => `href="${router.resolve(path).href}"`,
   ),
