@@ -148,7 +148,7 @@ const onClick = async (action: Action) => {
         v-if="rawAction.type == 'delete' || rawAction.type == 'button'"
         v-bind="normalizeAction(rawAction).buttonProps"
         :aria-label="actionLabel(normalizeAction(rawAction))"
-        :title="actionLabel(normalizeAction(rawAction))"
+        v-tooltip.top="actionLabel(normalizeAction(rawAction))"
         @click="onClick(normalizeAction(rawAction))"
         class="!p-1"
       >
@@ -160,7 +160,7 @@ const onClick = async (action: Action) => {
         v-if="rawAction.type == 'redirect' || rawAction.type == 'edit'"
         v-bind="normalizeAction(rawAction).buttonProps"
         :aria-label="actionLabel(normalizeAction(rawAction))"
-        :title="actionLabel(normalizeAction(rawAction))"
+        v-tooltip.top="actionLabel(normalizeAction(rawAction))"
         :to="getRedirectHref(normalizeAction(rawAction))"
         as="RouterLink"
         class="!p-1"

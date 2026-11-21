@@ -75,7 +75,7 @@ const gridCols = computed(() => {
           <div class="flex gap-16 animate-marquee w-max">
             <template v-for="loop in 3" :key="loop">
               <div
-                v-for="partner in partners"
+                v-for="partner in partners.filter((p) => p.image_url)"
                 :key="`${loop}-${partner.id}`"
                 class="flex items-center opacity-70 shrink-0"
               >

@@ -11,7 +11,7 @@ import ReportFiltersBar from "../components/report-filters.vue";
 import ReportBar from "../components/report-bar.vue";
 import { exportCsv } from "../utils/export-csv";
 
-const { data, loading, apply } = useReport<CertificateReport>((filters) =>
+const { data, loading, initializing, refreshing, apply } = useReport<CertificateReport>((filters) =>
   reportService.certificates(filters),
 );
 
@@ -81,11 +81,12 @@ const onExport = () =>
   <ReportLayout
     title="Certificados emitidos"
     :count="items.length"
-    :loading="loading"
+    :loading="initializing"
+    :refreshing="refreshing"
     :empty="!items.length"
   >
     <template #totals>
-      <ReportTotals :items="totalCards" />
+      <ReportTotals :items="totalCards" :loading="initializing" />
     </template>
 
     <template #filters>

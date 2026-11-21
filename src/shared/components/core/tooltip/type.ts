@@ -53,4 +53,29 @@ export interface TooltipCoreProps {
   autoHide?: TooltipOptions["autoHide"];
 
   tag?: string;
+
+  /**
+   * Lo muestra sin importar el hover (p. ej. un aviso de validación)
+   */
+  show?: boolean;
+
+  /**
+   * Botón para cerrarlo; emite `clear`
+   */
+  clearable?: boolean;
+
+  /**
+   * Solo se abre con `show`, nunca por hover
+   */
+  disableHover?: boolean;
+
+  /**
+   * Sin cursor de mano (el elemento no es clicable)
+   */
+  noPointer?: boolean;
+
+  /**
+   * Clase extra del cuadro flotante
+   */
+  classTooltip?: string;
 }

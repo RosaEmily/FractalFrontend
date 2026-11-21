@@ -17,6 +17,7 @@
     "mock": "json-server --watch mock/db.json --routes mock/routes.json --port 4000"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
     "@heroicons/vue": "^2.2.0",
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/js": "^7.4.47",

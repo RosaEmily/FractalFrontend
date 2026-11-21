@@ -64,8 +64,19 @@ const criticalCount = computed(
       </div>
     </header>
 
-    <div v-if="loading" class="px-5.5 py-8 text-adm-base text-secondary-400">
-      Cargando…
+    <div v-if="loading" aria-busy="true" aria-label="Cargando asuntos">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="px-5.5 py-4 flex items-center gap-4"
+        :class="n < 3 ? 'border-b border-line-soft' : ''"
+      >
+        <span class="adm-skeleton block size-8.5 rounded-adm-sm shrink-0" />
+        <div class="flex-1 min-w-0">
+          <span class="adm-skeleton block h-3.5 w-2/5 rounded-[0.313rem]" />
+          <span class="adm-skeleton block h-3 w-4/5 rounded-[0.313rem] mt-2" />
+        </div>
+      </div>
     </div>
 
     <!-- Sin asuntos abiertos es una buena noticia, no un vacío -->

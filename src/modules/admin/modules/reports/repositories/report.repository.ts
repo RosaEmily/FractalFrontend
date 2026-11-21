@@ -1,6 +1,12 @@
 import apiFractal from "@/shared/helpers/axios/api-fractal";
 import type { ReportFilters } from "../dto/report.dto";
 import type {
+  AgingReportDTO,
+  ComplaintsReportDTO,
+  ExecutiveReportDTO,
+  RetentionReportDTO,
+} from "../dto/management.dto";
+import type {
   AcademicReport,
   AttendanceReport,
   CertificateReport,
@@ -10,7 +16,7 @@ import type {
 } from "../models/report.model";
 
 /**
- * Solo lectura: 6 GET con filtros por query string. No extiende
+ * Solo lectura: GET con filtros por query string. No extiende
  * `BaseRepository` porque no hay id, paginación ni escritura.
  */
 class ReportRepository {
@@ -46,6 +52,17 @@ class ReportRepository {
 
   attendance = (filters: ReportFilters = {}) =>
     this.fetch<AttendanceReport>("attendance", filters);
+
+  // Gerencia
+  executive = (filters: ReportFilters = {}) =>
+    this.fetch<ExecutiveReportDTO>("executive", filters);
+
+  aging = () => this.fetch<AgingReportDTO>("aging", {});
+
+  complaints = () => this.fetch<ComplaintsReportDTO>("complaints", {});
+
+  retention = (filters: ReportFilters = {}) =>
+    this.fetch<RetentionReportDTO>("retention", filters);
 }
 
 export default new ReportRepository();

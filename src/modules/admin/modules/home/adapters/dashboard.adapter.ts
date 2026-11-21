@@ -21,8 +21,11 @@ export const statsAdapter = {
     return {
       revenue: dto.revenue.current.map((row) => ({
         currency: row.currency,
+        symbol: row.symbol,
+        name: row.name,
         total: row.total,
         count: row.count,
+        formatted: row.formatted,
         percent: percentByCurrency.get(row.currency) ?? null,
       })),
       enrollments: {

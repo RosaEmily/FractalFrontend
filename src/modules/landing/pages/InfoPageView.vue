@@ -6,6 +6,7 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
+import InfoArticle from '../components/blocks/InfoArticle.vue'
 import { safeRequest } from '@/shared/utils/request'
 import { renderMarkdown } from '@/shared/utils/markdown'
 import { pageService } from '../services/page.service'
@@ -65,16 +66,7 @@ function onContentClick(event: MouseEvent) {
           <div class="h-4 w-4/6 bg-surface-sand rounded-md" />
         </div>
 
-        <article v-else-if="page">
-          <h1 class="font-display font-bold text-[clamp(32px,5vw,52px)] leading-[1.05] tracking-tight text-secondary-900 text-balance mb-8">
-            {{ page.title }}
-          </h1>
-          <div
-            class="font-body text-[1rem] leading-relaxed text-secondary-600 space-y-4 [&_h2]:font-display [&_h2]:text-[1.5rem] [&_h2]:font-bold [&_h2]:text-secondary-900 [&_h2]:mt-8 [&_h3]:font-display [&_h3]:font-bold [&_h3]:text-secondary-900 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1.5 [&_a]:text-primary-500 [&_a]:underline [&_strong]:text-secondary-900"
-            @click="onContentClick"
-            v-html="html"
-          />
-        </article>
+        <InfoArticle v-else-if="page" :title="page.title" :html="html" @content-click="onContentClick" />
 
         <div v-else class="text-center py-16">
           <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">404</p>

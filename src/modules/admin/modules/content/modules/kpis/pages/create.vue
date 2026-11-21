@@ -5,6 +5,7 @@ import { ref } from "vue";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, InputNumberCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
+import KpiPreview from "../components/kpi-preview.vue";
 import kpiService from "../services/kpi.service";
 import type { KpiBodyDTO } from "../dto/kpi.dto";
 
@@ -61,15 +62,12 @@ const formSchema = z.object({
         messages-info='{n} se reemplaza por el número. Ej: "+{n}%", "{n}+", "S/ {n}"'
       />
 
-      <FieldPreview hint="Así se ve en el home.">
-        <span class="font-display text-2xl font-bold text-primary-500">
-          {{
-            (fields.format.value ?? "").replace(
-              "{n}",
-              String(fields.number.value ?? ""),
-            ) || "—"
-          }}
-        </span>
+      <FieldPreview hint="así se ve en el home">
+        <KpiPreview
+          :number="fields.number.value"
+          :format="fields.format.value"
+          :description="fields.description.value"
+        />
       </FieldPreview>
     </template>
   </CrudForm>

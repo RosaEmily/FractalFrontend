@@ -16,6 +16,8 @@ import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputPhoneCore, InputTextCore, TextAreaCore } from "@/shared/components";
 import { isValidPhone } from "@/shared/components/core/input/phone/countries";
 import FieldPreview from "../../../components/field-preview.vue";
+import LandingFrame from "../../../components/landing-frame.vue";
+import FinalCtaBlock from "@/modules/landing/components/blocks/FinalCtaBlock.vue";
 import { useLoadingStore } from "@/shared/stores/useLoadingStore";
 import siteConfigService from "../services/site-config.service";
 import type { SiteConfigBodyDTO } from "../dto/site-config.dto";
@@ -78,6 +80,13 @@ const descriptionPreview = computed(
 const whatsappLink = computed(() => {
   const digits = (current.value.whatsapp ?? "").replace(/[^0-9]/g, "");
   return digits ? `wa.me/${digits}` : "Sin número configurado";
+});
+
+/** Lo que recibe el cierre del home: el número tal cual y su enlace `wa.me`. */
+const whatsappLabel = computed(() => current.value.whatsapp || null);
+const whatsappUrl = computed(() => {
+  const digits = (current.value.whatsapp ?? "").replace(/[^0-9]/g, "");
+  return digits ? `https://wa.me/${digits}` : null;
 });
 
 onMounted(async () => {
@@ -204,10 +213,11 @@ onMounted(async () => {
       </FieldPreview>
 
       <!-- Botón flotante -->
-      <FieldPreview label="Botón de WhatsApp" hint="enlace que abre el visitante">
-        <span class="font-mono text-adm-sm text-secondary-500">
-          {{ whatsappLink }}
-        </span>
+      <FieldPreview label="Botón de WhatsApp" hint="así se ve en el cierre del home">
+        <LandingFrame :width="1280">
+          <FinalCtaBlock :phone="whatsappLabel" :whatsapp-href="whatsappUrl" />
+        </LandingFrame>
+        <span class="sr-only">{{ whatsappLink }}</span>
       </FieldPreview>
     </template>
   </CrudForm>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { mdiDevices } from "@mdi/js";
 import { computed, onMounted, ref } from "vue";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -11,6 +12,7 @@ import {
   CardCore,
   ButtonCore,
   TagCore,
+  EmptyStateUi,
   HeroCore,
 } from "@/shared/components";
 
@@ -148,12 +150,13 @@ onMounted(load);
       Cargando sesiones...
     </p>
 
-    <p
+    <EmptyStateUi
       v-else-if="!sessions.length"
-      class="px-7 py-5 text-adm-base text-secondary-500"
-    >
-      No hay sesiones activas.
-    </p>
+      compact
+      :icon="mdiDevices"
+      title="Sin sesiones activas"
+      description="No hay dispositivos con la sesión abierta."
+    />
 
     <div
       v-for="(session, index) in sessions"

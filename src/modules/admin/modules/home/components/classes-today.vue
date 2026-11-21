@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { HeroCore } from "@/shared/components";
+import { mdiCalendarBlankOutline } from "@mdi/js";
+import { EmptyStateUi, HeroCore } from "@/shared/components";
 import { mdiLinkVariant } from "@mdi/js";
 import type { ClassToday } from "../models/dashboard.model";
 import { CLASS_STATE_LABELS } from "../constants/dashboard";
@@ -50,16 +51,28 @@ const shortTime = (time: string | null) => time?.slice(0, 5) ?? "--:--";
       </router-link>
     </header>
 
-    <div v-if="loading" class="px-5.5 py-8 text-adm-base text-secondary-400">
-      Cargando…
+    <div v-if="loading" aria-busy="true" aria-label="Cargando clases">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="px-5.5 py-3.5 flex items-center gap-4"
+        :class="n < 3 ? 'border-b border-line-soft' : ''"
+      >
+        <span class="adm-skeleton block h-9 w-14 rounded-adm-sm shrink-0" />
+        <div class="flex-1 min-w-0">
+          <span class="adm-skeleton block h-3.5 w-3/5 rounded-[0.313rem]" />
+          <span class="adm-skeleton block h-3 w-2/5 rounded-[0.313rem] mt-2" />
+        </div>
+      </div>
     </div>
 
-    <div
+    <EmptyStateUi
       v-else-if="!items.length"
-      class="px-5.5 py-8 text-center text-adm-base text-secondary-500"
-    >
-      No hay clases programadas para hoy.
-    </div>
+      compact
+      :icon="mdiCalendarBlankOutline"
+      title="Sin clases hoy"
+      description="No hay clases programadas para hoy."
+    />
 
     <div
       v-for="(item, index) in items"

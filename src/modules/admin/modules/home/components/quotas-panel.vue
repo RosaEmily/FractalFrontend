@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { mdiAccountGroupOutline } from "@mdi/js";
+import { EmptyStateUi } from "@/shared/components";
 import dayjs from "dayjs";
 import type { Quota } from "../models/dashboard.model";
 
@@ -50,16 +52,29 @@ const closesAt = (date: string | null) =>
       </p>
     </header>
 
-    <div v-if="loading" class="px-5.5 py-8 text-adm-base text-secondary-400">
-      Cargando…
+    <div v-if="loading" class="px-5.5 pb-4.5" aria-busy="true" aria-label="Cargando cupos">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="py-3.5"
+        :class="n < 3 ? 'border-b border-line-soft' : ''"
+      >
+        <div class="flex justify-between gap-2.5 mb-2">
+          <span class="adm-skeleton block h-3.5 w-3/5 rounded-[0.313rem]" />
+          <span class="adm-skeleton block h-3.5 w-10 rounded-[0.313rem]" />
+        </div>
+        <span class="adm-skeleton block h-1.5 w-full rounded-pill" />
+        <span class="adm-skeleton block h-3 w-2/5 rounded-[0.313rem] mt-2" />
+      </div>
     </div>
 
-    <div
+    <EmptyStateUi
       v-else-if="!items.length"
-      class="px-5.5 py-8 text-center text-adm-base text-secondary-500"
-    >
-      No hay cohortes con matrícula abierta.
-    </div>
+      compact
+      :icon="mdiAccountGroupOutline"
+      title="Sin cohortes abiertas"
+      description="No hay cohortes con matrícula abierta."
+    />
 
     <div v-else class="px-5.5 pb-4.5">
       <div
@@ -71,7 +86,7 @@ const closesAt = (date: string | null) =>
         <div class="flex justify-between items-baseline gap-2.5 mb-2">
           <span
             class="text-adm-sm font-semibold text-secondary-900 truncate"
-            :title="quota.name"
+            v-tooltip.top="quota.name"
           >
             {{ quota.name }}
           </span>

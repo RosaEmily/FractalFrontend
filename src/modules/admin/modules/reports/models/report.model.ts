@@ -9,7 +9,11 @@ import type {
   EnrollmentTotalsDTO,
   OccupancyRowDTO,
   OccupancyTotalsDTO,
+  RevenueMethodDTO,
   RevenueRowDTO,
+  RevenueSeriesDTO,
+  RevenueStatusDTO,
+  RevenueSummaryDTO,
   RevenueTotalsDTO,
 } from "../dto/report.dto";
 
@@ -26,7 +30,12 @@ export interface Report<TRow, TTotals> {
   items: TRow[];
 }
 
-export type RevenueReport = Report<RevenueRowDTO, RevenueTotalsDTO>;
+export type RevenueReport = Report<RevenueRowDTO, RevenueTotalsDTO> & {
+  summary: RevenueSummaryDTO[];
+  series: RevenueSeriesDTO[];
+  by_method: RevenueMethodDTO[];
+  by_status: RevenueStatusDTO[];
+};
 export type EnrollmentReport = Report<EnrollmentRowDTO, EnrollmentTotalsDTO>;
 export type OccupancyReport = Report<OccupancyRowDTO, OccupancyTotalsDTO>;
 export type AcademicReport = Report<AcademicRowDTO, AcademicTotalsDTO>;
@@ -34,6 +43,7 @@ export type CertificateReport = Report<CertificateRowDTO, CertificateTotalsDTO>;
 export type AttendanceReport = Report<AttendanceRowDTO, AttendanceTotalsDTO>;
 
 export type RevenueRow = RevenueRowDTO;
+export type RevenueSummary = RevenueSummaryDTO;
 export type EnrollmentRow = EnrollmentRowDTO;
 export type OccupancyRow = OccupancyRowDTO;
 export type AcademicRow = AcademicRowDTO;

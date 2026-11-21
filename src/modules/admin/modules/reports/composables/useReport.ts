@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { safeRequest } from "@/shared/utils/request";
 import type { ReportFilters } from "../dto/report.dto";
 
@@ -30,5 +30,13 @@ export const useReport = <T>(
 
   onMounted(load);
 
-  return { data, loading, filters, load, apply };
+  /*
+   * Esqueleto solo en la primera carga. Al aplicar filtros el reporte anterior
+   * se queda en pantalla (atenuado) mientras llega el nuevo: si se reemplazara
+   * por el esqueleto, la página se acortaría y el navegador subiría el scroll.
+   */
+  const initializing = computed(() => loading.value && data.value === null);
+  const refreshing = computed(() => loading.value && data.value !== null);
+
+  return { data, loading, initializing, refreshing, filters, load, apply };
 };

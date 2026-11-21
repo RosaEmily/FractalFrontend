@@ -6,6 +6,8 @@
 import { computed } from "vue";
 import { InputTextCore, TextAreaCore, ToggleCore, LabelCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
+import LandingFrame from "../../../components/landing-frame.vue";
+import InfoArticle from "@/modules/landing/components/blocks/InfoArticle.vue";
 import { renderMarkdown } from "@/shared/utils/markdown";
 
 interface Fields {
@@ -61,16 +63,16 @@ const slugPreview = computed(() => (props.fields.slug.value as string | null) ||
   </p>
 
   <FieldPreview hint="así se ve en la web">
-    <div class="w-full max-h-96 overflow-y-auto">
-      <p class="font-display text-adm-xl font-bold text-secondary-900 mb-2">
-        {{ (fields.title.value as string) || "Título de la página" }}
-      </p>
-      <!-- renderMarkdown escapa el HTML y solo deja pasar enlaces seguros -->
-      <div
-        class="text-adm-base text-secondary-500 space-y-2 [&_h2]:font-display [&_h2]:font-bold [&_h2]:text-secondary-900 [&_h2]:mt-3 [&_ul]:list-disc [&_ul]:pl-5 [&_a]:text-primary-500 [&_a]:underline"
-        v-html="html || '<p>Aquí aparecerá el contenido.</p>'"
-      />
-    </div>
+    <LandingFrame :width="1100">
+      <section class="bg-surface-page px-16 py-16">
+        <div class="max-w-3xl mx-auto">
+          <InfoArticle
+            :title="(fields.title.value as string) || 'Título de la página'"
+            :html="html || '<p>Aquí aparecerá el contenido.</p>'"
+          />
+        </div>
+      </section>
+    </LandingFrame>
   </FieldPreview>
 
   <div>

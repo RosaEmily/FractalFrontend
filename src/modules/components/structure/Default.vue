@@ -35,7 +35,7 @@ withDefaults(
         :class="classContainer"
       >
         <slot name="container" v-if="showContainer">
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 self-start">
             <slot />
           </div>
           <div class="sticky top-0" v-if="showRight">

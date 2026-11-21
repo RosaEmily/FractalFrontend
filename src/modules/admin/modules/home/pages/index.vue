@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from "vue";
 import { useUserStore } from "@/modules/admin/stores/useUserStore";
 import { safeRequest } from "@/shared/utils/request";
-import { formatNumber } from "@/shared/utils/format";
 import {
   mdiCashMultiple,
   mdiClipboardTextOutline,
@@ -55,31 +54,35 @@ onMounted(async () => {
 const firstName = computed(() => userStore.firstName.trim().split(" ")[0]);
 
 /**
- * Cobrado del mes. Va por moneda porque `transactions.currency` es un
- * varchar libre y pueden convivir varias; sin datos se muestra un guion.
+ * Cobrado del mes. `transactions.currency` es un varchar libre y pueden convivir
+ * varias monedas: nunca se suman. La que más cobros tuvo va grande y las demás debajo,
+ * cada una con su símbolo.
  */
-const revenueValue = computed(() => {
-  const revenue = stats.value?.revenue ?? [];
-  if (!revenue.length) return "—";
+const revenueRows = computed(() =>
+  // Por cantidad de cobros: el monto no es comparable entre monedas.
+  [...(stats.value?.revenue ?? [])].sort((a, b) => b.count - a.count),
+);
 
-  return revenue
-    .map((row) => `${row.currency} ${formatNumber(row.total)}`)
-    .join(" · ");
-});
+// El texto del monto lo arma la API con el símbolo de `currencies`.
+const revenueValue = computed(() => revenueRows.value[0]?.formatted ?? "—");
 
-const revenueHint = computed(() => {
-  const withPercent = (stats.value?.revenue ?? []).filter(
-    (row) => row.percent !== null,
-  );
-  if (!withPercent.length) return "sin mes previo para comparar";
+const revenueChange = computed(() => ({
+  percent: revenueRows.value[0]?.percent ?? null,
+  suffix: "vs. mes previo",
+}));
 
-  return withPercent
-    .map(
-      (row) =>
-        `${row.percent! >= 0 ? "+" : ""}${row.percent}% vs. mes previo`,
-    )
-    .join(" · ");
-});
+// Con varias monedas se rotula la principal y cada otra va en su fila con su variación.
+const revenueLabel = computed(() =>
+  revenueRows.value.length > 1 ? (revenueRows.value[0]?.name ?? null) : null,
+);
+
+const revenueExtra = computed(() =>
+  revenueRows.value.slice(1).map((row) => ({
+    label: row.name,
+    text: row.formatted,
+    percent: row.percent,
+  })),
+);
 
 const enrollmentsHint = computed(() => {
   const enrollments = stats.value?.enrollments;
@@ -159,7 +162,11 @@ const summary = computed(() => {
         :icon="mdiCashMultiple"
         :value="revenueValue"
         label="Cobrado este mes"
-        :hint="revenueHint"
+        :value-label="revenueLabel"
+        :change="revenueRows.length ? revenueChange : undefined"
+        :hint="revenueRows.length ? null : 'sin cobros este mes'"
+        :extra="revenueExtra"
+        :loading="loading"
         tone="success"
       />
       <StatCard
@@ -167,6 +174,7 @@ const summary = computed(() => {
         :value="stats?.enrollments.current ?? 0"
         label="Matrículas del mes"
         :hint="enrollmentsHint"
+        :loading="loading"
         tone="accent"
       />
       <StatCard
@@ -178,6 +186,7 @@ const summary = computed(() => {
             ? `${stats.offers.closingSoon} cierran matrícula pronto`
             : null
         "
+        :loading="loading"
         tone="info"
       />
       <StatCard
@@ -185,6 +194,7 @@ const summary = computed(() => {
         :value="approvalValue"
         label="Tasa de aprobación"
         :hint="approvalHint"
+        :loading="loading"
         tone="amber"
       />
     </section>

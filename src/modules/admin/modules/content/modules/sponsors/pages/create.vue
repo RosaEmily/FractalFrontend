@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { z } from "zod";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore } from "@/shared/components";
 import ImageField from "@/modules/admin/components/ui/image-field.vue";
 import FieldPreview from "../../../components/field-preview.vue";
+import SponsorPreview from "../components/sponsor-preview.vue";
+import { useObjectUrl } from "@/modules/admin/composables/useObjectUrl";
 import sponsorService from "../services/sponsor.service";
 import type { SponsorBodyDTO } from "../dto/sponsor.dto";
 
 const initialValues = ref<SponsorBodyDTO>({ name: null });
 const image = ref<File | null>(null);
+const imageUrl = useObjectUrl(image);
+const previewImage = computed(() => imageUrl.value);
 
 const formSchema = z.object({
   name: z
@@ -42,10 +46,8 @@ const formSchema = z.object({
         @select="(file) => (image = file)"
       />
 
-      <FieldPreview hint="Así se ve en la franja de patrocinadores.">
-        <span class="text-adm-base text-secondary-500">
-          {{ fields.name.value || "Nombre del patrocinador" }}
-        </span>
+      <FieldPreview hint="así se ve en el home → Patrocinadores">
+        <SponsorPreview :name="fields.name.value" :image-url="previewImage" />
       </FieldPreview>
     </template>
   </CrudForm>

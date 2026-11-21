@@ -6,6 +6,7 @@ import { useRoute } from "vue-router";
 import CrudForm from "@/modules/admin/components/Section/crud-form.vue";
 import { InputTextCore, TextAreaCore } from "@/shared/components";
 import FieldPreview from "../../../components/field-preview.vue";
+import FaqPreview from "../components/faq-preview.vue";
 import faqService from "../services/faq.service";
 import type { FaqBodyDTO } from "../dto/faq.dto";
 
@@ -68,15 +69,8 @@ onMounted(async () => {
         :message-error="errors.answer"
       />
 
-      <FieldPreview hint="Así se ve en el acordeón de FAQ.">
-        <div class="w-full">
-          <p class="font-display text-adm-md font-bold text-secondary-900">
-            {{ fields.question.value || "Tu pregunta aquí" }}
-          </p>
-          <p class="text-adm-base text-secondary-500 mt-1">
-            {{ fields.answer.value || "Tu respuesta aquí" }}
-          </p>
-        </div>
+      <FieldPreview hint="así se ve en Contacto → Preguntas frecuentes">
+        <FaqPreview :question="fields.question.value" :answer="fields.answer.value" />
       </FieldPreview>
     </template>
   </CrudForm>

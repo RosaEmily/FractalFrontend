@@ -1,12 +1,20 @@
 /** Monto cobrado en una moneda concreta. */
 export interface RevenueDTO {
   currency: string;
+  /** Símbolo y decimales vienen de la tabla `currencies`. */
+  symbol: string;
+  /** Nombre de la moneda ("Sol peruano"), de `currencies`. */
+  name: string | null;
+  decimals: number;
   total: number;
   count: number;
+  /** Monto ya formateado por la API ("S/ 4,300.00"). */
+  formatted: string;
 }
 
 export interface RevenueDeltaDTO {
   currency: string;
+  symbol: string;
   /** null cuando no hay mes previo con el que comparar. */
   percent: number | null;
 }

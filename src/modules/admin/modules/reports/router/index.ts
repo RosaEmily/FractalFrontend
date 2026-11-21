@@ -52,4 +52,29 @@ export const routesReports: RouteRecordRaw[] = [
     component: () => import("../pages/attendance.vue"),
     meta: { page: { base: { title: "Asistencia" } } },
   },
+  // Gerencia
+  {
+    path: "reports/executive",
+    name: "reports.executive",
+    component: () => import("../pages/executive.vue"),
+    meta: { page: { base: { title: "Resumen ejecutivo" } } },
+  },
+  {
+    path: "reports/aging",
+    name: "reports.aging",
+    component: () => import("../pages/aging.vue"),
+    meta: { page: { base: { title: "Antigüedad de la cobranza" } } },
+  },
+  {
+    path: "reports/complaints",
+    name: "reports.complaints",
+    component: () => import("../pages/complaints.vue"),
+    meta: { page: { base: { title: "Reclamos por vencer" } } },
+  },
+  {
+    path: "reports/retention",
+    name: "reports.retention",
+    component: () => import("../pages/retention.vue"),
+    meta: { page: { base: { title: "Retención por cohorte" } } },
+  },
 ];

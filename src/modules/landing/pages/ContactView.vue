@@ -2,6 +2,9 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LandingLayout from '../layouts/LandingLayout.vue'
+import FaqItem from '../components/blocks/FaqItem.vue'
+import ContactIntro from '../components/blocks/ContactIntro.vue'
+import type { ContactCard } from '../components/blocks/ContactIntro.vue'
 import { Checkbox } from 'primevue'
 import { isValidPhone } from '@/shared/components/core/input/phone/countries'
 import { z } from 'zod'
@@ -156,7 +159,6 @@ watch(
 // Datos que ya estaban en caché (se llegó desde otra página): la sección existe al montar.
 onMounted(() => { if (route.hash === '#faqs' && faqs.value.length) scrollToFaqs() })
 
-type ContactCard = { icon: string; label: string; value: string; sub: string; href: string; external?: boolean }
 
 /*
  * Los canales son los que cargó el panel (Sitio web → Contactos): antes estaban
@@ -208,45 +210,13 @@ onMounted(async () => {
       <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-16">
         <!-- Left: info + cards + map -->
         <div>
-          <p class="font-mono text-[0.6875rem] tracking-widest uppercase text-secondary-400 mb-3">{{ heroEyebrow }}</p>
-          <h1 class="font-display font-bold text-[clamp(48px,6vw,72px)] leading-[0.98] tracking-tight text-secondary-900 text-balance">
-            {{ heroTitle }}<br><span class="text-primary-500">{{ heroAccent }}</span>.
-          </h1>
-          <p class="font-body text-[1.0625rem] text-secondary-500 leading-relaxed mt-3 mb-9 max-w-lg text-pretty">
-            {{ heroDescription }}
-          </p>
-
-          <!-- Contact cards 2x2 -->
-          <div class="grid grid-cols-1 xs:grid-cols-2 gap-3 mb-7">
-            <a
-              v-for="c in contactCards"
-              :key="c.label"
-              :href="c.href"
-              :target="c.external ? '_blank' : undefined"
-              :rel="c.external ? 'noopener' : undefined"
-              class="bg-surface-paper border border-line rounded-lg p-5 hover:border-primary-500/40 hover:shadow-sm transition-all duration-200"
-            >
-              <div class="flex justify-between items-start mb-2.5">
-                <span class="font-mono text-[0.594rem] tracking-widest uppercase text-secondary-400">{{ c.label }}</span>
-                <div class="w-8 h-8 rounded-lg bg-accent-soft flex items-center justify-center text-primary-500 shrink-0">
-                  <svg v-if="c.icon === 'mail'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7L12 13L22 7"/>
-                  </svg>
-                  <svg v-else-if="c.icon === 'phone'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 4L7 4L9 9L7 11C8 14 10 16 13 17L15 15L20 17L20 21C17 22 10 20 7 16C4 12 3 8 3 4Z"/>
-                  </svg>
-                  <svg v-else-if="c.icon === 'pin'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22S20 14 20 9A8 8 0 1 0 4 9C4 14 12 22 12 22Z"/><circle cx="12" cy="9" r="3"/>
-                  </svg>
-                  <svg v-else-if="c.icon === 'whatsapp'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 21L4.5 16.5C2 12 4 6 9 4S20 6 20 12C20 17 14 21 9 18.5L3 21Z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="font-display text-[1rem] font-bold text-secondary-900 leading-tight mb-1 break-anywhere">{{ c.value }}</div>
-              <div class="font-body text-[0.75rem] text-secondary-400">{{ c.sub }}</div>
-            </a>
-          </div>
+          <ContactIntro
+            :eyebrow="heroEyebrow"
+            :title="heroTitle"
+            :accent="heroAccent"
+            :description="heroDescription"
+            :cards="contactCards"
+          />
 
           <!-- Map placeholder: ilustración; el enlace real es "Cómo llegar". -->
           <div v-if="address" class="bg-surface-paper border border-line rounded-lg overflow-hidden relative" style="height: 220px">
@@ -431,30 +401,14 @@ onMounted(async () => {
       </div>
 
       <div class="max-w-4xl mx-auto flex flex-col gap-3">
-        <div
+        <FaqItem
           v-for="(faq, i) in faqs"
           :key="faq.id"
-          class="bg-surface-paper rounded-lg px-6 py-5 transition-all duration-200"
-          :class="openFaq === i ? 'border border-primary-500 shadow-sm' : 'border border-line'"
-        >
-          <button
-            @click="toggleFaq(i)"
-            class="w-full flex items-center justify-between gap-4 text-left"
-          >
-            <span class="font-display text-[1.0625rem] font-semibold text-secondary-900 tracking-tight">{{ faq.question }}</span>
-            <span
-              class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-250"
-              :class="openFaq === i ? 'bg-primary-500 text-white rotate-45' : 'bg-surface-page text-secondary-900 border border-line'"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 5V19M5 12H19"/>
-              </svg>
-            </span>
-          </button>
-          <p v-if="openFaq === i" class="font-body text-[0.906rem] text-secondary-500 leading-relaxed mt-3.5 max-w-3xl">
-            {{ faq.answer }}
-          </p>
-        </div>
+          :question="faq.question"
+          :answer="faq.answer"
+          :open="openFaq === i"
+          @toggle="toggleFaq(i)"
+        />
       </div>
     </section>
   </LandingLayout>

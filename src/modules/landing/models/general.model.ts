@@ -26,6 +26,7 @@ export interface Kpi {
   id: string;
   label: string;
   value: number;
+  prefix?: string;
   suffix?: string;
   icon: FunctionalComponent;
 }

@@ -11,7 +11,7 @@ import ReportBar from "../components/report-bar.vue";
 import { exportCsv } from "../utils/export-csv";
 import offerService from "@/modules/admin/modules/catalog/modules/offers/services/offer.service";
 
-const { data, loading, apply } = useReport<AcademicReport>((filters) =>
+const { data, loading, initializing, refreshing, apply } = useReport<AcademicReport>((filters) =>
   reportService.academic(filters),
 );
 
@@ -68,11 +68,12 @@ const onExport = () =>
   <ReportLayout
     title="Rendimiento académico"
     :count="items.length"
-    :loading="loading"
+    :loading="initializing"
+    :refreshing="refreshing"
     :empty="!items.length"
   >
     <template #totals>
-      <ReportTotals :items="totalCards" />
+      <ReportTotals :items="totalCards" :loading="initializing" />
     </template>
 
     <template #filters>

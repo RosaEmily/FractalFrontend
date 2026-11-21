@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import dayjs from "dayjs";
 import { ButtonCore, DatePicketCore, HeroCore } from "@/shared/components";
 import { mdiFilterOutline, mdiTrayArrowDown } from "@mdi/js";
 
@@ -10,6 +11,8 @@ const props = defineProps<{
   loading?: boolean;
   /** Deshabilita la exportación cuando no hay filas. */
   canExport?: boolean;
+  /** Un solo selector, "Fecha de corte" (resumen ejecutivo), en vez de Desde y Hasta. */
+  cutoff?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -17,11 +20,22 @@ const emit = defineEmits<{
   (e: "export"): void;
 }>();
 
-const startOfYear = `${new Date().getFullYear()}-01-01`;
-const today = new Date().toISOString().slice(0, 10);
+// Hora local: con `toISOString()` (UTC) en Lima, de noche "hoy" ya sería mañana.
+const startOfYear = dayjs().startOf("year").format("YYYY-MM-DD");
+const today = dayjs().format("YYYY-MM-DD");
 
 const from = ref<string>(props.from ?? startOfYear);
 const to = ref<string>(props.to ?? today);
+
+/*
+ * Los reportes miran lo ya ocurrido (cobros, matrículas, notas, asistencia):
+ * no hay datos con fecha futura, así que "Hasta" no pasa de hoy y el rango
+ * no puede quedar invertido (Desde ≤ Hasta).
+ */
+const toDate = (value: string) => dayjs(value).toDate();
+const maxFrom = computed(() => toDate(to.value));
+const minTo = computed(() => toDate(from.value));
+const maxToday = dayjs().endOf("day").toDate();
 
 const apply = () => emit("apply", { from: from.value, to: to.value });
 </script>
@@ -30,7 +44,7 @@ const apply = () => emit("apply", { from: from.value, to: to.value });
   <div
     class="px-5.5 py-3.5 border-b border-line-soft bg-admin-bg flex items-end gap-3.5 flex-wrap"
   >
-    <div class="min-w-37.5">
+    <div v-if="!cutoff" class="min-w-37.5">
       <span
         class="font-mono text-adm-label text-secondary-400 tracking-wider block mb-1.5"
       >
@@ -38,6 +52,7 @@ const apply = () => emit("apply", { from: from.value, to: to.value });
       </span>
       <DatePicketCore
         v-model="from"
+        :max-date="maxFrom"
         dayjs-format-value="YYYY-MM-DD"
         :manual-input="false"
         input-class="caret-transparent cursor-pointer"
@@ -48,10 +63,12 @@ const apply = () => emit("apply", { from: from.value, to: to.value });
       <span
         class="font-mono text-adm-label text-secondary-400 tracking-wider block mb-1.5"
       >
-        HASTA
+        {{ cutoff ? "FECHA DE CORTE" : "HASTA" }}
       </span>
       <DatePicketCore
         v-model="to"
+        :min-date="cutoff ? undefined : minTo"
+        :max-date="maxToday"
         dayjs-format-value="YYYY-MM-DD"
         :manual-input="false"
         input-class="caret-transparent cursor-pointer"

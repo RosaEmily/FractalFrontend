@@ -113,7 +113,7 @@ const classesRange = computed(() =>
     <div v-if="span" class="flex flex-col gap-3">
       <div v-for="(row, index) in rows" :key="index">
         <div class="mb-1 flex items-baseline justify-between gap-2">
-          <span class="truncate text-xs font-bold" :title="row.name">{{ row.name }}</span>
+          <span class="truncate text-xs font-bold" v-tooltip.top="row.name">{{ row.name }}</span>
           <span v-if="row.weeks" class="shrink-0 font-mono text-[0.594rem] text-white/55">{{ row.weeks }} sem.</span>
         </div>
         <div class="relative h-2 rounded-full bg-white/10">

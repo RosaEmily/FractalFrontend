@@ -10,7 +10,7 @@ import ReportFiltersBar from "../components/report-filters.vue";
 import { exportCsv } from "../utils/export-csv";
 import { OCCUPANCY_STATES } from "../constants/reports";
 
-const { data, loading, apply } = useReport<OccupancyReport>((filters) =>
+const { data, loading, initializing, refreshing, apply } = useReport<OccupancyReport>((filters) =>
   reportService.occupancy(filters),
 );
 
@@ -70,11 +70,12 @@ const onExport = () =>
   <ReportLayout
     title="Ocupación de cohortes"
     :count="items.length"
-    :loading="loading"
+    :loading="initializing"
+    :refreshing="refreshing"
     :empty="!items.length"
   >
     <template #totals>
-      <ReportTotals :items="totalCards" />
+      <ReportTotals :items="totalCards" :loading="initializing" />
     </template>
 
     <template #filters>

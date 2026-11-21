@@ -4,6 +4,7 @@ import DataTable, { type DataTableFilterMeta } from "primevue/datatable";
 import Column from "primevue/column";
 import GridUiColumn from "./column/index.vue";
 import TableSkeleton from "@/modules/admin/components/ui/table-skeleton.vue";
+import EmptyStateUi from "../empty-state/index.vue";
 import AdmPagination from "@/modules/admin/components/ui/adm-pagination.vue";
 
 import { type GridUiTableExpose, type GridUiTableProps, GridKey } from "./type";
@@ -299,9 +300,11 @@ defineExpose<GridUiTableExpose>({
     -->
     <template #empty>
       <TableSkeleton v-if="isLoading" :columns="skeletonColumns" />
-      <div v-else class="flex items-center justify-center">
-        No se encontraron registros.
-      </div>
+      <EmptyStateUi
+        v-else
+        title="No se encontraron registros"
+        description="Prueba con otra búsqueda o ajusta los filtros."
+      />
     </template>
   </DataTable>
 
